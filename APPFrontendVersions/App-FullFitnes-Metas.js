@@ -4,16 +4,7 @@ import { api, useApi, LoadingCard, ErrorCard } from './api';
 // ============================================================
 // MOCK DATA
 // ============================================================
-const INITIAL_GAME = { xp: 0, xpNext: 50, coins: 0, disciplina: 0, streak: 0, level: 1 };
-
-const DEFAULT_NOTIF_CONFIG = {
-  enabled:  false,
-  habitos:  { enabled: true,  hora: "20:00", label: "Hábitos pendientes",    emoji: "🔥", msg: "¡Aún tienes hábitos sin completar hoy!" },
-  fitness:  { enabled: true,  hora: "18:00", label: "Hora de entrenar",      emoji: "💪", msg: "¡Hoy toca entrenamiento! No rompas la racha." },
-  metas:    { enabled: true,  hora: "09:00", label: "Revisión de metas",     emoji: "🎯", msg: "Revisa tus objetivos y acciones del día." },
-  pomodoro: { enabled: false, hora: "10:00", label: "Sesión de estudio",     emoji: "⏱️", msg: "¡Es hora de tu sesión de estudio! Enciende el Pomodoro." },
-  manana:   { enabled: false, hora: "07:00", label: "Rutina de mañana",      emoji: "🌅", msg: "Buenos días. Arranca tu rutina matutina en Life HUD." },
-};
+const INITIAL_GAME = { xp: 0, xpNext: 1000, coins: 0, disciplina: 0, streak: 0, level: 1 };
 
 const mapGameProfile = (data) => ({
   xp:         data.xp_points        ?? data.xp         ?? 0,
@@ -378,13 +369,12 @@ const NAV_ITEMS = [
   { icon: "💪", label: "Fitness" },
   { icon: "🥗", label: "Nutrición" },
   { icon: "🛒", label: "Shop" },
-  { icon: "⏰", label: "Rutina" },
 ];
 
 // ============================================================
 // ESTILOS GLOBALES
 // ============================================================
-const getGlobalStyles = (light = false) => `
+const GLOBAL_STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
   * { box-sizing:border-box;margin:0;padding:0; }
   ::-webkit-scrollbar { width:4px; }
@@ -397,11 +387,11 @@ const getGlobalStyles = (light = false) => `
   @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
   @keyframes phaseIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
   @keyframes modalIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
-  .page { animation:fadeSlide 0.3s ease both;-webkit-tap-highlight-color:transparent; }
-  .nav-item { display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px;border-radius:10px;cursor:pointer;transition:all 0.2s;font-size:10px;color:${light ? "#64748B" : "#4A5568"};border:1px solid transparent;font-family:'Rajdhani',sans-serif; }
+  .page { animation:fadeSlide 0.3s ease both; }
+  .nav-item { display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px;border-radius:10px;cursor:pointer;transition:all 0.2s;font-size:10px;color:#4A5568;border:1px solid transparent;font-family:'Rajdhani',sans-serif; }
   .nav-item:hover { color:#A78BFA;background:rgba(124,58,237,0.1); }
   .nav-item.active { color:#A78BFA;background:rgba(124,58,237,0.15);border-color:rgba(124,58,237,0.3);animation:pulse-glow 2s infinite; }
-  .card { background:${light ? "linear-gradient(135deg,#FFFFFF,#F8FAFC)" : "linear-gradient(135deg,#12121E 0%,#0F0F1A 100%)"};border:1px solid ${light ? "#E2E8F0" : "#1E1E30"};border-radius:12px;transition:border-color 0.2s; }
+  .card { background:linear-gradient(135deg,#12121E 0%,#0F0F1A 100%);border:1px solid #1E1E30;border-radius:12px;transition:border-color 0.2s; }
   .card:hover { border-color:rgba(124,58,237,0.25); }
   .btn-primary { background:linear-gradient(135deg,#7C3AED,#5B21B6);border:none;border-radius:8px;color:white;padding:8px 16px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;transition:all 0.15s; }
   .btn-primary:hover { transform:translateY(-1px);box-shadow:0 4px 12px rgba(124,58,237,0.4); }
@@ -420,7 +410,7 @@ const getGlobalStyles = (light = false) => `
   .panel-tab.active { background:rgba(124,58,237,0.2);border-color:rgba(124,58,237,0.4);color:#A78BFA; }
   .panel-tab:not(.active) { color:#4A5568; }
   .panel-tab:not(.active):hover { color:#A78BFA;background:rgba(124,58,237,0.07); }
-  .exercise-row { display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;margin-bottom:6px;border:1px solid ${light ? "#E2E8F0" : "#1E1E30"};cursor:pointer;transition:all 0.15s;background:${light ? "#F8FAFC" : "#0F0F18"}; }
+  .exercise-row { display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;margin-bottom:6px;border:1px solid #1E1E30;cursor:pointer;transition:all 0.15s;background:#0F0F18; }
   .exercise-row:hover { border-color:rgba(124,58,237,0.3); }
   .food-chip { padding:8px 10px;border-radius:8px;background:#0F0F18;border:1px solid #1E1E30;cursor:pointer;transition:all 0.15s;font-family:'Rajdhani',sans-serif;display:flex;flex-direction:column;align-items:center;gap:2px; }
   .food-chip:hover { border-color:rgba(16,185,129,0.4);background:rgba(16,185,129,0.06);transform:translateY(-1px); }
@@ -447,23 +437,13 @@ const getGlobalStyles = (light = false) => `
   .ai-thinking { background:linear-gradient(90deg,#12121E,#1A1230,#12121E);background-size:200% 100%;animation:shimmer 1.8s infinite;border-radius:8px;padding:14px; }
   .toast { position:fixed;bottom:24px;right:24px;padding:12px 18px;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;z-index:1001;animation:toastIn 0.3s ease both; }
   .scanline { position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(124,58,237,0.3),transparent);animation:scanline 8s linear infinite;pointer-events:none;z-index:999; }
-  .modal-bg { position:fixed;inset:0;background:${light ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.75)"};backdrop-filter:blur(5px);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto; }
-  .modal { background:${light ? "linear-gradient(145deg,#FFFFFF,#F8FAFC)" : "linear-gradient(145deg,#13131F,#0F0F1A)"};border:1px solid ${light ? "#E2E8F0" : "#2A2A3A"};border-radius:16px;padding:24px;animation:modalIn 0.25s ease both;max-height:88vh;overflow-y:auto;width:90vw;max-width:520px; }
-  input, select, textarea { font-family:'Rajdhani',sans-serif;font-size:13px;background:${light ? "#FFFFFF" : "#0F0F18"};border:1px solid ${light ? "#CBD5E1" : "#2D2D45"};border-radius:8px;color:${light ? "#1E293B" : "#F1F5F9"};padding:8px 12px;outline:none;transition:border-color 0.15s;width:100%; }
+  .modal-bg { position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(5px);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto; }
+  .modal { background:linear-gradient(145deg,#13131F,#0F0F1A);border:1px solid #2A2A3A;border-radius:16px;padding:24px;animation:modalIn 0.25s ease both;max-height:88vh;overflow-y:auto;width:90vw;max-width:520px; }
+  input, select, textarea { font-family:'Rajdhani',sans-serif;font-size:13px;background:#0F0F18;border:1px solid #2D2D45;border-radius:8px;color:#F1F5F9;padding:8px 12px;outline:none;transition:border-color 0.15s;width:100%; }
   input:focus, select:focus, textarea:focus { border-color:#7C3AED; }
   input::placeholder, textarea::placeholder { color:#4A5568; }
   .fab { position:fixed;bottom:28px;right:28px;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#10B981,#059669);border:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(16,185,129,0.5);transition:all 0.2s;z-index:100; }
   .fab:hover { transform:scale(1.1);box-shadow:0 6px 24px rgba(16,185,129,0.7); }
-  /* ── RESPONSIVE MÓVIL ── */
-  html { -webkit-text-size-adjust:100%; }
-  @media (max-width:768px) {
-    .page { padding-bottom:80px !important; }
-    .modal { width:96vw !important;max-width:96vw !important;padding:16px !important; }
-    .modal-bg { padding:16px 8px !important;align-items:flex-end !important; }
-    .fab { bottom:80px !important;right:16px !important;width:44px !important;height:44px !important;font-size:20px !important; }
-    .section-title { font-size:9px !important; }
-    .btn-primary, .btn-secondary, .btn-success, .btn-danger { padding:8px 12px !important;font-size:12px !important; }
-  }
 `;
 
 // ============================================================
@@ -484,175 +464,77 @@ const Toast = ({ msg, color, onDone }) => {
 // MODAL DE REGISTRO DE COMIDAS 🍽️
 // ============================================================
 const MealLogModal = ({ onClose, onSave, defaultType = "desayuno" }) => {
-  const [mealType, setMealType]   = useState(defaultType);
-  const [selected, setSelected]   = useState([]);   // { ...food, gramos }
-  const [pendingFood, setPendingFood] = useState(null); // food esperando gramos
-  const [pendingGramos, setPendingGramos] = useState("100");
+  const [mealType, setMealType] = useState(defaultType);
+  const [selected, setSelected] = useState([]);
   const [customName, setCustomName] = useState("");
-  const [customCal,  setCustomCal]  = useState("");
-  const [customP,    setCustomP]    = useState("");
-  const [customC,    setCustomC]    = useState("");
-  const [customF,    setCustomF]    = useState("");
+  const [customCal, setCustomCal] = useState("");
   const [search, setSearch] = useState("");
-  const [foods,  setFoods]  = useState(mockData.nutrition.quickFoods);
 
-  useEffect(() => {
-    if (search.length >= 2) {
-      api.nutricion.buscarAlimento(search)
-        .then(data => {
-          const lista = data?.foods || data || [];
-          if (lista.length > 0) {
-            setFoods(lista.map(f => ({
-              id: f.id, name: f.name,
-              cal: f.calories, p: f.protein_g, c: f.carbs_g, f: f.fat_g, emoji: "🥩",
-            })));
-          }
-        }).catch(() => {});
-    } else {
-      setFoods(mockData.nutrition.quickFoods);
-    }
-  }, [search]);
-
+  const foods = mockData.nutrition.quickFoods;
   const filtered = search
     ? foods.filter(f => f.name.toLowerCase().includes(search.toLowerCase()))
     : foods;
 
-  // Escalar nutrientes por gramos ingresados (base = 100 g)
-  const scale = (val, gramos) => Math.round(((val || 0) * gramos) / 100 * 10) / 10;
-
-  const confirmarGramos = () => {
-    const g = parseFloat(pendingGramos) || 100;
-    const f = pendingFood;
-    const item = {
-      ...f,
-      gramos: g,
-      cal: scale(f.cal, g),
-      p:   scale(f.p,   g),
-      c:   scale(f.c,   g),
-      f:   scale(f.f,   g),
-    };
-    setSelected(prev => [...prev, item]);
-    setPendingFood(null);
-    setPendingGramos("100");
-  };
-
   const total = selected.reduce((a, f) => ({
-    cal: a.cal + (f.cal || 0),
-    p:   a.p   + (f.p   || 0),
-    c:   a.c   + (f.c   || 0),
-    fat: a.fat + (f.f   || 0),
+    cal: a.cal + f.cal, p: a.p + (f.p || 0), c: a.c + (f.c || 0), fat: a.fat + (f.f || 0)
   }), { cal: 0, p: 0, c: 0, fat: 0 });
 
   const addCustom = () => {
     if (!customName || !customCal) return;
-    setSelected(prev => [...prev, {
-      id: Date.now(), name: customName, gramos: 100,
-      cal: parseFloat(customCal) || 0,
-      p:   parseFloat(customP)   || 0,
-      c:   parseFloat(customC)   || 0,
-      f:   parseFloat(customF)   || 0,
-      emoji: "🍽️",
-    }]);
-    setCustomName(""); setCustomCal(""); setCustomP(""); setCustomC(""); setCustomF("");
+    setSelected(prev => [...prev, { id: Date.now(), name: customName, cal: parseFloat(customCal), p: 0, c: 0, f: 0, emoji: "🍽️" }]);
+    setCustomName(""); setCustomCal("");
   };
 
   const mealConfig = MEAL_TYPES.find(m => m.key === mealType);
 
   const handleSave = () => {
     if (selected.length === 0) return;
-    onSave({ type: mealType, foods: selected, totalCal: Math.round(total.cal), time: new Date().toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }) });
+    onSave({ type: mealType, foods: selected, totalCal: total.cal, time: new Date().toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }) });
     onClose();
   };
 
   return (
     <div className="modal-bg" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ width: "min(580px, 96vw)", maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
+      <div className="modal" style={{ width: 560, maxHeight: "88vh", display: "flex", flexDirection: "column" }}>
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
           <div>
             <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 14, fontWeight: 700, color: "#F1F5F9" }}>🍽️ Registrar Comida</div>
-            <div style={{ fontSize: 11, color: "#64748B", marginTop: 2 }}>Selecciona un alimento → ingresa gramos → confirma</div>
+            <div style={{ fontSize: 11, color: "#64748B", marginTop: 2 }}>Selecciona tipo y agrega los alimentos</div>
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: "#64748B", cursor: "pointer", fontSize: 18 }}>✕</button>
         </div>
 
-        {/* Selector tipo de comida */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 8, marginBottom: 16 }}>
+        {/* Selector de tipo de comida */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8, marginBottom: 18 }}>
           {MEAL_TYPES.map(mt => (
             <div key={mt.key} onClick={() => setMealType(mt.key)}
               style={{ padding: "10px 8px", borderRadius: 10, textAlign: "center", cursor: "pointer", border: `2px solid ${mealType === mt.key ? mt.color : "#2D2D45"}`, background: mealType === mt.key ? `${mt.color}15` : "#0A0A14", transition: "all 0.15s" }}>
-              <div style={{ fontSize: 20 }}>{mt.icon}</div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: mealType === mt.key ? mt.color : "#64748B", marginTop: 3 }}>{mt.label}</div>
+              <div style={{ fontSize: 22 }}>{mt.icon}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: mealType === mt.key ? mt.color : "#64748B", marginTop: 3 }}>{mt.label}</div>
             </div>
           ))}
         </div>
 
-        {/* Mini-modal de gramos cuando se selecciona un alimento */}
-        {pendingFood && (
-          <div style={{ marginBottom: 12, padding: "14px 16px", borderRadius: 12, background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.3)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <div>
-                <span style={{ fontSize: 18, marginRight: 8 }}>{pendingFood.emoji}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "#F1F5F9" }}>{pendingFood.name}</span>
-                <span style={{ fontSize: 11, color: "#64748B", marginLeft: 8 }}>(valores por 100 g)</span>
-              </div>
-              <button onClick={() => { setPendingFood(null); setPendingGramos("100"); }}
-                style={{ background: "none", border: "none", color: "#64748B", cursor: "pointer", fontSize: 16 }}>✕</button>
-            </div>
-            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 10, color: "#64748B", marginBottom: 4 }}>GRAMOS A CONSUMIR</div>
-                <input type="number" value={pendingGramos} min="1" max="2000"
-                  onChange={e => setPendingGramos(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && confirmarGramos()}
-                  style={{ width: "100%", fontSize: 18, fontFamily: "'Orbitron',monospace", fontWeight: 700, textAlign: "center" }}
-                  autoFocus />
-              </div>
-              <div style={{ textAlign: "center", minWidth: 90 }}>
-                <div style={{ fontSize: 11, color: "#64748B", marginBottom: 4 }}>RESULTADO</div>
-                <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 20, fontWeight: 900, color: "#F59E0B" }}>
-                  {scale(pendingFood.cal, parseFloat(pendingGramos) || 0)}
-                </div>
-                <div style={{ fontSize: 10, color: "#64748B" }}>kcal</div>
-                <div style={{ fontSize: 10, color: "#94A3B8", marginTop: 4 }}>
-                  P:{scale(pendingFood.p, parseFloat(pendingGramos)||0)}g
-                  · C:{scale(pendingFood.c, parseFloat(pendingGramos)||0)}g
-                  · G:{scale(pendingFood.f, parseFloat(pendingGramos)||0)}g
-                </div>
-              </div>
-              <button className="btn-success" style={{ padding: "10px 16px", fontSize: 13, flexShrink: 0 }} onClick={confirmarGramos}>
-                ✓ Agregar
-              </button>
-            </div>
-          </div>
-        )}
-
         <div style={{ display: "grid", gridTemplateColumns: "1fr 200px", gap: 14, flex: 1, overflow: "hidden" }}>
-          {/* Lista de alimentos */}
+          {/* Alimentos */}
           <div style={{ display: "flex", flexDirection: "column", gap: 10, overflow: "hidden" }}>
             <input placeholder="🔍 Buscar alimento..." value={search} onChange={e => setSearch(e.target.value)} />
             <div style={{ overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
               {filtered.map(food => {
                 const inList = selected.some(s => s.id === food.id);
-                const isPending = pendingFood?.id === food.id;
                 return (
                   <div key={food.id} className="food-chip-sm"
-                    onClick={() => {
-                      if (inList) { setSelected(p => p.filter(s => s.id !== food.id)); return; }
-                      setPendingFood(food);
-                      setPendingGramos("100");
-                    }}
-                    style={{ borderColor: inList ? "rgba(16,185,129,0.5)" : isPending ? "rgba(245,158,11,0.5)" : "#1E1E30", background: inList ? "rgba(16,185,129,0.07)" : isPending ? "rgba(245,158,11,0.07)" : "#0F0F18" }}>
+                    onClick={() => inList ? setSelected(p => p.filter(s => s.id !== food.id)) : setSelected(p => [...p, food])}
+                    style={{ borderColor: inList ? "rgba(16,185,129,0.5)" : "#1E1E30", background: inList ? "rgba(16,185,129,0.07)" : "#0F0F18" }}>
                     <span style={{ fontSize: 18, flexShrink: 0 }}>{food.emoji}</span>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 12, color: "#F1F5F9", fontWeight: 600 }}>{food.name}</div>
-                      <div style={{ fontSize: 10, color: "#64748B" }}>por 100g — P:{food.p}g · C:{food.c}g · G:{food.f}g</div>
+                      <div style={{ fontSize: 10, color: "#64748B" }}>P:{food.p}g · C:{food.c}g · G:{food.f}g</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <div style={{ fontSize: 12, color: "#F59E0B", fontWeight: 700 }}>{food.cal} kcal</div>
-                      <div style={{ fontSize: 14, color: inList ? "#10B981" : isPending ? "#F59E0B" : "#374151" }}>
-                        {inList ? "✓" : isPending ? "..." : "+"}
-                      </div>
+                      <div style={{ fontSize: 14, color: inList ? "#10B981" : "#374151" }}>{inList ? "✓" : "+"}</div>
                     </div>
                   </div>
                 );
@@ -662,12 +544,9 @@ const MealLogModal = ({ onClose, onSave, defaultType = "desayuno" }) => {
             {/* Alimento personalizado */}
             <div style={{ padding: "10px", borderRadius: 8, background: "#0A0A14", border: "1px solid #1E1E30" }}>
               <div style={{ fontSize: 10, color: "#4A5568", marginBottom: 6, fontFamily: "'Orbitron',monospace", letterSpacing: 1 }}>+ PERSONALIZADO</div>
-              <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                <input placeholder="Nombre" value={customName} onChange={e => setCustomName(e.target.value)} style={{ flex: "2 1 80px", minWidth: 80 }} />
-                <input type="number" placeholder="kcal" value={customCal} onChange={e => setCustomCal(e.target.value)} style={{ flex: "1 1 50px", minWidth: 50 }} />
-                <input type="number" placeholder="P(g)" value={customP} onChange={e => setCustomP(e.target.value)} style={{ flex: "1 1 44px", minWidth: 44 }} />
-                <input type="number" placeholder="C(g)" value={customC} onChange={e => setCustomC(e.target.value)} style={{ flex: "1 1 44px", minWidth: 44 }} />
-                <input type="number" placeholder="G(g)" value={customF} onChange={e => setCustomF(e.target.value)} style={{ flex: "1 1 44px", minWidth: 44 }} />
+              <div style={{ display: "flex", gap: 6 }}>
+                <input placeholder="Nombre" value={customName} onChange={e => setCustomName(e.target.value)} style={{ flex: 2 }} />
+                <input type="number" placeholder="kcal" value={customCal} onChange={e => setCustomCal(e.target.value)} style={{ flex: 1 }} />
                 <button className="btn-success" style={{ padding: "6px 12px", fontSize: 12, flexShrink: 0 }} onClick={addCustom}>+</button>
               </div>
             </div>
@@ -677,7 +556,7 @@ const MealLogModal = ({ onClose, onSave, defaultType = "desayuno" }) => {
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ padding: "12px", borderRadius: 10, background: `${mealConfig.color}10`, border: `1px solid ${mealConfig.color}30` }}>
               <div style={{ fontSize: 11, color: "#64748B", marginBottom: 6 }}>{mealConfig.icon} {mealConfig.label}</div>
-              <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 26, fontWeight: 900, color: mealConfig.color, textAlign: "center" }}>{Math.round(total.cal)}</div>
+              <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 26, fontWeight: 900, color: mealConfig.color, textAlign: "center" }}>{total.cal}</div>
               <div style={{ fontSize: 10, color: "#64748B", textAlign: "center", marginBottom: 10 }}>kcal total</div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
                 <span style={{ color: "#7C3AED" }}>P: {total.p.toFixed(1)}g</span>
@@ -691,12 +570,9 @@ const MealLogModal = ({ onClose, onSave, defaultType = "desayuno" }) => {
                 ? <div style={{ color: "#2D2D45", fontSize: 12, textAlign: "center", padding: "16px 0" }}>Ninguno aún</div>
                 : selected.map((f, i) => (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", borderBottom: "1px solid #1A1A28", fontSize: 12 }}>
-                    <div>
-                      <span style={{ color: "#CBD5E1" }}>{f.emoji} {f.name}</span>
-                      <div style={{ fontSize: 10, color: "#64748B" }}>{f.gramos}g</div>
-                    </div>
+                    <span style={{ color: "#CBD5E1" }}>{f.emoji} {f.name}</span>
                     <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                      <span style={{ color: "#F59E0B", fontSize: 11 }}>{f.cal} kcal</span>
+                      <span style={{ color: "#F59E0B", fontSize: 11 }}>{f.cal}</span>
                       <span onClick={() => setSelected(p => p.filter((_, idx) => idx !== i))} style={{ color: "#EF4444", cursor: "pointer", fontWeight: 700, fontSize: 13 }}>×</span>
                     </div>
                   </div>
@@ -718,175 +594,68 @@ const MealLogModal = ({ onClose, onSave, defaultType = "desayuno" }) => {
 // ============================================================
 const BodyHeatMap = ({ data }) => {
   const [hovered, setHovered] = useState(null);
-
-  const hc = (v) => {
-    if (!v || v < 1)  return "#1A1A28";
-    if (v < 20)       return "#1C2A4A";
-    if (v < 40)       return "#312E81";
-    if (v < 65)       return "#6D28D9";
-    if (v < 82)       return "#F59E0B";
-    return "#EF4444";
-  };
-  const gw = (v) => {
-    if (v >= 82) return "drop-shadow(0 0 6px rgba(239,68,68,0.85))";
-    if (v >= 65) return "drop-shadow(0 0 5px rgba(245,158,11,0.75))";
-    if (v >= 40) return "drop-shadow(0 0 3px rgba(109,40,217,0.6))";
-    return "none";
-  };
-
-  // act = valor de activación muscular (0-100), ...props va al elemento SVG
-  const M = ({ shape, act, label, exercises = [], ...props }) => {
-    const El = shape || "ellipse";
-    return (
-      <El
-        {...props}
-        fill={hc(act)}
-        stroke="#080810"
-        strokeWidth="0.7"
-        style={{ filter: gw(act), cursor: "pointer", transition: "fill 0.3s, filter 0.3s" }}
-        onMouseEnter={() => setHovered({ label, v: act, exercises })}
-        onMouseLeave={() => setHovered(null)}
-      />
-    );
-  };
-
-  const F  = data?.front     || {};
-  const B  = data?.back      || {};
-  const ex = data?.exercises || {};
-
-  const silueta = (
-    <>
-      {/* Cabeza */}
-      <ellipse cx="50" cy="11" rx="10" ry="11" fill="#1A1A28" stroke="#2D2D45" strokeWidth="0.8" />
-      <rect x="45" y="22" width="10" height="8" rx="2" fill="#1A1A28" />
-      {/* Torso */}
-      <path d="M28,30 Q22,50 22,76 Q22,92 30,100 Q38,108 50,108 Q62,108 70,100 Q78,92 78,76 Q78,50 72,30 Q62,25 50,24 Q38,25 28,30 Z" fill="#0D0D1A" stroke="#1E1E30" strokeWidth="1" />
-      {/* Brazo izq */}
-      <path d="M22,35 Q10,52 9,76 Q8,91 12,101 L17,99 Q14,86 15,73 Q16,56 25,41 Z" fill="#0D0D1A" stroke="#1E1E30" strokeWidth="0.8" />
-      {/* Brazo der */}
-      <path d="M78,35 Q90,52 91,76 Q92,91 88,101 L83,99 Q86,86 85,73 Q84,56 75,41 Z" fill="#0D0D1A" stroke="#1E1E30" strokeWidth="0.8" />
-      {/* Manos */}
-      <ellipse cx="13" cy="104" rx="5" ry="7" fill="#1A1A28" stroke="#2D2D45" strokeWidth="0.5" />
-      <ellipse cx="87" cy="104" rx="5" ry="7" fill="#1A1A28" stroke="#2D2D45" strokeWidth="0.5" />
-      {/* Cadera */}
-      <path d="M30,100 Q30,116 36,126 Q42,136 50,136 Q58,136 64,126 Q70,116 70,100 Q62,106 50,106 Q38,106 30,100 Z" fill="#0D0D1A" stroke="#1E1E30" strokeWidth="1" />
-      {/* Pierna izq */}
-      <path d="M36,126 Q30,142 30,167 Q30,186 38,196 L44,196 Q37,186 37,166 Q37,143 43,129 Z" fill="#0D0D1A" stroke="#1E1E30" strokeWidth="0.8" />
-      {/* Pierna der */}
-      <path d="M64,126 Q70,142 70,167 Q70,186 62,196 L56,196 Q63,186 63,166 Q63,143 57,129 Z" fill="#0D0D1A" stroke="#1E1E30" strokeWidth="0.8" />
-      {/* Pies */}
-      <ellipse cx="39" cy="198" rx="8" ry="4" fill="#1A1A28" stroke="#2D2D45" strokeWidth="0.5" />
-      <ellipse cx="61" cy="198" rx="8" ry="4" fill="#1A1A28" stroke="#2D2D45" strokeWidth="0.5" />
-    </>
-  );
-
+  const hc = (v) => { if (!v || v < 1) return "#1A1A28"; if (v < 15) return "#1C2A4A"; if (v < 35) return "#312E81"; if (v < 55) return "#6D28D9"; if (v < 72) return "#F59E0B"; return "#EF4444"; };
+  const gw = (v) => { if (v >= 72) return "drop-shadow(0 0 4px rgba(239,68,68,0.7))"; if (v >= 55) return "drop-shadow(0 0 4px rgba(245,158,11,0.6))"; return "none"; };
+  const M = ({ shape, d: val, label, ...props }) => { const El = shape || "ellipse"; return <El {...props} fill={hc(val)} stroke="#080810" strokeWidth="0.7" className="muscle-region" style={{ filter: gw(val) }} onMouseEnter={() => setHovered({ label, v: val })} onMouseLeave={() => setHovered(null)} />; };
+  const { front: F, back: B } = data;
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-      <div style={{ display: "flex", gap: 28 }}>
-
-        {/* ── FRONTAL ── */}
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+      <div style={{ display: "flex", gap: 32 }}>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: 10, color: "#4A5568", letterSpacing: 2, marginBottom: 6, fontFamily: "'Orbitron',monospace" }}>FRONTAL</div>
-          <svg viewBox="0 0 100 210" width="115" height="220">
-            {silueta}
-            {/* Pecho */}
-            <M shape="ellipse" act={F.chest||0}      label="Pecho"           exercises={ex.chest}      cx="41" cy="46" rx="13" ry="11" />
-            <M shape="ellipse" act={F.chest||0}      label="Pecho"           exercises={ex.chest}      cx="59" cy="46" rx="13" ry="11" />
-            {/* Deltoides Anterior */}
-            <M shape="ellipse" act={F.frontDelts||0} label="Deltoides Ant."  exercises={ex.frontDelts} cx="24" cy="38" rx="9"  ry="8"  />
-            <M shape="ellipse" act={F.frontDelts||0} label="Deltoides Ant."  exercises={ex.frontDelts} cx="76" cy="38" rx="9"  ry="8"  />
-            {/* Bíceps */}
-            <M shape="ellipse" act={F.biceps||0}     label="Bíceps"          exercises={ex.biceps}     cx="14" cy="63" rx="5"  ry="12" />
-            <M shape="ellipse" act={F.biceps||0}     label="Bíceps"          exercises={ex.biceps}     cx="86" cy="63" rx="5"  ry="12" />
-            {/* Antebrazo */}
-            <M shape="ellipse" act={F.forearms||0}   label="Antebrazo"       exercises={ex.forearms}   cx="12" cy="88" rx="4"  ry="10" />
-            <M shape="ellipse" act={F.forearms||0}   label="Antebrazo"       exercises={ex.forearms}   cx="88" cy="88" rx="4"  ry="10" />
-            {/* Abdomen */}
-            <M shape="rect"    act={F.abs||0}        label="Abdomen"         exercises={ex.abs}        x="44" y="61" width="12" height="22" rx="3" />
-            {/* Oblicuos */}
-            <M shape="ellipse" act={F.obliques||0}   label="Oblicuos"        exercises={ex.obliques}   cx="34" cy="72" rx="8"  ry="14" />
-            <M shape="ellipse" act={F.obliques||0}   label="Oblicuos"        exercises={ex.obliques}   cx="66" cy="72" rx="8"  ry="14" />
-            {/* Cuádriceps */}
-            <M shape="ellipse" act={F.quads||0}      label="Cuádriceps"      exercises={ex.quads}      cx="39" cy="149" rx="9" ry="21" />
-            <M shape="ellipse" act={F.quads||0}      label="Cuádriceps"      exercises={ex.quads}      cx="61" cy="149" rx="9" ry="21" />
-            {/* Gemelos */}
-            <M shape="ellipse" act={F.calves||0}     label="Gemelos"         exercises={ex.calves}     cx="37" cy="182" rx="7" ry="12" />
-            <M shape="ellipse" act={F.calves||0}     label="Gemelos"         exercises={ex.calves}     cx="63" cy="182" rx="7" ry="12" />
+          <svg viewBox="0 0 100 210" width="105" height="210">
+            <ellipse cx="50" cy="48" rx="22" ry="32" fill="#0D0D1A" stroke="#1E1E30" strokeWidth="1" />
+            <ellipse cx="50" cy="118" rx="16" ry="24" fill="#0D0D1A" stroke="#1E1E30" strokeWidth="1" />
+            <ellipse cx="38" cy="155" rx="12" ry="22" fill="#0D0D1A" stroke="#1E1E30" strokeWidth="1" />
+            <ellipse cx="62" cy="155" rx="12" ry="22" fill="#0D0D1A" stroke="#1E1E30" strokeWidth="1" />
+            <ellipse cx="50" cy="11" rx="10" ry="11" fill="#1A1A28" stroke="#2D2D45" strokeWidth="0.8" />
+            <rect x="45" y="22" width="10" height="7" rx="2" fill="#1A1A28" />
+            <M shape="ellipse" cx="50" cy="46" rx="18" ry="13" d={F.chest} label="Pecho" />
+            <M shape="ellipse" cx="27" cy="38" rx="10" ry="7" d={F.frontDelts} label="Deltoides Ant." />
+            <M shape="ellipse" cx="73" cy="38" rx="10" ry="7" d={F.frontDelts} label="Deltoides Ant." />
+            <M shape="ellipse" cx="16" cy="62" rx="6" ry="13" d={F.biceps} label="Bíceps" />
+            <M shape="ellipse" cx="84" cy="62" rx="6" ry="13" d={F.biceps} label="Bíceps" />
+            <M shape="ellipse" cx="12" cy="87" rx="5" ry="12" d={F.forearms} label="Antebrazo" />
+            <M shape="ellipse" cx="88" cy="87" rx="5" ry="12" d={F.forearms} label="Antebrazo" />
+            <M shape="rect" x="42" y="59" width="16" height="25" rx="4" d={F.abs} label="Abdomen" />
+            <M shape="ellipse" cx="33" cy="70" rx="8" ry="14" d={F.obliques} label="Oblicuos" />
+            <M shape="ellipse" cx="67" cy="70" rx="8" ry="14" d={F.obliques} label="Oblicuos" />
+            <M shape="ellipse" cx="40" cy="118" rx="13" ry="23" d={F.quads} label="Cuádriceps" />
+            <M shape="ellipse" cx="60" cy="118" rx="13" ry="23" d={F.quads} label="Cuádriceps" />
+            <M shape="ellipse" cx="38" cy="160" rx="9" ry="16" d={F.calves} label="Gemelos" />
+            <M shape="ellipse" cx="62" cy="160" rx="9" ry="16" d={F.calves} label="Gemelos" />
           </svg>
         </div>
-
-        {/* ── POSTERIOR ── */}
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: 10, color: "#4A5568", letterSpacing: 2, marginBottom: 6, fontFamily: "'Orbitron',monospace" }}>POSTERIOR</div>
-          <svg viewBox="0 0 100 210" width="115" height="220">
-            {silueta}
-            {/* Trapecio */}
-            <M shape="path"    act={B.traps||0}      label="Trapecio"        exercises={ex.traps}      d="M30,28 Q50,22 70,28 Q65,44 50,48 Q35,44 30,28 Z" />
-            {/* Deltoides Posterior */}
-            <M shape="ellipse" act={B.rearDelts||0}  label="Deltoides Post." exercises={ex.rearDelts}  cx="23" cy="39" rx="9"  ry="8"  />
-            <M shape="ellipse" act={B.rearDelts||0}  label="Deltoides Post." exercises={ex.rearDelts}  cx="77" cy="39" rx="9"  ry="8"  />
-            {/* Dorsales */}
-            <M shape="path"    act={B.lats||0}       label="Dorsales"        exercises={ex.lats}       d="M33,49 Q22,63 22,81 Q22,91 30,98 Q38,104 50,104 Q62,104 70,98 Q78,91 78,81 Q78,63 67,49 Q60,57 50,59 Q40,57 33,49 Z" />
-            {/* Tríceps */}
-            <M shape="ellipse" act={B.triceps||0}    label="Tríceps"         exercises={ex.triceps}    cx="14" cy="63" rx="5"  ry="12" />
-            <M shape="ellipse" act={B.triceps||0}    label="Tríceps"         exercises={ex.triceps}    cx="86" cy="63" rx="5"  ry="12" />
-            {/* Antebrazo */}
-            <M shape="ellipse" act={B.forearms||0}   label="Antebrazo"       exercises={ex.forearms}   cx="12" cy="88" rx="4"  ry="10" />
-            <M shape="ellipse" act={B.forearms||0}   label="Antebrazo"       exercises={ex.forearms}   cx="88" cy="88" rx="4"  ry="10" />
-            {/* Lumbar */}
-            <M shape="rect"    act={B.lowerBack||0}  label="Lumbar"          exercises={ex.lowerBack}  x="38" y="80" width="24" height="14" rx="4" />
-            {/* Glúteos */}
-            <M shape="ellipse" act={B.glutes||0}     label="Glúteos"         exercises={ex.glutes}     cx="40" cy="110" rx="14" ry="13" />
-            <M shape="ellipse" act={B.glutes||0}     label="Glúteos"         exercises={ex.glutes}     cx="60" cy="110" rx="14" ry="13" />
-            {/* Isquiotibiales */}
-            <M shape="ellipse" act={B.hamstrings||0} label="Isquiotibiales"  exercises={ex.hamstrings} cx="39" cy="152" rx="9"  ry="21" />
-            <M shape="ellipse" act={B.hamstrings||0} label="Isquiotibiales"  exercises={ex.hamstrings} cx="61" cy="152" rx="9"  ry="21" />
-            {/* Gemelos */}
-            <M shape="ellipse" act={B.calves||0}     label="Gemelos"         exercises={ex.calves}     cx="37" cy="183" rx="7"  ry="12" />
-            <M shape="ellipse" act={B.calves||0}     label="Gemelos"         exercises={ex.calves}     cx="63" cy="183" rx="7"  ry="12" />
+          <svg viewBox="0 0 100 210" width="105" height="210">
+            <ellipse cx="50" cy="50" rx="22" ry="34" fill="#0D0D1A" stroke="#1E1E30" strokeWidth="1" />
+            <ellipse cx="50" cy="105" rx="17" ry="18" fill="#0D0D1A" stroke="#1E1E30" strokeWidth="1" />
+            <ellipse cx="38" cy="150" rx="12" ry="24" fill="#0D0D1A" stroke="#1E1E30" strokeWidth="1" />
+            <ellipse cx="62" cy="150" rx="12" ry="24" fill="#0D0D1A" stroke="#1E1E30" strokeWidth="1" />
+            <ellipse cx="50" cy="11" rx="10" ry="11" fill="#1A1A28" stroke="#2D2D45" strokeWidth="0.8" />
+            <rect x="45" y="22" width="10" height="7" rx="2" fill="#1A1A28" />
+            <M shape="ellipse" cx="50" cy="33" rx="20" ry="7" d={B.traps} label="Trapecio" />
+            <M shape="ellipse" cx="50" cy="57" rx="21" ry="20" d={B.lats} label="Dorsales" />
+            <M shape="ellipse" cx="16" cy="60" rx="6" ry="13" d={B.triceps} label="Tríceps" />
+            <M shape="ellipse" cx="84" cy="60" rx="6" ry="13" d={B.triceps} label="Tríceps" />
+            <M shape="ellipse" cx="12" cy="85" rx="5" ry="12" d={B.triceps} label="Antebrazo" />
+            <M shape="ellipse" cx="88" cy="85" rx="5" ry="12" d={B.triceps} label="Antebrazo" />
+            <M shape="rect" x="38" y="75" width="24" height="14" rx="4" d={B.lowerBack} label="Lumbar" />
+            <M shape="ellipse" cx="40" cy="98" rx="14" ry="11" d={B.glutes} label="Glúteos" />
+            <M shape="ellipse" cx="60" cy="98" rx="14" ry="11" d={B.glutes} label="Glúteos" />
+            <M shape="ellipse" cx="39" cy="132" rx="12" ry="22" d={B.hamstrings} label="Isquiotibiales" />
+            <M shape="ellipse" cx="61" cy="132" rx="12" ry="22" d={B.hamstrings} label="Isquiotibiales" />
+            <M shape="ellipse" cx="38" cy="165" rx="9" ry="16" d={B.calvesBack} label="Gemelos" />
+            <M shape="ellipse" cx="62" cy="165" rx="9" ry="16" d={B.calvesBack} label="Gemelos" />
           </svg>
         </div>
       </div>
-
-      {/* Tooltip al hacer hover */}
-      <div style={{ minHeight: 44, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        {hovered ? (
-          <div style={{ textAlign: "center" }}>
-            <div style={{ padding: "5px 16px", borderRadius: 999, background: "rgba(124,58,237,0.2)", border: "1px solid rgba(124,58,237,0.4)", fontSize: 12, color: "#A78BFA", fontWeight: 700, display: "inline-block" }}>
-              {hovered.label} —{" "}
-              <span style={{ color: hovered.v >= 82 ? "#EF4444" : hovered.v >= 65 ? "#F59E0B" : hovered.v >= 40 ? "#A78BFA" : "#6D28D9" }}>
-                {hovered.v}%
-              </span>
-            </div>
-            {hovered.exercises?.length > 0 && (
-              <div style={{ fontSize: 10, color: "#4A5568", marginTop: 4 }}>
-                {hovered.exercises.slice(0, 3).join(" · ")}
-              </div>
-            )}
-            {hovered.v === 0 && (
-              <div style={{ fontSize: 10, color: "#2D2D45", marginTop: 3 }}>No trabajado esta semana</div>
-            )}
-          </div>
-        ) : (
-          <div style={{ fontSize: 11, color: "#2D2D45" }}>Pasa el cursor sobre un músculo</div>
-        )}
+      <div style={{ height: 28, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {hovered ? <div style={{ padding: "4px 14px", borderRadius: 999, background: "rgba(124,58,237,0.2)", border: "1px solid rgba(124,58,237,0.4)", fontSize: 12, color: "#A78BFA", fontWeight: 700 }}>{hovered.label} — <span style={{ color: hovered.v >= 72 ? "#EF4444" : hovered.v >= 55 ? "#F59E0B" : "#A78BFA" }}>{hovered.v}%</span></div> : <div style={{ fontSize: 11, color: "#2D2D45" }}>Pasa el cursor sobre un músculo</div>}
       </div>
-
-      {/* Leyenda */}
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
-        {[
-          { l: "Sin trabajo", c: "#1A1A28" },
-          { l: "Bajo",        c: "#1C2A4A" },
-          { l: "Medio",       c: "#312E81" },
-          { l: "Alto",        c: "#6D28D9" },
-          { l: "Intenso",     c: "#F59E0B" },
-          { l: "Máximo",      c: "#EF4444" },
-        ].map(x => (
-          <div key={x.l} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <div style={{ width: 10, height: 10, borderRadius: 2, background: x.c, border: "1px solid #2D2D45" }} />
-            <span style={{ fontSize: 10, color: "#64748B" }}>{x.l}</span>
-          </div>
-        ))}
+        {[{ l: "Sin trabajo", c: "#1C2A4A" }, { l: "Bajo", c: "#312E81" }, { l: "Medio", c: "#6D28D9" }, { l: "Alto", c: "#F59E0B" }, { l: "Máximo", c: "#EF4444" }].map(x => <div key={x.l} style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 10, height: 10, borderRadius: 2, background: x.c }} /><span style={{ fontSize: 10, color: "#64748B" }}>{x.l}</span></div>)}
       </div>
     </div>
   );
@@ -898,162 +667,34 @@ const BodyHeatMap = ({ data }) => {
 // (desde "const DashPanelFitness" hasta antes de "// PÁGINA: OBJETIVOS")
 // ============================================================
 
-const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, onNavigate }) => {
+const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal }) => {
   const [panelTab, setPanelTab] = useState("fitness");
-  const [exercises, setExercises] = useState([]);
-  const aguaKey = `lifehud_agua_${new Date().toISOString().split('T')[0]}`;
-  const [agua, setAgua] = useState(() => parseInt(localStorage.getItem(`lifehud_agua_${new Date().toISOString().split('T')[0]}`) || '0'));
+  const [exercises, setExercises] = useState(mockData.fitness.todayRoutine.exercises);
+  const [agua, setAgua] = useState(Math.round(mockData.nutrition.water.consumed / mockData.nutrition.water.goal * 8));
+  const [feedItems] = useState([
+    { icon: "💪", texto: "Completaste Push Day", tiempo: "hace 2h",  color: "#EF4444" },
+    { icon: "📚", texto: "45min de estudio Python", tiempo: "hace 3h",  color: "#7C3AED" },
+    { icon: "💰", texto: "Ingreso registrado +$3,500", tiempo: "hace 5h",  color: "#10B981" },
+    { icon: "🔄", texto: "Hábito: Lectura completado", tiempo: "ayer",     color: "#06B6D4" },
+    { icon: "🎯", texto: "Hito desbloqueado: $10k ahorrados", tiempo: "ayer", color: "#F59E0B" },
+  ]);
 
-  const agregarVaso = () => {
-    setAgua(prev => {
-      const nuevo = Math.min(prev + 1, 8);
-      localStorage.setItem(aguaKey, String(nuevo));
-      api.nutricion.registrarAgua(250).catch(() => {});
-      return nuevo;
-    });
-  };
-  const [feedItems, setFeedItems] = useState([]);
-  const [dashFinanzas, setDashFinanzas] = useState({ balance: 0, monthIncome: 0, monthExpense: 0, savingsRate: 0 });
-  const [dashNutricion, setDashNutricion] = useState(() => {
-    const calM = parseInt(localStorage.getItem('lifehud_cal_meta') || '2200');
-    const mm   = JSON.parse(localStorage.getItem('lifehud_macros_meta') || '{}');
-    return { calories: { consumed: 0, goal: calM }, macros: { protein: { consumed: 0, goal: mm.proteina||150 }, carbs: { consumed: 0, goal: mm.carbs||250 }, fat: { consumed: 0, goal: mm.grasa||80 } }, water: { consumed: 0, goal: 2.5 } };
-  });
-  const [dashFitness, setDashFitness] = useState({ streak: 0 });
-  const [dashSkills, setDashSkills] = useState([]);
-  const [dashCursos, setDashCursos] = useState([]);
-  const [weekProgress, setWeekProgress] = useState([0,0,0,0,0,0,0]);
-  const [alertasReales, setAlertasReales] = useState([]);
-  const [barrilesReales, setBarrilesReales] = useState([]);
-  const [activeGoalDash, setActiveGoalDash] = useState(null);
-  // Nutrición: leer meta calórica y minutos de estudio de localStorage
-  const calMetaDash  = parseInt(localStorage.getItem('lifehud_cal_meta') || '2200');
-  const studyHoy     = (() => {
-    const key = `lifehud_study_${new Date().toISOString().split('T')[0]}`;
-    return parseInt(localStorage.getItem(key) || '0');
-  })();
-  const studyMeta    = 60;
+  const f  = mockData.finance;
+  const n  = mockData.nutrition;
+  const l  = mockData.learning;
+  const fi = mockData.fitness;
 
-  useEffect(() => {
-    // Finanzas
-    api.finanzas.resumen()
-      .then(d => {
-        const bal  = parseFloat(d.balance       || 0);
-        const inc  = parseFloat(d.total_income  || 0);
-        const exp  = parseFloat(d.total_expenses|| 0);
-        setDashFinanzas({ balance: bal, monthIncome: inc, monthExpense: exp, savingsRate: d.savings_rate || 0 });
-        // Alertas reales de presupuesto desde categorías
-        fetch("http://127.0.0.1:8000/api/v1/finance/categories", {
-          headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
-        }).then(r => r.json()).then(cats => {
-          const alertas = (cats || [])
-            .filter(c => c.spent > 0 && c.budget > 0)
-            .map(c => ({ cat: c.name, emoji: c.icon || "📊", pct: Math.round((c.spent / c.budget) * 100), excedido: c.spent > c.budget }))
-            .filter(a => a.pct >= 80)
-            .slice(0, 3);
-          setAlertasReales(alertas);
-        }).catch(() => {});
-        // Barriles / metas de ahorro
-        fetch("http://127.0.0.1:8000/api/v1/finance/barrels", {
-          headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
-        }).then(r => r.json()).then(data => {
-          setBarrilesReales((data || []).slice(0, 2).map(b => ({
-            name: b.name, emoji: b.emoji || "🎯",
-            current: parseFloat(b.current_amount || b.current || 0),
-            goal:    parseFloat(b.goal_amount    || b.goal    || 1),
-            color:   b.color || "#7C3AED",
-          })));
-        }).catch(() => {});
-      }).catch(() => {});
-
-    // Nutrición — usar calorías de localStorage (más fiable que backend)
-    const todayKey = `lifehud_meals_${new Date().toISOString().split('T')[0]}`;
-    const mealsHoy = JSON.parse(localStorage.getItem(todayKey) || '[]');
-    const calCons  = mealsHoy.reduce((s, m) => s + (m.calories || 0), 0);
-    const macrosMeta = JSON.parse(localStorage.getItem('lifehud_macros_meta') || '{}');
-    setDashNutricion({
-      calories: { consumed: calCons, goal: calMetaDash },
-      macros: {
-        protein: { consumed: mealsHoy.reduce((s,m) => s + m.foods?.reduce((a,f)=>a+(f.p||0),0)||0, 0), goal: macrosMeta.proteina || 150 },
-        carbs:   { consumed: mealsHoy.reduce((s,m) => s + m.foods?.reduce((a,f)=>a+(f.c||0),0)||0, 0), goal: macrosMeta.carbs    || 250 },
-        fat:     { consumed: mealsHoy.reduce((s,m) => s + m.foods?.reduce((a,f)=>a+(f.f||0),0)||0, 0), goal: macrosMeta.grasa    || 80  },
-      },
-      water: { consumed: 0, goal: 2.5 },
-    });
-    // También intentar agua del backend
-    api.nutricion.resumenHoy()
-      .then(d => setAgua(Math.round((d.water_consumed_ml || 0) / 250)))
-      .catch(() => {});
-
-    // Fitness
-    api.fitness.resumen()
-      .then(d => {
-        setDashFitness({ streak: d.current_streak || 0 });
-        setExercises((d.today_exercises || []).map(e => ({ ...e, done: false })));
-      }).catch(() => {});
-
-    // Learning — skills + cursos
-    api.learning.skills()
-      .then(d => setDashSkills((d || []).slice(0, 3).map(s => ({
-        name: s.name, icon: "💡", level: s.current_level,
-        xp: s.xp_accumulated || 0, xpNext: 3000,
-        hours: s.hours_invested || 0, color: "#06B6D4",
-      })))).catch(() => {});
-    api.learning.cursos()
-      .then(d => setDashCursos((d || []).slice(0, 2).map(c => ({
-        id: c.id, name: c.name, icon: "🎓",
-        progress: c.progress_percentage || 0,
-        color: "#7C3AED",
-      })))).catch(() => {});
-
-    // Progreso semanal — calcular desde localStorage de hábitos + tareas
-    const dias7 = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(); d.setDate(d.getDate() - (6 - i));
-      const fecha = d.toISOString().split('T')[0];
-      const mealsCal = (() => { try { return JSON.parse(localStorage.getItem(`lifehud_meals_${fecha}`) || '[]').length > 0 ? 25 : 0; } catch { return 0; } })();
-      const studied  = parseInt(localStorage.getItem(`lifehud_study_${fecha}`) || '0') > 0 ? 25 : 0;
-      const trained  = localStorage.getItem('lifehud_fitness_hoy') === fecha ? 25 : 0;
-      return Math.min(mealsCal + studied + trained + (i === 6 ? 0 : 10), 100);
-    });
-    setWeekProgress(dias7);
-
-    // Objetivo activo del dashboard
-    try {
-      const goals = JSON.parse(localStorage.getItem('lifehud_goals') || '[]');
-      if (goals.length > 0) setActiveGoalDash(goals[0]);
-    } catch {}
-
-    // Feed de actividad reciente
-    const feed = [];
-    const fitnessHoy = localStorage.getItem('lifehud_fitness_hoy');
-    const hoyStr = new Date().toISOString().split('T')[0];
-    if (fitnessHoy === hoyStr) feed.push({ icon: "💪", texto: "Entrenamiento completado hoy", tiempo: "Hoy", color: "#EF4444" });
-    if (mealsHoy.length > 0) feed.push({ icon: "🍽️", texto: `${mealsHoy.length} comida${mealsHoy.length>1?'s':''} registrada${mealsHoy.length>1?'s':''}`, tiempo: "Hoy", color: "#10B981" });
-    if (studyHoy > 0) feed.push({ icon: "📚", texto: `${studyHoy} min de estudio registrados`, tiempo: "Hoy", color: "#7C3AED" });
-    setFeedItems(feed);
-  }, []);
-
-  const f  = dashFinanzas;
-  const n  = dashNutricion;
-  const fi = dashFitness;
-  const l  = { skills: dashSkills, courses: dashCursos, todayMinutes: studyHoy, todayGoal: studyMeta,
-    weekStudy: Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(); d.setDate(d.getDate() - (6 - i));
-      return parseInt(localStorage.getItem(`lifehud_study_${d.toISOString().split('T')[0]}`) || '0');
-    }),
-  };
-
-  const doneTasks  = tasks.filter(t => t.done || t.status === "completed").length;
-  const doneHabits = habits.filter(h => h.history?.[h.history.length-1]?.done).length;
+  const doneTasks  = tasks.filter(t => t.done).length;
+  const doneHabits = habits.filter(h => h.done).length;
   const doneExercises = exercises.filter(e => e.done).length;
-  const ahorro = f.monthIncome - f.monthExpense;
+  const ahorro = mockData.finance.monthIncome - mockData.finance.monthExpense;
 
   // ── Día Perfecto ────────────────────────────────────────────
   const diaPerfecto = [
     { label: "Tareas",   done: doneTasks,          total: tasks.length,          color: "#7C3AED" },
     { label: "Hábitos",  done: doneHabits,          total: habits.length,         color: "#10B981" },
     { label: "Ejercicio",done: doneExercises,        total: exercises.length,      color: "#EF4444" },
-    { label: "Estudio",  done: studyHoy, total: studyMeta, color: "#A78BFA" },
+    { label: "Estudio",  done: Math.min(l.todayMinutes, l.todayGoal), total: l.todayGoal, color: "#A78BFA" },
     { label: "Agua",     done: agua,                total: 8,                     color: "#06B6D4" },
   ];
   const puntajeDia = Math.round(
@@ -1061,8 +702,11 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
   );
   const diaColor = puntajeDia >= 80 ? "#10B981" : puntajeDia >= 50 ? "#F59E0B" : "#EF4444";
 
-  // ── Alertas finanzas — datos reales ────────────────────────
-  const alertasPresupuesto = alertasReales.length > 0 ? alertasReales : [];
+  // ── Alertas finanzas ─────────────────────────────────────────
+  const alertasPresupuesto = [
+    { cat: "Entretenimiento", emoji: "📺", pct: 136, excedido: true },
+    { cat: "Vivienda",         emoji: "🏠", pct: 100, excedido: false },
+  ];
 
   // ── Panel lateral rotativo ───────────────────────────────────
   const renderPanel = () => {
@@ -1071,12 +715,12 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
       return (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 13, color: "#CBD5E1", fontWeight: 700 }}>🏋️ {fi.todayRoutine?.name || "Sin rutina hoy"}</span>
+            <span style={{ fontSize: 13, color: "#CBD5E1", fontWeight: 700 }}>🏋️ {fi.todayRoutine.name}</span>
             <span style={{ fontFamily: "'Orbitron',monospace", fontSize: 12, color: "#EF4444" }}>{done}/{exercises.length}</span>
           </div>
           <ProgressBar value={done} max={exercises.length} color="#EF4444" height={5} />
           <div style={{ display: "flex", gap: 4 }}>
-            {(fi.weekWorkouts || []).map((t, i) => (
+            {fi.weekWorkouts.map((t, i) => (
               <div key={i} style={{ flex: 1, height: 24, borderRadius: 5, background: t ? "rgba(239,68,68,0.2)" : "#1A1A28", border: `1px solid ${t ? "#EF4444" : "#2D2D45"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10 }}>
                 {t ? "🔥" : ""}
               </div>
@@ -1090,11 +734,7 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
               <span style={{ fontSize: 10, color: "#64748B" }}>{ex.sets}×{ex.reps}</span>
             </div>
           ))}
-          <div style={{ fontSize: 11, color: "#64748B", textAlign: "center", marginTop: 4 }}>🔥 Racha: <span style={{ color: "#EF4444", fontWeight: 700 }}>{fi.streak || 0} días</span></div>
-          <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-            <button onClick={() => onNavigate && onNavigate(6)} className="btn-secondary" style={{ flex: 1, fontSize: 11, padding: "6px 4px" }}>💪 Entrenar</button>
-            <button onClick={() => onNavigate && onNavigate(6)} className="btn-secondary" style={{ flex: 1, fontSize: 11, padding: "6px 4px" }}>📊 Ver más</button>
-          </div>
+          <div style={{ fontSize: 11, color: "#64748B", textAlign: "center", marginTop: 4 }}>🔥 Racha: <span style={{ color: "#EF4444", fontWeight: 700 }}>{fi.streak} días</span></div>
         </div>
       );
     }
@@ -1131,7 +771,7 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
           </div>
           <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
             {Array.from({ length: 8 }, (_, i) => (
-              <div key={i} onClick={() => { if (i >= agua) agregarVaso(); else setAgua(i); }}
+              <div key={i} onClick={() => setAgua(a => i < a ? i : i + 1)}
                 style={{ fontSize: 16, cursor: "pointer", opacity: i < agua ? 1 : 0.25, transition: "all 0.15s" }}>💧</div>
             ))}
             <span style={{ fontSize: 10, color: "#06B6D4", marginLeft: 4, alignSelf: "center" }}>{agua}/8 vasos</span>
@@ -1145,16 +785,16 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
       return (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 12px", borderRadius: 8, background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.2)" }}>
-            <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 22, fontWeight: 900, color: "#A78BFA" }}>{l.todayMinutes || 0}m</div>
+            <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 22, fontWeight: 900, color: "#A78BFA" }}>{l.todayMinutes}m</div>
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 }}>
                 <span style={{ color: "#64748B" }}>Hoy</span>
                 <span style={{ color: "#A78BFA" }}>Meta: {l.todayGoal}m</span>
               </div>
-              <ProgressBar value={l.todayMinutes || 0} max={l.todayGoal || 60} color="#7C3AED" height={4} />
+              <ProgressBar value={l.todayMinutes} max={l.todayGoal} color="#7C3AED" height={4} />
             </div>
           </div>
-          {(l.courses || []).slice(0, 2).map(c => (
+          {l.courses.slice(0, 2).map(c => (
             <div key={c.id} style={{ padding: "8px 10px", borderRadius: 7, background: "#0F0F18", border: "1px solid #1E1E30" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                 <span style={{ fontSize: 12, color: "#F1F5F9", fontWeight: 600 }}>{c.icon} {c.name}</span>
@@ -1164,7 +804,7 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
             </div>
           ))}
           <div style={{ display: "flex", gap: 4 }}>
-            {(l.weekStudy || []).map((m, i) => (
+            {l.weekStudy.map((m, i) => (
               <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
                 <div style={{ width: "100%", height: 36, background: "#1A1A28", borderRadius: 3, display: "flex", alignItems: "flex-end" }}>
                   <div style={{ width: "100%", height: `${Math.min((m / 120) * 100, 100)}%`, borderRadius: 3, background: m > 0 ? "#7C3AED" : "#1A1A28" }} />
@@ -1173,17 +813,12 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
               </div>
             ))}
           </div>
-          {(l.skills || []).slice(0, 2).map((s, i) => (
+          {l.skills.slice(0, 2).map((s, i) => (
             <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, padding: "5px 0", borderBottom: "1px solid #1A1A28" }}>
               <span style={{ color: "#94A3B8" }}>{s.icon} {s.name}</span>
               <span className="tag" style={{ background: `${s.color}20`, color: s.color }}>{s.level}</span>
             </div>
           ))}
-          <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-            <button onClick={() => onNavigate && onNavigate(5)} className="btn-secondary" style={{ flex: 1, fontSize: 11, padding: "6px 4px" }}>📚 Cursos</button>
-            <button onClick={() => onNavigate && onNavigate(5)} className="btn-secondary" style={{ flex: 1, fontSize: 11, padding: "6px 4px" }}>🃏 Cards</button>
-            <button onClick={() => onNavigate && onNavigate(5)} className="btn-secondary" style={{ flex: 1, fontSize: 11, padding: "6px 4px" }}>⏱ Pomodoro</button>
-          </div>
         </div>
       );
     }
@@ -1193,9 +828,9 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
             {[
-              { label: "Balance",  value: `$${(f.balance / 1000).toFixed(1)}k`, color: "#F1F5F9", icon: "💳" },
-              { label: "Ingresos", value: `+$${(f.monthIncome / 1000).toFixed(1)}k`, color: "#10B981", icon: "📈" },
-              { label: "Gastos",   value: `-$${(f.monthExpense / 1000).toFixed(1)}k`, color: "#EF4444", icon: "📉" },
+              { label: "Balance",  value: `$${(mockData.finance.balance / 1000).toFixed(1)}k`, color: "#F1F5F9", icon: "💳" },
+              { label: "Ingresos", value: `+$${(mockData.finance.monthIncome / 1000).toFixed(1)}k`, color: "#10B981", icon: "📈" },
+              { label: "Gastos",   value: `-$${(mockData.finance.monthExpense / 1000).toFixed(1)}k`, color: "#EF4444", icon: "📉" },
             ].map((s, i) => (
               <div key={i} style={{ padding: "7px 6px", borderRadius: 7, background: "#0F0F18", border: "1px solid #1E1E30", textAlign: "center" }}>
                 <div style={{ fontSize: 14 }}>{s.icon}</div>
@@ -1204,10 +839,10 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
               </div>
             ))}
           </div>
-          {barrilesReales.map((b, i) => {
+          {[].slice(0, 2).map(b => {
             const pct = Math.round((b.current / b.goal) * 100);
             return (
-              <div key={i} style={{ padding: "7px 10px", borderRadius: 7, background: "#0F0F18", border: "1px solid #1E1E30" }}>
+              <div key={b.name} style={{ padding: "7px 10px", borderRadius: 7, background: "#0F0F18", border: "1px solid #1E1E30" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                   <span style={{ fontSize: 12, color: "#F1F5F9", fontWeight: 600 }}>{b.emoji} {b.name}</span>
                   <span style={{ fontSize: 10, color: b.color, fontWeight: 700 }}>{pct}%</span>
@@ -1267,31 +902,10 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
         <div style={{ display: "flex", gap: 8, paddingTop: 10, borderTop: "1px solid #1A1A28" }}>
           <span style={{ fontSize: 11, color: "#4A5568", marginRight: 4, alignSelf: "center" }}>Acción rápida:</span>
           {[
-            { label: "💧 +Agua", action: agregarVaso, color: "#06B6D4" },
-            { label: "🍽️ Comida", action: onLogMeal, color: "#10B981" },
-            { label: "✅ Tarea hecha", action: async () => {
-                const t = tasks.find(t => !t.done);
-                if (!t) return;
-                try {
-                  await fetch(`http://127.0.0.1:8000/api/v1/tasks/${t.id}/complete`, {
-                    method: "POST",
-                    headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" }
-                  });
-                } catch(_) {}
-                setTasks(p => p.map(x => x.id === t.id ? { ...x, done: true, status: "completed" } : x));
-              }, color: "#7C3AED" },
-            { label: "🔄 Hábito", action: async () => {
-                const h = habits.find(h => !h.done);
-                if (!h) return;
-                try {
-                  await fetch(`http://127.0.0.1:8000/api/v1/habits/${h.id}/complete`, {
-                    method: "POST",
-                    headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({})
-                  });
-                } catch(_) {}
-                setHabits(p => p.map(x => x.id === h.id ? { ...x, done: true, streak: Math.max(x.streak, 1) } : x));
-              }, color: "#10B981" },
+            { label: "💧 +Agua",       action: () => setAgua(a => Math.min(a + 1, 8)), color: "#06B6D4" },
+            { label: "🍽️ Comida",      action: onLogMeal,                               color: "#10B981" },
+            { label: "✅ Tarea hecha", action: () => { const t = tasks.find(t => !t.done); if(t) setTasks(p => p.map(x => x.id===t.id ? {...x, done: true} : x)); }, color: "#7C3AED" },
+            { label: "🔄 Hábito",      action: () => { const h = habits.find(h => !h.done); if(h) setHabits(p => p.map(x => x.id===h.id ? {...x, done: true} : x)); }, color: "#10B981" },
           ].map((w, i) => (
             <button key={i} onClick={w.action}
               style={{ padding: "5px 12px", borderRadius: 999, border: `1px solid ${w.color}30`, background: `${w.color}10`, color: w.color, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'Rajdhani',sans-serif", transition: "all 0.15s" }}>
@@ -1324,48 +938,36 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
         {/* Columna izquierda */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
-          {/* Objetivo principal — datos reales */}
-          <div className="card" style={{ padding: 18, borderTop: `3px solid ${activeGoalDash?.roadmap?.color || "#7C3AED"}` }}>
+          {/* Objetivo principal */}
+          <div className="card" style={{ padding: 18, borderTop: "3px solid #7C3AED" }}>
             <div className="section-title">🎯 Objetivo Principal</div>
-            {activeGoalDash ? (
-              <>
-                <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
-                  <span style={{ fontSize: 32 }}>{activeGoalDash.roadmap?.emoji || "🎯"}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "#F1F5F9", marginBottom: 2 }}>{activeGoalDash.title}</div>
-                    <div style={{ fontSize: 11, color: "#64748B" }}>Ahorro mensual: ${ahorro.toLocaleString()} MXN</div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 22, fontWeight: 900, color: activeGoalDash.roadmap?.color || "#7C3AED" }}>
-                      {activeGoalDash.progress}%
-                    </div>
-                  </div>
-                </div>
-                <ProgressBar value={activeGoalDash.progress} max={100} color={activeGoalDash.roadmap?.color || "#7C3AED"} height={8} />
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginTop: 8 }}>
-                  <span style={{ color: "#10B981", fontWeight: 700 }}>{activeGoalDash.hitos?.filter(h=>h.done).length || 0}/{activeGoalDash.hitos?.length || 0} hitos</span>
-                  <span style={{ color: "#4A5568" }}>Sprint: {activeGoalDash.sprint?.tareas?.filter(t=>t.done).length || 0}/{activeGoalDash.sprint?.tareas?.length || 0} tareas</span>
-                </div>
-                {activeGoalDash.roadmap?.dailyPlan?.aiTip && (
-                  <div style={{ marginTop: 10, padding: "9px 12px", borderRadius: 8, background: "rgba(6,182,212,0.07)", border: "1px solid rgba(6,182,212,0.2)", fontSize: 11, color: "#67E8F9", lineHeight: 1.6 }}>
-                    🤖 {activeGoalDash.roadmap.dailyPlan.aiTip.substring(0, 120)}{activeGoalDash.roadmap.dailyPlan.aiTip.length > 120 ? "..." : ""}
-                  </div>
-                )}
-              </>
-            ) : (
-              <div style={{ textAlign: "center", padding: "20px 0", color: "#4A5568" }}>
-                <div style={{ fontSize: 32, marginBottom: 8 }}>🎯</div>
-                <div style={{ fontSize: 12, marginBottom: 12 }}>Sin objetivos activos</div>
-                <button className="btn-primary" style={{ fontSize: 11 }} onClick={() => onNavigate && onNavigate(3)}>+ Crear objetivo</button>
+            <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
+              <span style={{ fontSize: 32 }}>🚗</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#F1F5F9", marginBottom: 2 }}>Mi Primer Auto</div>
+                <div style={{ fontSize: 11, color: "#64748B" }}>Meta: $40,000 MXN · Ahorro: ${ahorro.toLocaleString()}/mes</div>
               </div>
-            )}
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 22, fontWeight: 900, color: "#7C3AED" }}>
+                  {Math.round((mockData.finance.balance / 40000) * 100)}%
+                </div>
+              </div>
+            </div>
+            <ProgressBar value={mockData.finance.balance} max={40000} color="#7C3AED" height={8} />
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginTop: 8 }}>
+              <span style={{ color: "#10B981", fontWeight: 700 }}>${mockData.finance.balance.toLocaleString()} ahorrados</span>
+              <span style={{ color: "#4A5568" }}>$40,000 meta</span>
+            </div>
+            <div style={{ marginTop: 10, padding: "9px 12px", borderRadius: 8, background: "rgba(6,182,212,0.07)", border: "1px solid rgba(6,182,212,0.2)", fontSize: 11, color: "#67E8F9", lineHeight: 1.6 }}>
+              🤖 A este ritmo lo logras en <strong>{Math.ceil((40000 - mockData.finance.balance) / ahorro)} meses</strong>. Con $1k extra/mes llegarías en {Math.ceil((40000 - mockData.finance.balance) / (ahorro + 1000))} meses.
+            </div>
           </div>
 
           {/* Progreso semanal */}
           <div className="card" style={{ padding: 18, flex: 1 }}>
             <div className="section-title">📊 Progreso Semanal</div>
             <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 80, marginBottom: 8 }}>
-              {weekProgress.map((v, i) => (
+              {mockData.weekProgress.map((v, i) => (
                 <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
                   <div style={{ flex: 1, width: "100%", background: "#1A1A28", borderRadius: 4, display: "flex", alignItems: "flex-end" }}>
                     <div style={{ width: "100%", height: `${v}%`, borderRadius: 4, background: i === 6 ? "linear-gradient(0deg,#7C3AED,#A78BFA)" : i === 5 ? "#2D3A5A" : "#2D2D45", transition: "all 0.3s" }} />
@@ -1376,9 +978,9 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
             </div>
             <div style={{ display: "flex", justify: "space-between", gap: 10 }}>
               {[
-                { label: "Mejor día", value: `${Math.max(...weekProgress)}%`, color: "#10B981" },
-                { label: "Promedio",  value: `${Math.round(weekProgress.reduce((a,b)=>a+b,0)/7)}%`, color: "#A78BFA" },
-                { label: "Hoy",       value: `${weekProgress[6]}%`, color: "#06B6D4" },
+                { label: "Mejor día", value: `${Math.max(...mockData.weekProgress)}%`, color: "#10B981" },
+                { label: "Promedio",  value: `${Math.round(mockData.weekProgress.reduce((a,b)=>a+b,0)/7)}%`, color: "#A78BFA" },
+                { label: "Hoy",       value: `${mockData.weekProgress[6]}%`, color: "#06B6D4" },
               ].map((s, i) => (
                 <div key={i} style={{ flex: 1, padding: "7px 8px", borderRadius: 7, background: "#0A0A12", textAlign: "center" }}>
                   <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 13, fontWeight: 700, color: s.color }}>{s.value}</div>
@@ -1416,31 +1018,12 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
               </div>
             </div>
             {tasks.map(task => {
-              const prioMap = { alta: "high", media: "medium", baja: "low", high: "high", medium: "medium", low: "low" };
-              const prioKey = prioMap[task.priority] || prioMap[task.prioridad] || "medium";
-              const p = priorityConfig[prioKey] || priorityConfig.medium;
+              const p = priorityConfig[task.priority];
               return (
-                <div key={task.id} onClick={async () => {
-                  const nuevoDone = !task.done;
-                  try {
-                    if (nuevoDone) {
-                      await fetch(`http://127.0.0.1:8000/api/v1/tasks/${task.id}/complete`, {
-                        method: "POST",
-                        headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" }
-                      });
-                    } else {
-                      await fetch(`http://127.0.0.1:8000/api/v1/tasks/${task.id}`, {
-                        method: "PATCH",
-                        headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" },
-                        body: JSON.stringify({ status: "pending" })
-                      });
-                    }
-                  } catch(e) {}
-                  setTasks(prev => prev.map(t => t.id === task.id ? { ...t, done: nuevoDone, status: nuevoDone ? "completed" : "pending" } : t));
-                }}
+                <div key={task.id} onClick={() => setTasks(prev => prev.map(t => t.id === task.id ? { ...t, done: !t.done } : t))}
                   style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", borderRadius: 8, cursor: "pointer", marginBottom: 6, background: task.done ? "rgba(124,58,237,0.04)" : "#0A0A12", border: `1px solid ${task.done ? "rgba(124,58,237,0.2)" : "#1A1A28"}`, opacity: task.done ? 0.6 : 1, transition: "all 0.15s" }}>
                   <div style={{ width: 18, height: 18, borderRadius: 5, border: `2px solid ${task.done ? "#7C3AED" : p.color}`, background: task.done ? "#7C3AED" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, flexShrink: 0, color: "white" }}>{task.done && "✓"}</div>
-                  <span style={{ flex: 1, fontSize: 13, color: "#E2E8F0", textDecoration: task.done ? "line-through" : "none" }}>{task.title || task.titulo}</span>
+                  <span style={{ flex: 1, fontSize: 13, color: "#E2E8F0", textDecoration: task.done ? "line-through" : "none" }}>{task.title}</span>
                   <span className="tag" style={{ background: p.bg, color: p.color }}>{p.label}</span>
                 </div>
               );
@@ -1454,22 +1037,11 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
               <span style={{ fontFamily: "'Orbitron',monospace", fontSize: 12, color: "#10B981", fontWeight: 700 }}>{doneHabits}/{habits.length}</span>
             </div>
             {habits.map(habit => (
-              <div key={habit.id} onClick={async () => {
-                const habitDone = habit.done || habit.history?.[habit.history.length-1]?.done;
-                if (habitDone) return; // No se puede desmarcar
-                try {
-                  await fetch(`http://127.0.0.1:8000/api/v1/habits/${habit.id}/complete`, {
-                    method: "POST",
-                    headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({})
-                  });
-                } catch(e) {}
-                setHabits(prev => prev.map(h => h.id === habit.id ? { ...h, done: true, streak: Math.max(h.streak, 1) } : h));
-              }}
+              <div key={habit.id} onClick={() => setHabits(prev => prev.map(h => h.id === habit.id ? { ...h, done: !h.done } : h))}
                 style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", borderRadius: 8, cursor: "pointer", marginBottom: 6, background: habit.done ? "rgba(16,185,129,0.05)" : "#0A0A12", border: `1px solid ${habit.done ? "rgba(16,185,129,0.2)" : "#1A1A28"}`, transition: "all 0.15s" }}>
                 <div style={{ width: 22, height: 22, borderRadius: "50%", border: `2px solid ${habit.done ? "#10B981" : "#374151"}`, background: habit.done ? "#10B981" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0, color: "white" }}>{habit.done && "✓"}</div>
                 <span style={{ flex: 1, fontSize: 13, color: "#E2E8F0", textDecoration: habit.done ? "line-through" : "none", opacity: habit.done ? 0.6 : 1 }}>{habit.name}</span>
-                <span style={{ fontSize: 11, color: "#EF4444", fontWeight: 700 }}>🔥{habit.done ? Math.max(habit.streak, 1) : habit.streak}d</span>
+                <span style={{ fontSize: 11, color: "#EF4444", fontWeight: 700 }}>🔥{habit.streak}d</span>
               </div>
             ))}
           </div>
@@ -1500,9 +1072,9 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
           <div className="card" style={{ padding: 16 }}>
             <div className="section-title">💰 Resumen Financiero</div>
             {[
-              { label: "Balance",        value: `$${f.balance.toLocaleString()}`, color: "#F1F5F9" },
+              { label: "Balance",        value: `$${mockData.finance.balance.toLocaleString()}`, color: "#F1F5F9" },
               { label: "Ahorro este mes",value: `$${ahorro.toLocaleString()}`, color: "#10B981" },
-              { label: "Tasa de ahorro", value: `${f.savingsRate}%`, color: "#06B6D4" },
+              { label: "Tasa de ahorro", value: `${mockData.finance.savingsRate}%`, color: "#06B6D4" },
             ].map((s, i) => (
               <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #1A1A28", fontSize: 12 }}>
                 <span style={{ color: "#64748B" }}>{s.label}</span>
@@ -1528,8 +1100,8 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
 
 // Función que calcula datos REALES de los módulos para cada objetivo
 const getDatosReales = (goalKey, mockData) => {
-  const ahorro = 0; // Se calcula con datos reales en ObjetivosPage
-  const balance = 0;
+  const ahorro = mockData.finance.monthIncome - mockData.finance.monthExpense;
+  const balance = mockData.finance.balance;
 
   const METAS_FINANCIERAS = {
     auto:      { nombre: "Auto", emoji: "🚗", costoEstimado: 80000, ahorroNecesario: 40000 },
@@ -1554,54 +1126,20 @@ const getDatosReales = (goalKey, mockData) => {
       pctAhorrado: Math.min(Math.round((balance / meta.ahorroNecesario) * 100), 100),
     },
     fitness: {
-      streak: 0,
-      rutina: "Sin rutina",
+      streak: mockData.fitness.streak,
+      rutina: mockData.fitness.todayRoutine?.name || "Push Day",
     },
     learning: {
-      skills: [],
-      minutosHoy: 0,
-      cursosActivos: 0,
+      skills: mockData.learning.skills,
+      minutosHoy: mockData.learning.todayMinutes,
+      cursosActivos: mockData.learning.courses?.filter(c => c.progress < 100).length || 3,
     },
   };
 };
 
-const ObjetivosPage = ({ setGame }) => {
-  const [goals, setGoals] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('lifehud_goals') || '[]'); }
-    catch { return []; }
-  });
+const ObjetivosPage = () => {
+  const [goals, setGoals] = useState([]);
   const [cargando, setCargando] = useState(true);
-  const [realFinanzas, setRealFinanzas] = useState({ balance: 0, monthIncome: 0, monthExpense: 0 });
-  const [realFitness, setRealFitness] = useState({ streak: 0, rutina: "Push Day" });
-  const [realSkills, setRealSkills] = useState([]);
-
-  useEffect(() => {
-    // Cargar skills reales
-    api.learning.skills()
-      .then(data => setRealSkills((data || []).map(s => ({
-        id:    s.id,
-        name:  s.name,
-        icon:  "💡",
-        level: s.current_level,
-        color: "#06B6D4",
-        xp:    s.xp_accumulated || 0,
-        hours: s.hours_invested || 0,
-      })))).catch(() => {});
-
-    // Cargar datos reales de finanzas y fitness
-    api.finanzas.resumen()
-      .then(d => setRealFinanzas({
-        balance:      parseFloat(d.balance        || 0),
-        monthIncome:  parseFloat(d.total_income   || 0),
-        monthExpense: parseFloat(d.total_expenses || 0),
-      })).catch(() => {});
-
-    api.fitness.resumen()
-      .then(d => setRealFitness({
-        streak: d.current_streak || 0,
-        rutina: "Push Day",
-      })).catch(() => {});
-  }, []);
 
   useEffect(() => {
     api.objetivos.listar()
@@ -1623,20 +1161,9 @@ const ObjetivosPage = ({ setGame }) => {
           })),
           sprint: { semana: "Esta semana", tareas: [] },
         }));
-        // Fusionar: conservar roadmaps y datos locales, agregar los del backend que no estén
-        if (mapeados.length > 0) {
-          setGoals(prev => {
-            const merged = [...prev];
-            mapeados.forEach(bg => {
-              const exists = merged.find(lg => lg.id === bg.id);
-              if (!exists) merged.push(bg);
-            });
-            localStorage.setItem('lifehud_goals', JSON.stringify(merged));
-            return merged;
-          });
-        }
+        setGoals(mapeados);
       })
-      .catch(() => {})
+      .catch(() => setGoals([]))
       .finally(() => setCargando(false));
   }, []);
 
@@ -1655,27 +1182,8 @@ const ObjetivosPage = ({ setGame }) => {
   const [sprintForm, setSprintForm] = useState({ texto: "", modulo: "📋 Tareas" });
 
   const activeGoal = goals.find(g => g.id === activeGoalId) || goals[0] || null;
-  const roadmap = activeGoal ? (activeGoal.roadmap || buildAIRoadmap(activeGoal.key, mockData)) : { phases: [], dailyPlan: { blocks: [] }, weeklyFocus: [], profileAnalysis: [], skillsNeeded: [], color: '#7C3AED', emoji: '🎯', category: 'General', timeline: { months: 0, optimized: 0 } };
-  // Construir objeto de datos reales mezclando backend + mockData
-  const realData = {
-    finance: {
-      balance:      realFinanzas.balance,
-      monthIncome:  realFinanzas.monthIncome,
-      monthExpense: realFinanzas.monthExpense,
-      savingsRate:  0,
-    },
-    fitness: {
-      streak:       realFitness.streak,
-      todayRoutine: { name: realFitness.rutina },
-      records:      [],
-    },
-    learning: { skills: realSkills, todayMinutes: 0, todayGoal: 60, flashcards: [], books: [], courses: [] },
-    nutrition: { quickFoods: mockData.nutrition.quickFoods, recipes: [], water: { consumed: 0, goal: 2.5 }, calories: { consumed: 0, goal: 2200 }, macros: { protein: { consumed: 0, goal: 150 }, carbs: { consumed: 0, goal: 250 }, fat: { consumed: 0, goal: 80 } } },
-    weekProgress: [0,0,0,0,0,0,0],
-    user: { name: "Usuario" },
-    shop: { items: [] },
-  };
-  const datosReales = activeGoal ? getDatosReales(activeGoal.key, realData) : {};
+  const roadmap = activeGoal ? buildAIRoadmap(activeGoal.key, mockData) : { phases: [], dailyPlan: { blocks: [] }, weeklyFocus: [] };
+  const datosReales = activeGoal ? getDatosReales(activeGoal.key, mockData) : {};
 
   // Acciones
   const toggleAction = (phaseIdx, actionIdx) => {
@@ -1697,38 +1205,19 @@ const ObjetivosPage = ({ setGame }) => {
     sum + block.actions.filter((_, ai) => isDailyDone(bi, ai)).length, 0);
 
   // Hitos
-  const saveGoals = (updated) => {
-    localStorage.setItem('lifehud_goals', JSON.stringify(updated));
-    return updated;
-  };
-
   const toggleHito = (hitoId) => {
-    setGoals(prev => {
-      const actualizados = prev.map(g => {
-        if (g.id !== activeGoal.id) return g;
-        const hitosNuevos = g.hitos.map(h => h.id === hitoId ? { ...h, done: !h.done } : h);
-        const completados = hitosNuevos.filter(h => h.done).length;
-        const progreso    = Math.round((completados / Math.max(hitosNuevos.length, 1)) * 100);
-        // ¿Se acaba de completar el hito que lleva el objetivo al 100%?
-        const hitoActivado = hitosNuevos.find(h => h.id === hitoId);
-        if (hitoActivado?.done && progreso === 100 && setGame) {
-          setGame(gg => ({ ...gg, xp: gg.xp + 100, coins: gg.coins + 50 }));
-          setTimeout(() => setToast({ msg: `🏆 ¡Objetivo "${g.title}" completado! +100 XP`, color: "#F59E0B" }), 100);
-        } else if (hitoActivado?.done && setGame) {
-          setGame(gg => ({ ...gg, xp: gg.xp + 1 }));
-        }
-        return { ...g, hitos: hitosNuevos, progress: progreso };
-      });
-      return saveGoals(actualizados);
-    });
+    setGoals(prev => prev.map(g => g.id !== activeGoal.id ? g : {
+      ...g,
+      hitos: g.hitos.map(h => h.id === hitoId ? { ...h, done: !h.done } : h),
+      progress: Math.round((g.hitos.filter(h => h.id === hitoId ? !h.done : h.done).length / g.hitos.length) * 100),
+    }));
   };
-  
   const agregarHito = () => {
     if (!hitoForm.titulo || !hitoForm.fecha) return;
-    setGoals(prev => saveGoals(prev.map(g => g.id !== activeGoal.id ? g : {
+    setGoals(prev => prev.map(g => g.id !== activeGoal.id ? g : {
       ...g,
       hitos: [...g.hitos, { id: Date.now(), ...hitoForm, done: false }].sort((a, b) => new Date(a.fecha) - new Date(b.fecha)),
-    })));
+    }));
     setHitoForm({ titulo: "", fecha: "", emoji: "🎯" });
     setShowAddHito(false);
     setToast({ msg: "✅ Hito agregado", color: "#10B981" });
@@ -1736,17 +1225,17 @@ const ObjetivosPage = ({ setGame }) => {
 
   // Sprint
   const toggleSprintTask = (taskId) => {
-    setGoals(prev => saveGoals(prev.map(g => g.id !== activeGoal.id ? g : {
+    setGoals(prev => prev.map(g => g.id !== activeGoal.id ? g : {
       ...g,
       sprint: { ...g.sprint, tareas: g.sprint.tareas.map(t => t.id === taskId ? { ...t, done: !t.done } : t) },
-    })));
+    }));
   };
   const agregarSprintTask = () => {
     if (!sprintForm.texto) return;
-    setGoals(prev => saveGoals(prev.map(g => g.id !== activeGoal.id ? g : {
+    setGoals(prev => prev.map(g => g.id !== activeGoal.id ? g : {
       ...g,
       sprint: { ...g.sprint, tareas: [...g.sprint.tareas, { id: Date.now(), ...sprintForm, done: false }] },
-    })));
+    }));
     setSprintForm({ texto: "", modulo: "📋 Tareas" });
     setShowAddSprintTask(false);
   };
@@ -1755,101 +1244,37 @@ const ObjetivosPage = ({ setGame }) => {
     if (!form.title) return;
     setAiThinking(true);
     try {
-      // Crear en backend
+      // La fecha máxima permitida es 12 meses desde hoy
       const fechaMax = new Date();
       fechaMax.setMonth(fechaMax.getMonth() + 11);
       const targetDate = fechaMax.toISOString().split("T")[0];
+
       const res = await api.objetivos.crear({
-        name: form.title, description: form.text || null,
-        category: form.category, priority: 1,
-        target_date: targetDate, requires_savings_barrel: false,
-      }).catch(() => ({ id: Date.now(), name: form.title, category: form.category, description: form.text }));
-
-      // Recopilar contexto real del usuario
-      const gameData   = JSON.parse(localStorage.getItem('lifehud_game') || '{}');
-      const macrosMeta = JSON.parse(localStorage.getItem('lifehud_macros_meta') || '{}');
-      const calMeta    = localStorage.getItem('lifehud_cal_meta') || '2200';
-      const catConfig  = GOAL_CATEGORIES.find(c => c.key === form.category) || GOAL_CATEGORIES[0];
-
-      const contexto = `
-Usuario de Life HUD — app de productividad gamificada.
-- Nivel: ${gameData.level || 1} | XP: ${gameData.xp || 0}
-- Ahorro mensual: $${(realFinanzas.monthIncome - realFinanzas.monthExpense).toLocaleString()} MXN
-- Ingresos mes: $${realFinanzas.monthIncome.toLocaleString()} | Gastos: $${realFinanzas.monthExpense.toLocaleString()}
-- Balance actual: $${realFinanzas.balance.toLocaleString()}
-- Racha fitness: ${realFitness.streak} días
-- Skills: ${realSkills.map(s => s.name).join(', ') || 'sin registrar'}
-- Meta calórica diaria: ${calMeta} kcal
-${form.text ? `- Detalle extra: ${form.text}` : ''}
-`.trim();
-
-      // Llamar al backend para generar roadmap con IA (falla silenciosamente)
-      let aiRoadmap = null;
-      try {
-        const backendRes = await fetch("http://127.0.0.1:8000/api/v1/ai/roadmap", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`,
-          },
-          body: JSON.stringify({
-            goal_title: form.title,
-            goal_text:  form.text || "",
-            category:   catConfig.label,
-            emoji:      catConfig.emoji,
-            context:    contexto,
-          }),
-        });
-        if (backendRes.ok) {
-          const bd = await backendRes.json();
-          const raw = (bd.result || bd.content || "").trim();
-          console.log("[IA] status:", backendRes.status, "| raw preview:", raw.substring(0, 150));
-          if (raw) {
-            // Extraer solo el JSON aunque venga con texto alrededor
-            const jsonMatch = raw.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              aiRoadmap = JSON.parse(jsonMatch[0]);
-              console.log("[IA] roadmap parseado OK, fases:", aiRoadmap?.phases?.length);
-            } else {
-              console.log("[IA] no se encontró JSON en la respuesta");
-            }
-          }
-        } else {
-          const errBody = await backendRes.text();
-          console.log("[IA] backend error:", backendRes.status, errBody.substring(0, 200));
-        }
-      } catch (parseErr) {
-        console.log("[IA] excepción:", parseErr.message);
-      }
-
-            // Fallback al roadmap hardcodeado si la API falla
-      const fallback = buildAIRoadmap(form.category, mockData);
-      const roadmapFinal = aiRoadmap || fallback;
-
+        name:        form.title,
+        description: form.text || null,
+        category:    form.category,
+        priority:    1,
+        target_date: targetDate,
+        requires_savings_barrel: false,
+      });
       const nuevo = {
         id:         res.id,
-        key:        form.category,
-        title:      form.title,
-        customText: form.text || "",
+        key:        res.category || form.category,
+        title:      res.name,
+        customText: res.description || "",
         progress:   0,
         status:     "active",
         created:    new Date().toLocaleDateString("es-MX", { month: "short", year: "numeric" }),
         hitos:      [],
         sprint:     { semana: "Esta semana", tareas: [] },
-        roadmap:    roadmapFinal,
       };
-
-      setGoals(prev => {
-        const nuevos = [...prev, nuevo];
-        localStorage.setItem('lifehud_goals', JSON.stringify(nuevos));
-        return nuevos;
-      });
+      setGoals(p => [...p, nuevo]);
       setActiveGoalId(nuevo.id);
       setShowNewGoal(false);
       setForm({ title: "", text: "", category: "auto" });
       setActivePhase(0);
       setMapView("diario");
-      setToast({ msg: `🎯 "${nuevo.title}" — roadmap generado por IA`, color: "#7C3AED" });
+      setToast({ msg: `🎯 Objetivo "${nuevo.title}" creado`, color: "#7C3AED" });
     } catch (e) {
       setToast({ msg: `❌ Error: ${e.message}`, color: "#EF4444" });
     } finally {
@@ -1898,32 +1323,15 @@ ${form.text ? `- Detalle extra: ${form.text}` : ''}
           <div className="modal" style={{ width: 480 }}>
             <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 14, fontWeight: 700, color: "#F1F5F9", marginBottom: 20 }}>🎯 Nuevo Objetivo</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <input placeholder="¿Qué quieres lograr? Ej: Comprar un auto, Conseguir empleo remoto..." value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} style={{ fontSize: 14 }} autoFocus />
-              <div>
-                <div style={{ fontSize: 10, color: "#64748B", marginBottom: 8, letterSpacing: 1 }}>CATEGORÍA</div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
-                  {GOAL_CATEGORIES.map(c => (
-                    <div key={c.key} onClick={() => setForm(f => ({ ...f, category: c.key }))}
-                      style={{ padding: "10px 8px", borderRadius: 10, textAlign: "center", cursor: "pointer",
-                        border: `2px solid ${form.category === c.key ? "#7C3AED" : "#2D2D45"}`,
-                        background: form.category === c.key ? "rgba(124,58,237,0.1)" : "#0A0A14" }}>
-                      <div style={{ fontSize: 22 }}>{c.emoji}</div>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: form.category === c.key ? "#A78BFA" : "#64748B", marginTop: 3 }}>{c.label}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <textarea placeholder="Cuéntale más a la IA: ¿cuánto dinero tienes ahorrado? ¿qué modelo quieres? ¿en cuánto tiempo? — Más detalle = mejor plan" value={form.text} onChange={e => setForm(f => ({ ...f, text: e.target.value }))} style={{ minHeight: 90, resize: "vertical", fontSize: 12 }} />
-              {aiThinking && (
-                <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.3)", fontSize: 12, color: "#A78BFA", display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid #4A5568", borderTop: "2px solid #7C3AED", animation: "spin 0.8s linear infinite", flexShrink: 0 }} />
-                  <span>La IA está analizando tu perfil y generando tu roadmap personalizado...</span>
-                </div>
-              )}
+              <input placeholder="¿Qué quieres lograr?" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} style={{ fontSize: 14 }} />
+              <textarea placeholder="Descríbelo con más detalle..." value={form.text} onChange={e => setForm(f => ({ ...f, text: e.target.value }))} style={{ minHeight: 80, resize: "vertical", fontSize: 12 }} />
+              <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
+                {GOAL_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
+              </select>
               <div style={{ display: "flex", gap: 10 }}>
                 <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowNewGoal(false)}>Cancelar</button>
                 <button className="btn-primary" style={{ flex: 2 }} onClick={addGoal} disabled={!form.title || aiThinking}>
-                  {aiThinking ? "⏳ Generando plan IA..." : "🤖 Crear con IA"}
+                  {aiThinking ? "⏳ Creando..." : "🚀 Crear Objetivo"}
                 </button>
               </div>
             </div>
@@ -1941,7 +1349,7 @@ ${form.text ? `- Detalle extra: ${form.text}` : ''}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
         {[
           { label: "Objetivos activos", value: goals.filter(g => g.status === "active").length, icon: "🎯", color: "#7C3AED" },
-          { label: "Ahorro/mes",        value: `$${(realFinanzas.monthIncome - realFinanzas.monthExpense).toLocaleString()}`, icon: "💰", color: "#10B981" },
+          { label: "Ahorro/mes",        value: `$${(mockData.finance.monthIncome - mockData.finance.monthExpense).toLocaleString()}`, icon: "💰", color: "#10B981" },
           { label: "Acciones hoy",      value: `${doneDailyActions}/${totalDailyActions}`, icon: "📋", color: "#F59E0B" },
           { label: "Sprint semana",     value: `${sprintDone}/${activeGoal.sprint.tareas.length}`, icon: "⚡", color: "#06B6D4" },
         ].map((s, i) => (
@@ -1962,7 +1370,7 @@ ${form.text ? `- Detalle extra: ${form.text}` : ''}
           </div>
 
           {goals.map(goal => {
-            const rm = goal.roadmap || buildAIRoadmap(goal.key, mockData);
+            const rm = buildAIRoadmap(goal.key, mockData);
             const isActive = activeGoalId === goal.id;
             const hitosD = goal.hitos.filter(h => h.done).length;
             return (
@@ -1991,17 +1399,17 @@ ${form.text ? `- Detalle extra: ${form.text}` : ''}
           {/* Perfil rápido */}
           <div className="card" style={{ padding: 14 }}>
             <div style={{ fontSize: 10, color: "#4A5568", letterSpacing: 2, fontFamily: "'Orbitron',monospace", marginBottom: 10 }}>TU PERFIL</div>
-            {(realData.learning?.skills || []).slice(0,4).map((s, i) => (
+            {mockData.learning.skills.map((s, i) => (
               <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                <span style={{ fontSize: 11, color: "#94A3B8" }}>{s.icon || "💡"} {s.name}</span>
-                <span className="tag" style={{ background: `${s.color || "#7C3AED"}20`, color: s.color || "#7C3AED" }}>{s.level || s.current_level || "beginner"}</span>
+                <span style={{ fontSize: 11, color: "#94A3B8" }}>{s.icon} {s.name}</span>
+                <span className="tag" style={{ background: `${s.color}20`, color: s.color }}>{s.level}</span>
               </div>
             ))}
             <div style={{ borderTop: "1px solid #1A1A28", paddingTop: 8, marginTop: 4 }}>
               {[
-                { label: "💰 Ahorro/mes", value: `$${(realFinanzas.monthIncome - realFinanzas.monthExpense).toLocaleString()}`, color: "#10B981" },
-                { label: "⏱ Estudio/día", value: "0min", color: "#7C3AED" },
-                { label: "🔥 Racha fitness", value: `${realFitness.streak} días`, color: "#EF4444" },
+                { label: "💰 Ahorro/mes", value: `$${(mockData.finance.monthIncome - mockData.finance.monthExpense).toLocaleString()}`, color: "#10B981" },
+                { label: "⏱ Estudio/día", value: `${mockData.learning.todayMinutes}min`, color: "#7C3AED" },
+                { label: "🔥 Racha fitness", value: `${mockData.fitness.streak} días`, color: "#EF4444" },
               ].map((item, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 }}>
                   <span style={{ color: "#64748B" }}>{item.label}</span>
@@ -2033,48 +1441,7 @@ ${form.text ? `- Detalle extra: ${form.text}` : ''}
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 32, fontWeight: 900, color: roadmap.color }}>{activeGoal.progress}%</div>
-                <div style={{ fontSize: 11, color: "#64748B", marginBottom: 8 }}>completado</div>
-                <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
-                  <button onClick={async () => {
-                    const nuevoStatus = activeGoal.status === "active" ? "planning" : "active";
-                    try {
-                      const endpoint = nuevoStatus === "active" ? "activate" : "cancel";
-await fetch(`http://127.0.0.1:8000/api/v1/goals/${activeGoal.id}/${endpoint}`, {
-  method: "POST",
-  headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" }
-});
-                      setGoals(prev => prev.map(g => g.id === activeGoal.id ? { ...g, status: nuevoStatus } : g));
-                      setToast({ msg: nuevoStatus === "planning" ? "⏸ Objetivo pausado" : "▶ Objetivo activado", color: "#F59E0B" });
-                    } catch(e) { setToast({ msg: `❌ ${e.message}`, color: "#EF4444" }); }
-                  }} className="btn-secondary" style={{ fontSize: 11, padding: "5px 10px" }}>
-                    {activeGoal.status === "active" ? "⏸ Pausar" : "▶ Activar"}
-                  </button>
-                  <button onClick={async () => {
-                    if (!window.confirm(`¿Eliminar "${activeGoal.title}"?`)) return;
-                    try {
-                      await fetch(`http://127.0.0.1:8000/api/v1/goals/${activeGoal.id}/cancel`, {
-  method: "POST",
-  headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" }
-});
-                      setGoals(prev => {
-                        const nuevos = prev.filter(g => g.id !== activeGoal.id);
-                        localStorage.setItem('lifehud_goals', JSON.stringify(nuevos));
-                        return nuevos;
-                      });
-                      setActiveGoalId(null);
-                      setToast({ msg: "🗑️ Objetivo eliminado", color: "#EF4444" });
-                    } catch(e) {
-                      // Si el backend falla, igual borramos localmente
-                      setGoals(prev => {
-                        const nuevos = prev.filter(g => g.id !== activeGoal.id);
-                        localStorage.setItem('lifehud_goals', JSON.stringify(nuevos));
-                        return nuevos;
-                      });
-                      setActiveGoalId(null);
-                      setToast({ msg: "🗑️ Objetivo eliminado", color: "#EF4444" });
-                    }
-                  }} className="btn-danger" style={{ fontSize: 11, padding: "5px 10px" }}>🗑️</button>
-                </div>
+                <div style={{ fontSize: 11, color: "#64748B" }}>completado</div>
               </div>
             </div>
           </div>
@@ -2435,7 +1802,7 @@ await fetch(`http://127.0.0.1:8000/api/v1/goals/${activeGoal.id}/${endpoint}`, {
                 {[
                   { label: "Racha actual",    val: `${datosReales.fitness.streak} días`, color: "#EF4444" },
                   { label: "Rutina de hoy",   val: datosReales.fitness.rutina, color: "#F59E0B" },
-                  { label: "Records",          val: "0 marcas", color: "#7C3AED" },
+                  { label: "Records",          val: `${mockData.fitness.records?.length || 6} marcas`, color: "#7C3AED" },
                 ].map((s, i) => (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #1A1A28", fontSize: 12 }}>
                     <span style={{ color: "#94A3B8" }}>{s.label}</span>
@@ -2597,7 +1964,7 @@ await fetch(`http://127.0.0.1:8000/api/v1/goals/${activeGoal.id}/${endpoint}`, {
                   <textarea rows={3} placeholder="Ej. Quiero un auto seminuevo en menos de 1 año..." value={form.text} onChange={e => setForm(f => ({ ...f, text: e.target.value }))} style={{ resize: "none" }} />
                 </div>
                 <div style={{ padding: "10px 12px", borderRadius: 8, background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.2)", fontSize: 11, color: "#A78BFA", marginBottom: 16 }}>
-                  🤖 IA analizará tus datos actuales y generará un plan personalizado
+                  🤖 IA analizará: {mockData.learning.skills.map(s => s.name).join(", ")} · Balance ${mockData.finance.balance.toLocaleString()} · Ahorro ${(mockData.finance.monthIncome - mockData.finance.monthExpense).toLocaleString()}/mes
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
                   <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowNewGoal(false)}>Cancelar</button>
@@ -2615,7 +1982,35 @@ await fetch(`http://127.0.0.1:8000/api/v1/goals/${activeGoal.id}/${endpoint}`, {
 // ============================================================
 // PÁGINA: FINANZAS (con tab Negocios)
 // ============================================================
-const NEGOCIOS_INICIAL = [];
+const NEGOCIOS_INICIAL = [
+  {
+    id: 1, nombre: "Puesto de Hamburguesas 🍔", color: "#F59E0B", emoji: "🍔", activo: true,
+    operaciones: [
+      { id: 1, desc: "Ventas del día", monto: 5000, tipo: "ingreso", fecha: "Hoy", hora: "20:00" },
+      { id: 2, desc: "Ingredientes y suministros", monto: 2000, tipo: "gasto", fecha: "Hoy", hora: "10:00" },
+      { id: 3, desc: "Ventas del día", monto: 4800, tipo: "ingreso", fecha: "Ayer", hora: "21:00" },
+      { id: 4, desc: "Gas y carbón", monto: 400, tipo: "gasto", fecha: "Ayer", hora: "09:00" },
+      { id: 5, desc: "Ventas del día", monto: 5500, tipo: "ingreso", fecha: "Lun", hora: "20:30" },
+      { id: 6, desc: "Ingredientes", monto: 1800, tipo: "gasto", fecha: "Lun", hora: "11:00" },
+    ],
+  },
+  {
+    id: 2, nombre: "Edición de Videos 🎬", color: "#7C3AED", emoji: "🎬", activo: true,
+    operaciones: [
+      { id: 1, desc: "Proyecto — Reels empresa A", monto: 3500, tipo: "ingreso", fecha: "Hoy", hora: "14:00" },
+      { id: 2, desc: "Adobe Premiere (mensualidad)", monto: 650, tipo: "gasto", fecha: "01 Mar", hora: "00:00" },
+      { id: 3, desc: "Proyecto — YouTube canal B", monto: 1800, tipo: "ingreso", fecha: "Ayer", hora: "16:00" },
+      { id: 4, desc: "SSD externo 1TB", monto: 1200, tipo: "gasto", fecha: "28 Feb", hora: "13:00" },
+    ],
+  },
+  {
+    id: 3, nombre: "Otros Ingresos 💡", color: "#10B981", emoji: "💡", activo: true,
+    operaciones: [
+      { id: 1, desc: "Venta artículos usados", monto: 800, tipo: "ingreso", fecha: "Ayer", hora: "18:00" },
+      { id: 2, desc: "Referido app de inversión", monto: 250, tipo: "ingreso", fecha: "Lun", hora: "12:00" },
+    ],
+  },
+];
 
 const calcNegocio = (neg) => {
   const ingresos = neg.operaciones.filter(o => o.tipo === "ingreso").reduce((a, o) => a + o.monto, 0);
@@ -2624,25 +2019,16 @@ const calcNegocio = (neg) => {
 };
 
 const NegociosTab = () => {
-  const [negocios, setNegocios] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("lifehud_negocios") || "[]"); } catch { return []; }
-  });
-  const [selectedId, setSelectedId] = useState(null);
+  const [negocios, setNegocios] = useState(NEGOCIOS_INICIAL);
+  const [selectedId, setSelectedId] = useState(1);
   const [filterTipo, setFilterTipo] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const [showNuevoNegocio, setShowNuevoNegocio] = useState(false);
-  const [form, setForm] = useState(() => {
-    try {
-      const neg = JSON.parse(localStorage.getItem("lifehud_negocios") || "[]");
-      return { negocioId: neg[0]?.id || null, desc: "", monto: "", tipo: "ingreso" };
-    } catch { return { negocioId: null, desc: "", monto: "", tipo: "ingreso" }; }
-  });
+  const [form, setForm] = useState({ negocioId: 1, desc: "", monto: "", tipo: "ingreso" });
   const [nuevoNeg, setNuevoNeg] = useState({ nombre: "", emoji: "🏢", color: "#7C3AED" });
   const [toast, setToast] = useState(null);
 
-  const guardarNegocios = (nuevos) => localStorage.setItem("lifehud_negocios", JSON.stringify(nuevos));
-
-  const selected = negocios.find(n => n.id === selectedId) || negocios[0];
+  const selected = negocios.find(n => n.id === selectedId);
   const stats = selected ? calcNegocio(selected) : { ingresos: 0, gastos: 0, neto: 0 };
   const totales = negocios.reduce((a, n) => {
     const s = calcNegocio(n);
@@ -2662,12 +2048,10 @@ const NegociosTab = () => {
       monto: parseFloat(form.monto), tipo: form.tipo,
       fecha: "Ahora", hora: new Date().toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }),
     };
-    const nuevos = negocios.map(n => n.id === Number(form.negocioId)
+    setNegocios(prev => prev.map(n => n.id === Number(form.negocioId)
       ? { ...n, operaciones: [nuevaOp, ...n.operaciones] }
       : n
-    );
-    setNegocios(nuevos);
-    guardarNegocios(nuevos);
+    ));
     setSelectedId(Number(form.negocioId));
     setToast({ msg: `${form.tipo === "ingreso" ? "💰" : "💸"} ${neg.emoji} +$${parseFloat(form.monto).toLocaleString()} registrado`, color: form.tipo === "ingreso" ? "#10B981" : "#EF4444" });
     setForm(f => ({ ...f, desc: "", monto: "" }));
@@ -2677,22 +2061,11 @@ const NegociosTab = () => {
   const agregarNegocio = () => {
     if (!nuevoNeg.nombre) return;
     const nuevo = { id: Date.now(), nombre: nuevoNeg.nombre, color: nuevoNeg.color, emoji: nuevoNeg.emoji, activo: true, operaciones: [] };
-    const nuevos = [...negocios, nuevo];
-    setNegocios(nuevos);
-    guardarNegocios(nuevos);
+    setNegocios(p => [...p, nuevo]);
     setSelectedId(nuevo.id);
     setNuevoNeg({ nombre: "", emoji: "🏢", color: "#7C3AED" });
     setShowNuevoNegocio(false);
     setToast({ msg: `✅ Negocio "${nuevo.nombre}" creado`, color: "#10B981" });
-  };
-
-  const eliminarNegocio = (id) => {
-    if (!window.confirm("¿Eliminar este negocio y todas sus operaciones?")) return;
-    const nuevos = negocios.filter(n => n.id !== id);
-    setNegocios(nuevos);
-    guardarNegocios(nuevos);
-    if (selectedId === id) setSelectedId(negocios.find(n => n.id !== id)?.id || null);
-    setToast({ msg: "🗑️ Negocio eliminado", color: "#EF4444" });
   };
 
   const EMOJI_OPTIONS = ["🍔","🍕","🎬","💻","🛒","🏋️","✂️","🎨","🚗","📱","🎵","💡","🌮","☕","🧁","📦"];
@@ -2701,14 +2074,6 @@ const NegociosTab = () => {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {toast && <Toast msg={toast.msg} color={toast.color} onDone={() => setToast(null)} />}
-      {negocios.length === 0 && (
-        <div className="card" style={{ padding: 40, textAlign: "center", color: "#4A5568" }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>🏢</div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#F1F5F9", marginBottom: 8 }}>Sin negocios registrados</div>
-          <div style={{ fontSize: 13, marginBottom: 20 }}>Agrega tu primer negocio o fuente de ingresos para trackear sus operaciones.</div>
-          <button className="btn-primary" onClick={() => setShowNuevoNegocio(true)}>+ Crear negocio</button>
-        </div>
-      )}
 
       {/* ── TABLA RESUMEN GENERAL ── */}
       <div className="card" style={{ padding: 18 }}>
@@ -2817,8 +2182,6 @@ const NegociosTab = () => {
                     className={filterTipo === t.k ? "btn-primary" : "btn-secondary"}
                     style={{ fontSize: 11, padding: "4px 10px" }}>{t.l}</button>
                 ))}
-                <button onClick={() => eliminarNegocio(selected.id)}
-                  className="btn-danger" style={{ fontSize: 11, padding: "4px 10px" }}>🗑️</button>
               </div>
             </div>
 
@@ -2885,7 +2248,7 @@ const NegociosTab = () => {
               <div className="section-title">⚡ Registro Rápido</div>
               <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
                 {[{ k: "ingreso", l: "💰 Ingreso" }, { k: "gasto", l: "💸 Gasto" }].map(t => (
-                  <button key={t.k} onClick={() => setForm(f => ({ ...f, tipo: t.k, negocioId: selected?.id || f.negocioId }))}
+                  <button key={t.k} onClick={() => setForm(f => ({ ...f, tipo: t.k, negocioId: selected.id }))}
                     style={{ flex: 1, padding: "7px", borderRadius: 8, border: `1px solid ${form.tipo === t.k ? (t.k === "ingreso" ? "#10B981" : "#EF4444") : "#2D2D45"}`, background: form.tipo === t.k ? (t.k === "ingreso" ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.12)") : "#0F0F18", color: form.tipo === t.k ? (t.k === "ingreso" ? "#10B981" : "#EF4444") : "#64748B", cursor: "pointer", fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: 12 }}>{t.l}</button>
                 ))}
               </div>
@@ -3057,90 +2420,24 @@ const FinanzasPage = () => {
   const [toast, setToast] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [resumen, setResumen] = useState({ balance: 0, monthIncome: 0, monthExpense: 0, savingsRate: 0 });
-  const [presupuesto, setPresupuesto] = useState([]);
-  const [historialMensual, setHistorialMensual] = useState([]);
-  const [activos, setActivos] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("lifehud_activos") || "[]"); } catch { return []; }
-  });
-  const [deudas, setDeudas] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("lifehud_deudas") || "[]"); } catch { return []; }
-  });
-  const [barriles, setBarriles] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("lifehud_barriles") || "[]"); } catch { return []; }
-  });
-  const [showBarrilForm, setShowBarrilForm] = useState(false);
-  const [barrilForm, setBarrilForm] = useState({ name: "", emoji: "🪣", color: "#06B6D4", goal: "", monthly: "" });
+  const [deudas, setDeudas] = useState(DEUDAS_INICIAL);
+  const [presupuesto] = useState(PRESUPUESTO_CAT);
   const [showDeudaForm, setShowDeudaForm] = useState(false);
-  const [showActivoForm, setShowActivoForm] = useState(false);
   const [deudaForm, setDeudaForm] = useState({ nombre: "", emoji: "💳", color: "#EF4444", total: "", pagoMensual: "", diaPago: 1, tipo: "deuda", interes: 0 });
-  const [activoForm, setActivoForm] = useState({ nombre: "", emoji: "🏦", color: "#10B981", valor: "" });
   const [proyMeses, setProyMeses] = useState(6);
-
-  // Persistir deudas y activos en localStorage
-  useEffect(() => {
-    localStorage.setItem("lifehud_deudas", JSON.stringify(deudas));
-  }, [deudas]);
-
-  useEffect(() => {
-    localStorage.setItem("lifehud_activos", JSON.stringify(activos));
-  }, [activos]);
-
-  useEffect(() => {
-    localStorage.setItem("lifehud_barriles", JSON.stringify(barriles));
-  }, [barriles]);
-
-  const agregarBarril = () => {
-    if (!barrilForm.name || !barrilForm.goal) return;
-    const nuevo = {
-      id: Date.now(), name: barrilForm.name, emoji: barrilForm.emoji, color: barrilForm.color,
-      goal:    parseFloat(barrilForm.goal),
-      current: 0,
-      monthly: parseFloat(barrilForm.monthly) || 0,
-    };
-    setBarriles(prev => [...prev, nuevo]);
-    setBarrilForm({ name: "", emoji: "🪣", color: "#06B6D4", goal: "", monthly: "" });
-    setShowBarrilForm(false);
-    setToast({ msg: `🪣 "${nuevo.name}" creado`, color: "#06B6D4" });
-  };
-
-  const depositarBarril = (id, monto) => {
-    setBarriles(prev => prev.map(b => b.id === id ? { ...b, current: Math.min(b.current + monto, b.goal) } : b));
-  };
-
-  const eliminarBarril = (id) => {
-    setBarriles(prev => prev.filter(b => b.id !== id));
-  };
-
-  const agregarActivo = () => {
-    if (!activoForm.nombre || !activoForm.valor) return;
-    const nuevo = { id: Date.now(), ...activoForm, valor: parseFloat(activoForm.valor) };
-    setActivos(prev => [...prev, nuevo]);
-    setActivoForm({ nombre: "", emoji: "🏦", color: "#10B981", valor: "" });
-    setShowActivoForm(false);
-    setToast({ msg: `✅ Activo "${nuevo.nombre}" agregado`, color: "#10B981" });
-  };
-
-  const eliminarActivo = (id) => {
-    setActivos(prev => prev.filter(a => a.id !== id));
-    setToast({ msg: "🗑️ Activo eliminado", color: "#EF4444" });
-  };
 
   useEffect(() => {
     Promise.all([
       api.finanzas.resumen(),
-      api.finanzas.transacciones({ limit: 200 }),
-      fetch("http://127.0.0.1:8000/api/v1/finance/categories", {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
-      }).then(r => r.ok ? r.json() : []).catch(() => []),
+      api.finanzas.transacciones({ limit: 50 }),
     ])
-    .then(([sum, txnData, cats]) => {
+    .then(([sum, txnData]) => {
       setResumen({
         balance:      parseFloat(sum.balance        || 0),
         monthIncome:  parseFloat(sum.total_income   || 0),
         monthExpense: parseFloat(sum.total_expenses || 0),
         savingsRate:  sum.savings_rate || 0,
       });
-
       const mapeadas = (txnData || []).map(t => ({
         id:       t.id,
         desc:     t.description || "Sin descripción",
@@ -3151,143 +2448,19 @@ const FinanzasPage = () => {
         emoji:    t.type === "income" ? "💰" : "💸",
       }));
       setTxns(mapeadas);
-
-      // Construir historial mensual desde transacciones
-      const porMes = {};
-      (txnData || []).forEach(t => {
-        const mes = (t.transaction_date || "").slice(0, 7); // YYYY-MM
-        if (!mes) return;
-        if (!porMes[mes]) porMes[mes] = { mes, ingresos: 0, gastos: 0 };
-        if (t.type === "income") porMes[mes].ingresos += parseFloat(t.amount || 0);
-        else porMes[mes].gastos += parseFloat(t.amount || 0);
-      });
-      const historial = Object.values(porMes)
-        .sort((a, b) => a.mes.localeCompare(b.mes))
-        .slice(-6)
-        .map(m => ({
-          ...m,
-          label: new Date(m.mes + "-01").toLocaleDateString("es-MX", { month: "short", year: "2-digit" }),
-          ahorro: m.ingresos - m.gastos,
-        }));
-      setHistorialMensual(historial);
-
-      // Construir presupuesto desde categorías reales
-      const catExpense = (cats || []).filter(c => c.type === "expense");
-      if (catExpense.length > 0) {
-        const CAT_EMOJIS = { alimentacion:"🛒", transporte:"🚗", vivienda:"🏠", educacion:"📚", salud:"💊", entretenimiento:"🎬", ropa:"👕", servicios:"⚡", otros:"💡" };
-        const gastoPorCat = {};
-        (txnData || []).filter(t => t.type === "expense").forEach(t => {
-          const catName = t.category?.name || "otros";
-          gastoPorCat[catName] = (gastoPorCat[catName] || 0) + parseFloat(t.amount || 0);
-        });
-        const presu = catExpense.map((c, i) => ({
-          emoji:       CAT_EMOJIS[c.name?.toLowerCase()] || "💡",
-          nombre:      c.name,
-          presupuesto: parseFloat(c.budget_limit || 5000),
-          gastado:     gastoPorCat[c.name] || 0,
-          color:       ["#7C3AED","#06B6D4","#10B981","#F59E0B","#EF4444","#EC4899"][i % 6],
-        }));
-        setPresupuesto(presu);
-      }
     })
     .catch(() => {})
     .finally(() => setCargando(false));
   }, []);
 
-  const recargarFinanzas = async () => {
-    const token = localStorage.getItem("life_hud_token");
-    try {
-      const [sum, txnData, cats] = await Promise.all([
-        api.finanzas.resumen(),
-        api.finanzas.transacciones({ limit: 200 }),
-        fetch("http://127.0.0.1:8000/api/v1/finance/categories", {
-          headers: { "Authorization": `Bearer ${token}` }
-        }).then(r => r.ok ? r.json() : []).catch(() => []),
-      ]);
-      setResumen({
-        balance:      parseFloat(sum.balance        || 0),
-        monthIncome:  parseFloat(sum.total_income   || 0),
-        monthExpense: parseFloat(sum.total_expenses || 0),
-        savingsRate:  sum.savings_rate || 0,
-      });
-      const mapeadas = (txnData || []).map(t => ({
-        id:       t.id,
-        desc:     t.description || "Sin descripción",
-        amount:   t.type === "expense" ? -parseFloat(t.amount) : parseFloat(t.amount),
-        type:     t.type === "income" ? "income" : "expense",
-        category: t.category?.name || "otro",
-        date:     t.transaction_date,
-        emoji:    t.type === "income" ? "💰" : "💸",
-      }));
-      setTxns(mapeadas);
-      // Historial mensual
-      const porMes = {};
-      (txnData || []).forEach(t => {
-        const mes = (t.transaction_date || "").slice(0, 7);
-        if (!mes) return;
-        if (!porMes[mes]) porMes[mes] = { mes, ingresos: 0, gastos: 0 };
-        if (t.type === "income") porMes[mes].ingresos += parseFloat(t.amount || 0);
-        else porMes[mes].gastos += parseFloat(t.amount || 0);
-      });
-      const historial = Object.values(porMes)
-        .sort((a, b) => a.mes.localeCompare(b.mes))
-        .slice(-6)
-        .map(m => ({
-          ...m,
-          label: new Date(m.mes + "-01").toLocaleDateString("es-MX", { month: "short", year: "2-digit" }),
-          ahorro: m.ingresos - m.gastos,
-        }));
-      setHistorialMensual(historial);
-      // Presupuesto
-      const catExpense = (cats || []).filter(c => c.type === "expense");
-      if (catExpense.length > 0) {
-        const CAT_EMOJIS = { alimentacion:"🛒", transporte:"🚗", vivienda:"🏠", educacion:"📚", salud:"💊", entretenimiento:"🎬", ropa:"👕", servicios:"⚡", otros:"💡" };
-        const gastoPorCat = {};
-        (txnData || []).filter(t => t.type === "expense").forEach(t => {
-          const catName = t.category?.name || "otros";
-          gastoPorCat[catName] = (gastoPorCat[catName] || 0) + parseFloat(t.amount || 0);
-        });
-        setPresupuesto(catExpense.map((c, i) => ({
-          emoji:       CAT_EMOJIS[c.name?.toLowerCase()] || "💡",
-          nombre:      c.name,
-          presupuesto: parseFloat(c.budget_limit || 5000),
-          gastado:     gastoPorCat[c.name] || 0,
-          color:       ["#7C3AED","#06B6D4","#10B981","#F59E0B","#EF4444","#EC4899"][i % 6],
-        })));
-      }
-    } catch(e) {}
-  };
-
-  const agregarDeuda = () => {
-    const { nombre, emoji, color, total, pagoMensual, diaPago, tipo, interes } = deudaForm;
-    if (!nombre || !total || !pagoMensual) return;
-    const nueva = {
-      id: Date.now(), nombre, emoji, color,
-      total:       parseFloat(total),
-      pagado:      0,
-      pagoMensual: parseFloat(pagoMensual),
-      diaPago:     parseInt(diaPago),
-      tipo,
-      interes:     parseFloat(interes) || 0,
-    };
-    setDeudas(prev => [...prev, nueva]);
-    setDeudaForm({ nombre: "", emoji: "💳", color: "#EF4444", total: "", pagoMensual: "", diaPago: 1, tipo: "deuda", interes: 0 });
-    setShowDeudaForm(false);
-    setToast({ msg: `✅ "${nombre}" agregada`, color: "#10B981" });
-  };
-
   const addTxn = async () => {
     if (!form.desc || !form.amount) return;
     try {
-      const CATEGORY_IDS = {
-        income:  "8849a4a9-b885-4527-b4d7-9faa160d7256",
-        expense: "f899a8bf-226d-427c-b7f6-0fb0632953db",
-      };
       const nueva = await api.finanzas.crearTransaccion({
         amount:           parseFloat(form.amount),
         description:      form.desc,
         transaction_date: new Date().toISOString().split("T")[0],
-        category_id:      CATEGORY_IDS[form.type] || null,
+        category_id:      null,
         tags:             [],
       });
       const mapeada = {
@@ -3308,8 +2481,6 @@ const FinanzasPage = () => {
       }));
       setForm({ desc: "", amount: "", type: "income", category: "freelance" });
       setToast({ msg: `${form.type === "income" ? "💰 Ingreso" : "💸 Gasto"} registrado: $${form.amount}`, color: form.type === "income" ? "#10B981" : "#EF4444" });
-      // Recargar datos reales del backend
-      setTimeout(() => recargarFinanzas(), 500);
     } catch (e) {
       setToast({ msg: `❌ Error: ${e.message}`, color: "#EF4444" });
     }
@@ -3319,7 +2490,7 @@ const FinanzasPage = () => {
   const maxBar = 1;
 
   // Cálculos patrimonio
-  const totalActivos = activos.reduce((a, x) => a + (x.valor || 0), 0);
+  const totalActivos = ACTIVOS_MOCK.reduce((a, x) => a + x.valor, 0);
   const totalDeudas  = deudas.filter(d => d.tipo === "deuda").reduce((a, d) => a + (d.total - d.pagado), 0);
   const patrimonioNeto = totalActivos - totalDeudas;
   const pagosFijosTotal = deudas.filter(d => d.tipo === "fijo").reduce((a, d) => a + d.pagoMensual, 0);
@@ -3394,7 +2565,7 @@ const FinanzasPage = () => {
         {[
           { key: "resumen",         label: "📊 Resumen" },
           { key: "presupuesto",     label: `🎯 Presupuesto${alertas.length > 0 ? ` 🔴${alertas.length}` : ""}` },
-
+          { key: "proyeccion",      label: "🔮 Proyección" },
           { key: "deudas",          label: "💳 Deudas & Fijos" },
           { key: "patrimonio",      label: "🏆 Patrimonio" },
           { key: "barriles",        label: "🪣 Barriles" },
@@ -3413,38 +2584,31 @@ const FinanzasPage = () => {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
           <div className="card" style={{ padding: 18 }}>
             <div className="section-title">📅 Historial Mensual</div>
-            {historialMensual.length === 0 ? (
-              <div style={{ textAlign: "center", color: "#4A5568", padding: "20px 0", fontSize: 12 }}>
-                Registra transacciones para ver el historial mensual
-              </div>
-            ) : historialMensual.map((m, i) => {
-              const prev = historialMensual[i - 1];
-              const ahorroActual = m.ingresos - m.gastos;
-              const ahorroPrev = prev ? prev.ingresos - prev.gastos : 0;
-              const tendencia = prev ? ahorroActual - ahorroPrev : 0;
-              const maxLocal = Math.max(...historialMensual.map(x => Math.max(x.ingresos, x.gastos)), 1);
+            {[].map((m, i) => {
+              const prev = [][i - 1];
+              const tendencia = prev ? (m.income - m.expense) - (prev.income - prev.expense) : 0;
               return (
                 <div key={i} style={{ marginBottom: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 12 }}>
                     <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                      <span style={{ color: "#CBD5E1", fontWeight: 600 }}>{m.label}</span>
+                      <span style={{ color: "#CBD5E1", fontWeight: 600 }}>{m.month}</span>
                       {prev && <span style={{ fontSize: 10, color: tendencia >= 0 ? "#10B981" : "#EF4444" }}>
                         {tendencia >= 0 ? "▲" : "▼"} ${Math.abs(tendencia).toLocaleString()}
                       </span>}
                     </div>
                     <div style={{ display: "flex", gap: 10 }}>
-                      <span style={{ color: "#10B981" }}>+${m.ingresos.toLocaleString()}</span>
-                      <span style={{ color: "#EF4444" }}>-${m.gastos.toLocaleString()}</span>
+                      <span style={{ color: "#10B981" }}>+${m.income.toLocaleString()}</span>
+                      <span style={{ color: "#EF4444" }}>-${m.expense.toLocaleString()}</span>
                     </div>
                   </div>
                   <div style={{ height: 6, background: "#1A1A28", borderRadius: 999, overflow: "hidden", marginBottom: 2 }}>
-                    <div style={{ width: `${(m.ingresos / maxLocal) * 100}%`, height: "100%", background: "#10B981", borderRadius: 999 }} />
+                    <div style={{ width: `${(m.income / maxBar) * 100}%`, height: "100%", background: "#10B981", borderRadius: 999 }} />
                   </div>
                   <div style={{ height: 4, background: "#1A1A28", borderRadius: 999, overflow: "hidden" }}>
-                    <div style={{ width: `${(m.gastos / maxLocal) * 100}%`, height: "100%", background: "#EF4444", borderRadius: 999 }} />
+                    <div style={{ width: `${(m.expense / maxBar) * 100}%`, height: "100%", background: "#EF4444", borderRadius: 999 }} />
                   </div>
                   <div style={{ fontSize: 10, color: "#4A5568", marginTop: 3 }}>
-                    Ahorro: <span style={{ color: ahorroActual > 0 ? "#10B981" : "#EF4444", fontWeight: 700 }}>${ahorroActual.toLocaleString()}</span>
+                    Ahorro: <span style={{ color: m.income - m.expense > 0 ? "#10B981" : "#EF4444", fontWeight: 700 }}>${(m.income - m.expense).toLocaleString()}</span>
                   </div>
                 </div>
               );
@@ -3594,6 +2758,104 @@ const FinanzasPage = () => {
         </div>
       )}
 
+      {/* ── PROYECCIÓN ── */}
+      {tab === "proyeccion" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {/* Selector meses */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <span style={{ fontSize: 12, color: "#64748B" }}>Ver proyección a:</span>
+            {[3, 6, 12].map(m => (
+              <button key={m} onClick={() => setProyMeses(m)}
+                className={proyMeses === m ? "btn-primary" : "btn-secondary"}
+                style={{ fontSize: 12, padding: "5px 16px" }}>{m} meses</button>
+            ))}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
+            {/* Gráfica proyección */}
+            <div className="card" style={{ padding: 20 }}>
+              <div className="section-title">🔮 Balance Proyectado — {proyMeses} meses</div>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 180, marginBottom: 12 }}>
+                {/* Barra actual */}
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                  <div style={{ fontSize: 9, color: "#A78BFA", fontWeight: 700 }}>${(resumen.balance/1000).toFixed(1)}k</div>
+                  <div style={{ width: "100%", height: `${(resumen.balance / maxProy) * 160}px`, background: "#4C1D95", borderRadius: "4px 4px 0 0", minHeight: 4 }} />
+                  <div style={{ fontSize: 9, color: "#A78BFA", fontWeight: 700 }}>Hoy</div>
+                </div>
+                {proyeccion.map((p, i) => (
+                  <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                    <div style={{ fontSize: 9, color: "#10B981", fontWeight: 700 }}>${(p.balance/1000).toFixed(1)}k</div>
+                    <div style={{ width: "100%", height: `${(p.balance / maxProy) * 160}px`, background: `linear-gradient(180deg, #10B981, #064E3B)`, borderRadius: "4px 4px 0 0", minHeight: 4, opacity: 0.5 + (i / proyMeses) * 0.5 }} />
+                    <div style={{ fontSize: 9, color: "#64748B" }}>{p.label}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
+                  <span style={{ color: "#64748B" }}>Balance actual</span>
+                  <span style={{ color: "#F1F5F9", fontWeight: 700, fontFamily: "'Orbitron',monospace" }}>${resumen.balance.toLocaleString()}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginTop: 4 }}>
+                  <span style={{ color: "#64748B" }}>Ahorro mensual promedio</span>
+                  <span style={{ color: "#10B981", fontWeight: 700, fontFamily: "'Orbitron',monospace" }}>+${ahorro.toLocaleString()}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginTop: 8, paddingTop: 8, borderTop: "1px solid #1A1A28" }}>
+                  <span style={{ color: "#94A3B8", fontWeight: 700 }}>En {proyMeses} meses tendrás</span>
+                  <span style={{ color: "#10B981", fontWeight: 900, fontFamily: "'Orbitron',monospace", fontSize: 16 }}>${proyeccion[proyMeses - 1]?.balance.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Metas alcanzables */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div className="card" style={{ padding: 18 }}>
+                <div className="section-title">🎯 Metas Alcanzables</div>
+                {[
+                  { nombre: "Fondo emergencias", emoji: "🛡️", meta: 30000, color: "#06B6D4" },
+                  { nombre: "Mi primer auto",    emoji: "🚗", meta: 80000, color: "#7C3AED" },
+                  { nombre: "Laptop nueva",      emoji: "💻", meta: 25000, color: "#10B981" },
+                ].map((m, i) => {
+                  const mesesNecesarios = Math.ceil((m.meta - resumen.balance) / ahorro);
+                  const alcanzable = mesesNecesarios <= proyMeses;
+                  return (
+                    <div key={i} style={{ padding: "12px 14px", borderRadius: 10, background: alcanzable ? `${m.color}08` : "#0A0A12", border: `1px solid ${alcanzable ? m.color + "30" : "#1A1A28"}`, marginBottom: 8 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                          <span style={{ fontSize: 20 }}>{m.emoji}</span>
+                          <div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: "#F1F5F9" }}>{m.nombre}</div>
+                            <div style={{ fontSize: 10, color: "#64748B" }}>${m.meta.toLocaleString()}</div>
+                          </div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          {alcanzable
+                            ? <span style={{ fontSize: 11, color: m.color, fontWeight: 700 }}>✅ en {mesesNecesarios}m</span>
+                            : <span style={{ fontSize: 11, color: "#64748B" }}>~{mesesNecesarios}m</span>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="card" style={{ padding: 18 }}>
+                <div className="section-title">💡 Escenarios</div>
+                {[
+                  { label: "+$1,000/mes extra",  ahorro: ahorro + 1000, color: "#10B981" },
+                  { label: "Ritmo actual",        ahorro: ahorro,        color: "#06B6D4" },
+                  { label: "-$500/mes (gasto↑)",  ahorro: ahorro - 500,  color: "#F59E0B" },
+                ].map((e, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "9px 0", borderBottom: "1px solid #1A1A28", fontSize: 12 }}>
+                    <span style={{ color: "#94A3B8" }}>{e.label}</span>
+                    <span style={{ color: e.color, fontWeight: 700, fontFamily: "'Orbitron',monospace" }}>
+                      ${Math.round(resumen.balance + e.ahorro * proyMeses).toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── DEUDAS & PAGOS FIJOS ── */}
       {tab === "deudas" && (
@@ -3713,44 +2975,21 @@ const FinanzasPage = () => {
                 <div className="section-title" style={{ marginBottom: 0 }}>📈 Activos</div>
                 <span style={{ fontFamily: "'Orbitron',monospace", fontSize: 16, fontWeight: 700, color: "#10B981" }}>${totalActivos.toLocaleString()}</span>
               </div>
-              {activos.length === 0 && (
-                <div style={{ textAlign: "center", color: "#4A5568", padding: "16px 0", fontSize: 12 }}>
-                  Sin activos registrados
-                </div>
-              )}
-              {activos.map((a, i) => (
+              {ACTIVOS_MOCK.map((a, i) => (
                 <div key={i} style={{ marginBottom: 10 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4 }}>
                     <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                       <span>{a.emoji}</span>
                       <span style={{ color: "#CBD5E1" }}>{a.nombre}</span>
                     </div>
-                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                      <span style={{ color: a.color, fontWeight: 700 }}>{totalActivos > 0 ? Math.round((a.valor / totalActivos) * 100) : 0}%</span>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <span style={{ color: a.color, fontWeight: 700 }}>{Math.round((a.valor / totalActivos) * 100)}%</span>
                       <span style={{ color: "#64748B" }}>${a.valor.toLocaleString()}</span>
-                      <button onClick={() => eliminarActivo(a.id)} style={{ background: "none", border: "none", color: "#4A5568", cursor: "pointer", fontSize: 12 }}>🗑️</button>
                     </div>
                   </div>
-                  <ProgressBar value={a.valor} max={Math.max(totalActivos, 1)} color={a.color} height={5} />
+                  <ProgressBar value={a.valor} max={totalActivos} color={a.color} height={5} />
                 </div>
               ))}
-              <button onClick={() => setShowActivoForm(true)} className="btn-secondary" style={{ width: "100%", fontSize: 12, marginTop: 8 }}>+ Agregar activo</button>
-              {showActivoForm && (
-                <div style={{ marginTop: 12, padding: 14, borderRadius: 10, background: "#0A0A12", border: "1px solid #1E1E30" }}>
-                  <input placeholder="Nombre (ej. Ahorro banco)" value={activoForm.nombre} onChange={e => setActivoForm(f => ({...f, nombre: e.target.value}))} style={{ width: "100%", marginBottom: 8 }} />
-                  <input type="number" placeholder="Valor ($)" value={activoForm.valor} onChange={e => setActivoForm(f => ({...f, valor: e.target.value}))} style={{ width: "100%", marginBottom: 8 }} />
-                  <div style={{ display: "flex", gap: 6 }}>
-                    {["🏦","🏠","🚗","💰","📈","💎"].map(e => (
-                      <button key={e} onClick={() => setActivoForm(f => ({...f, emoji: e}))}
-                        style={{ flex: 1, padding: "6px", borderRadius: 6, border: `1px solid ${activoForm.emoji === e ? "#10B981" : "#1E1E30"}`, background: activoForm.emoji === e ? "rgba(16,185,129,0.15)" : "#0F0F18", cursor: "pointer" }}>{e}</button>
-                    ))}
-                  </div>
-                  <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                    <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowActivoForm(false)}>Cancelar</button>
-                    <button className="btn-primary" style={{ flex: 2 }} onClick={agregarActivo}>✓ Agregar</button>
-                  </div>
-                </div>
-              )}
             </div>
             <div className="card" style={{ padding: 18 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
@@ -3785,25 +3024,37 @@ const FinanzasPage = () => {
           <div className="card" style={{ padding: 20 }}>
             <div className="section-title">📈 Evolución del Patrimonio</div>
             <div style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 180, marginBottom: 14 }}>
-              {historialMensual.length === 0 ? (
-                <div style={{ flex: 1, textAlign: "center", color: "#4A5568", fontSize: 12, paddingTop: 60 }}>Registra transacciones para ver la evolución</div>
-              ) : historialMensual.map((h, i) => {
-                const maxVal = Math.max(...historialMensual.map(x => x.ingresos + totalActivos), 1);
+              {PATRIMONIO_HIST.map((h, i) => {
+                const neto = h.activos - h.deudas;
+                const maxVal = Math.max(...PATRIMONIO_HIST.map(x => x.activos));
+                const isHoy = h.mes === "Hoy";
                 return (
                   <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                    <div style={{ fontSize: 9, color: "#10B981" }}>${((totalActivos + h.ahorro * (i+1)) / 1000).toFixed(0)}k</div>
-                    <div style={{ width: "100%", height: `${Math.min(((totalActivos + h.ahorro * (i+1)) / maxVal) * 140, 140)}px`, minHeight: 4, background: "#10B981", borderRadius: "4px 4px 0 0", opacity: 0.6 + (i / historialMensual.length) * 0.4 }} />
-                    <span style={{ fontSize: 10, color: "#64748B" }}>{h.label}</span>
+                    <div style={{ fontSize: 9, color: isHoy ? "#10B981" : "#4A5568" }}>${(neto/1000).toFixed(0)}k</div>
+                    <div style={{ width: "100%", position: "relative", height: 150, display: "flex", alignItems: "flex-end" }}>
+                      {/* Activos */}
+                      <div style={{ position: "absolute", bottom: 0, width: "100%", height: `${(h.activos / maxVal) * 140}px`, background: isHoy ? "#10B981" : "#064E3B", borderRadius: "4px 4px 0 0", opacity: 0.9 }} />
+                      {/* Deudas encima */}
+                      <div style={{ position: "absolute", bottom: 0, width: "100%", height: `${(h.deudas / maxVal) * 140}px`, background: "#EF4444", borderRadius: "4px 4px 0 0", opacity: 0.7 }} />
+                    </div>
+                    <span style={{ fontSize: 10, color: isHoy ? "#10B981" : "#64748B", fontWeight: isHoy ? 700 : 400 }}>{h.mes}</span>
                   </div>
                 );
               })}
             </div>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 16 }}>
+              {[{ c: "#10B981", l: "Activos" }, { c: "#EF4444", l: "Deudas" }].map(x => (
+                <div key={x.l} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: 2, background: x.c }} />
+                  <span style={{ fontSize: 11, color: "#64748B" }}>{x.l}</span>
+                </div>
+              ))}
+            </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {[
-                { label: "Activos totales",    val: `$${totalActivos.toLocaleString()}`,    color: "#10B981" },
-                { label: "Deudas totales",     val: `$${totalDeudas.toLocaleString()}`,     color: "#EF4444" },
-                { label: "Patrimonio neto",    val: `$${patrimonioNeto.toLocaleString()}`,  color: "#F59E0B" },
-                { label: "Ratio activos/deudas", val: totalDeudas > 0 ? `${(totalActivos / totalDeudas).toFixed(1)}x` : "∞", color: "#06B6D4" },
+                { label: "Crecimiento 6 meses", val: `+$${(PATRIMONIO_HIST[5].activos - PATRIMONIO_HIST[5].deudas - (PATRIMONIO_HIST[0].activos - PATRIMONIO_HIST[0].deudas)).toLocaleString()}`, color: "#10B981" },
+                { label: "Ratio activos/deudas", val: `${(totalActivos / totalDeudas).toFixed(1)}x`, color: "#06B6D4" },
+                { label: "Deuda como % activos", val: `${Math.round((totalDeudas / totalActivos) * 100)}%`, color: "#F59E0B" },
               ].map((s, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "9px 12px", borderRadius: 8, background: "#0A0A12", border: "1px solid #1A1A28", fontSize: 12 }}>
                   <span style={{ color: "#94A3B8" }}>{s.label}</span>
@@ -3817,123 +3068,44 @@ const FinanzasPage = () => {
 
       {/* ── BARRILES ── */}
       {tab === "barriles" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ fontSize: 11, color: "#06B6D4", fontWeight: 700, fontFamily: "'Orbitron',monospace", letterSpacing: 2 }}>🪣 FONDOS DE AHORRO</div>
-            <button className="btn-primary" style={{ fontSize: 11, padding: "5px 12px" }} onClick={() => setShowBarrilForm(true)}>+ Nuevo barril</button>
-          </div>
-          {barriles.length === 0 && (
-            <div className="card" style={{ padding: 40, textAlign: "center", color: "#4A5568" }}>
-              <div style={{ fontSize: 40, marginBottom: 10 }}>🪣</div>
-              <div style={{ fontSize: 14, marginBottom: 6 }}>Sin barriles de ahorro</div>
-              <div style={{ fontSize: 12 }}>Crea fondos separados para tus metas (emergencias, viaje, auto...)</div>
-            </div>
-          )}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
-            {barriles.map(b => {
-              const pct = Math.min((b.current / b.goal) * 100, 100);
-              const remaining = Math.max(b.goal - b.current, 0);
-              const months = b.monthly > 0 ? Math.ceil(remaining / b.monthly) : "∞";
-              return (
-                <div key={b.id} className="card" style={{ padding: 18, borderTop: `3px solid ${b.color}` }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                    <div>
-                      <div style={{ fontSize: 30 }}>{b.emoji}</div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "#F1F5F9", marginTop: 4 }}>{b.name}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+          {[].map(b => {
+            const pct = (b.current / b.goal) * 100;
+            const remaining = b.goal - b.current;
+            const months = Math.ceil(remaining / b.monthly);
+            return (
+              <div key={b.id} className="barrel-card" style={{ borderTop: `3px solid ${b.color}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+                  <div>
+                    <div style={{ fontSize: 32 }}>{b.emoji}</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "#F1F5F9", marginTop: 6 }}>{b.name}</div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 22, fontWeight: 900, color: b.color }}>{Math.round(pct)}%</div>
+                    <div style={{ fontSize: 11, color: "#64748B" }}>{months} meses restantes</div>
+                  </div>
+                </div>
+                <ProgressBar value={b.current} max={b.goal} color={b.color} height={10} />
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 8, marginBottom: 16 }}>
+                  <span style={{ color: b.color, fontWeight: 700 }}>${b.current.toLocaleString()}</span>
+                  <span style={{ color: "#4A5568" }}>meta: ${b.goal.toLocaleString()}</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
+                  {[{ label: "Aportación mensual", value: `$${b.monthly.toLocaleString()}`, color: b.color }, { label: "Faltante", value: `$${remaining.toLocaleString()}`, color: "#64748B" }].map((s, i) => (
+                    <div key={i} style={{ padding: "8px 10px", borderRadius: 8, background: "#080810", border: "1px solid #1A1A28" }}>
+                      <div style={{ fontSize: 10, color: "#4A5568", marginBottom: 2 }}>{s.label}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: s.color }}>{s.value}</div>
                     </div>
-                    <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                      <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 20, fontWeight: 900, color: b.color }}>{Math.round(pct)}%</div>
-                      <button onClick={() => { if(window.confirm(`¿Eliminar "${b.name}"?`)) eliminarBarril(b.id); }}
-                        style={{ background: "none", border: "none", color: "#4A5568", cursor: "pointer", fontSize: 14 }}>🗑️</button>
-                    </div>
-                  </div>
-                  <ProgressBar value={b.current} max={b.goal} color={b.color} height={10} />
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginTop: 6, marginBottom: 12 }}>
-                    <span style={{ color: b.color, fontWeight: 700 }}>${b.current.toLocaleString()}</span>
-                    <span style={{ color: "#4A5568" }}>meta: ${b.goal.toLocaleString()}</span>
-                  </div>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    {[100, 500, 1000].map(monto => (
-                      <button key={monto} onClick={() => depositarBarril(b.id, monto)}
-                        className="btn-secondary" style={{ flex: 1, fontSize: 11, padding: "5px 4px" }}>
-                        +${monto}
-                      </button>
-                    ))}
-                  </div>
-                  <div style={{ fontSize: 10, color: "#64748B", marginTop: 6, textAlign: "center" }}>
-                    {months === "∞" ? "Sin aportación mensual" : `~${months} meses · $${(b.monthly || 0).toLocaleString()}/mes`}
-                  </div>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
-          {showBarrilForm && (
-            <div className="modal-bg" onClick={e => e.target === e.currentTarget && setShowBarrilForm(false)}>
-              <div className="modal" style={{ width: 420 }}>
-                <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 14, fontWeight: 700, color: "#F1F5F9", marginBottom: 20 }}>🪣 Nuevo Barril de Ahorro</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  <input placeholder="Nombre (ej. Fondo emergencias)" value={barrilForm.name} onChange={e => setBarrilForm(f => ({...f, name: e.target.value}))} />
-                  <input type="number" placeholder="Meta ($)" value={barrilForm.goal} onChange={e => setBarrilForm(f => ({...f, goal: e.target.value}))} />
-                  <input type="number" placeholder="Aportación mensual ($) — opcional" value={barrilForm.monthly} onChange={e => setBarrilForm(f => ({...f, monthly: e.target.value}))} />
-                  <div style={{ display: "flex", gap: 6 }}>
-                    {["🪣","🚨","✈️","🚗","🏠","💊","📚","💰"].map(e => (
-                      <button key={e} onClick={() => setBarrilForm(f => ({...f, emoji: e}))}
-                        style={{ flex: 1, padding: "6px", borderRadius: 6, border: `1px solid ${barrilForm.emoji === e ? "#06B6D4" : "#1E1E30"}`, background: barrilForm.emoji === e ? "rgba(6,182,212,0.15)" : "#0F0F18", cursor: "pointer" }}>{e}</button>
-                    ))}
-                  </div>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    {["#06B6D4","#10B981","#7C3AED","#F59E0B","#EF4444","#EC4899"].map(c => (
-                      <button key={c} onClick={() => setBarrilForm(f => ({...f, color: c}))}
-                        style={{ flex: 1, height: 28, borderRadius: 6, background: c, border: `3px solid ${barrilForm.color === c ? "white" : "transparent"}`, cursor: "pointer" }} />
-                    ))}
-                  </div>
-                  <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-                    <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowBarrilForm(false)}>Cancelar</button>
-                    <button className="btn-primary" style={{ flex: 2 }} onClick={agregarBarril} disabled={!barrilForm.name || !barrilForm.goal}>✓ Crear barril</button>
-                  </div>
-                </div>
+                <button className="btn-primary" style={{ width: "100%", fontSize: 12 }}>+ Abonar al barril</button>
               </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {showDeudaForm && (
-        <div className="modal-bg" onClick={e => e.target === e.currentTarget && setShowDeudaForm(false)}>
-          <div className="modal" style={{ width: 440 }}>
-            <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 14, fontWeight: 700, color: "#F1F5F9", marginBottom: 20 }}>💳 Agregar Deuda / Pago Fijo</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div style={{ display: "flex", gap: 8 }}>
-                {[{v:"deuda",l:"💳 Deuda"},{v:"fijo",l:"📅 Pago fijo"}].map(o => (
-                  <button key={o.v} onClick={() => setDeudaForm(f => ({...f, tipo: o.v}))}
-                    className={deudaForm.tipo === o.v ? "btn-primary" : "btn-secondary"} style={{ flex: 1, fontSize: 12 }}>{o.l}</button>
-                ))}
-              </div>
-              <input placeholder="Nombre (ej. Tarjeta Banamex)" value={deudaForm.nombre} onChange={e => setDeudaForm(f => ({...f, nombre: e.target.value}))} />
-              <input type="number" placeholder={deudaForm.tipo === "deuda" ? "Total de la deuda ($)" : "Monto mensual ($)"} value={deudaForm.total} onChange={e => setDeudaForm(f => ({...f, total: e.target.value}))} />
-              <input type="number" placeholder="Pago mensual ($)" value={deudaForm.pagoMensual} onChange={e => setDeudaForm(f => ({...f, pagoMensual: e.target.value}))} />
-              <div style={{ display: "flex", gap: 10 }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 11, color: "#64748B", marginBottom: 4 }}>Día de pago</div>
-                  <input type="number" min="1" max="31" value={deudaForm.diaPago} onChange={e => setDeudaForm(f => ({...f, diaPago: parseInt(e.target.value)}))} />
-                </div>
-                {deudaForm.tipo === "deuda" && (
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 11, color: "#64748B", marginBottom: 4 }}>Interés anual (%)</div>
-                    <input type="number" min="0" value={deudaForm.interes} onChange={e => setDeudaForm(f => ({...f, interes: e.target.value}))} />
-                  </div>
-                )}
-              </div>
-              <div style={{ display: "flex", gap: 6 }}>
-                {["💳","🏠","🚗","📱","🏥","⚡","🎓","💊"].map(e => (
-                  <button key={e} onClick={() => setDeudaForm(f => ({...f, emoji: e}))}
-                    style={{ flex: 1, padding: "6px", borderRadius: 6, border: `1px solid ${deudaForm.emoji === e ? "#EF4444" : "#1E1E30"}`, background: deudaForm.emoji === e ? "rgba(239,68,68,0.15)" : "#0F0F18", cursor: "pointer" }}>{e}</button>
-                ))}
-              </div>
-              <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-                <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowDeudaForm(false)}>Cancelar</button>
-                <button className="btn-danger" style={{ flex: 2 }} onClick={agregarDeuda} disabled={!deudaForm.nombre || !deudaForm.total}>✓ Agregar</button>
-              </div>
+            );
+          })}
+          <div className="card" style={{ padding: 18, display: "flex", alignItems: "center", justifyContent: "center", border: "1px dashed #2D2D45", background: "transparent", cursor: "pointer" }}>
+            <div style={{ textAlign: "center", color: "#4A5568" }}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>+</div>
+              <div style={{ fontSize: 13 }}>Nuevo barril</div>
             </div>
           </div>
         </div>
@@ -3998,106 +3170,60 @@ const FinanzasPage = () => {
 
       {/* ── GRÁFICAS ── */}
       {tab === "graficas" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Ingresos vs Gastos histórico */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           <div className="card" style={{ padding: 18 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 0 }}>
-              <div className="section-title" style={{ marginBottom: 0 }}>📊 Ingresos vs Gastos — Últimos 6 meses</div>
-              <button onClick={recargarFinanzas} className="btn-secondary" style={{ fontSize: 11, padding: "4px 10px" }}>🔄 Actualizar</button>
+            <div className="section-title">📊 Ingresos vs Gastos</div>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 12, height: 160 }}>
+              {[].map((m, i) => (
+                <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                  <div style={{ width: "100%", display: "flex", gap: 2, alignItems: "flex-end", height: 140 }}>
+                    <div style={{ flex: 1, background: "#10B981", borderRadius: "4px 4px 0 0", height: `${(m.income / maxBar) * 130}px`, minHeight: 4 }} />
+                    <div style={{ flex: 1, background: "#EF4444", borderRadius: "4px 4px 0 0", height: `${(m.expense / maxBar) * 130}px`, minHeight: 4 }} />
+                  </div>
+                  <span style={{ fontSize: 10, color: "#4A5568" }}>{m.month}</span>
+                </div>
+              ))}
             </div>
-            {historialMensual.length === 0 ? (
-              <div style={{ textAlign: "center", color: "#4A5568", padding: 30 }}>Registra transacciones para ver el historial</div>
-            ) : (
-              <>
-                <div style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 160, marginBottom: 12 }}>
-                  {historialMensual.map((m, i) => {
-                    const maxBar = Math.max(...historialMensual.map(x => Math.max(x.ingresos, x.gastos)), 1);
-                    return (
-                      <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                        <div style={{ width: "100%", display: "flex", gap: 2, alignItems: "flex-end", height: 140 }}>
-                          <div style={{ flex: 1, background: "#10B981", borderRadius: "4px 4px 0 0", height: `${(m.ingresos / maxBar) * 130}px`, minHeight: 4 }} />
-                          <div style={{ flex: 1, background: "#EF4444", borderRadius: "4px 4px 0 0", height: `${(m.gastos / maxBar) * 130}px`, minHeight: 4 }} />
-                        </div>
-                        <span style={{ fontSize: 10, color: "#4A5568" }}>{m.label}</span>
-                      </div>
-                    );
-                  })}
+            <div style={{ display: "flex", gap: 14, justifyContent: "center", marginTop: 10 }}>
+              {[{ c: "#10B981", l: "Ingresos" }, { c: "#EF4444", l: "Gastos" }].map(x => (
+                <div key={x.l} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: 2, background: x.c }} />
+                  <span style={{ fontSize: 11, color: "#64748B" }}>{x.l}</span>
                 </div>
-                <div style={{ display: "flex", gap: 14, justifyContent: "center" }}>
-                  {[{ c: "#10B981", l: "Ingresos" }, { c: "#EF4444", l: "Gastos" }, { c: "#06B6D4", l: "Ahorro" }].map(x => (
-                    <div key={x.l} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                      <div style={{ width: 10, height: 10, borderRadius: 2, background: x.c }} />
-                      <span style={{ fontSize: 11, color: "#64748B" }}>{x.l}</span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
+              ))}
+            </div>
           </div>
-
-          {/* Ahorro mensual */}
           <div className="card" style={{ padding: 18 }}>
-            <div className="section-title">💰 Ahorro Neto por Mes</div>
-            {historialMensual.length === 0 ? (
-              <div style={{ textAlign: "center", color: "#4A5568", padding: 20 }}>Sin datos aún</div>
-            ) : (
-              <div style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 120 }}>
-                {historialMensual.map((m, i) => {
-                  const maxAhorro = Math.max(...historialMensual.map(x => Math.abs(x.ahorro)), 1);
-                  const positive = m.ahorro >= 0;
-                  return (
-                    <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                      <div style={{ fontSize: 9, color: positive ? "#10B981" : "#EF4444", fontWeight: 700 }}>
-                        ${(Math.abs(m.ahorro) / 1000).toFixed(1)}k
-                      </div>
-                      <div style={{ width: "100%", height: `${(Math.abs(m.ahorro) / maxAhorro) * 90}px`, minHeight: 4, background: positive ? "#10B981" : "#EF4444", borderRadius: "4px 4px 0 0", opacity: 0.8 }} />
-                      <span style={{ fontSize: 10, color: "#4A5568" }}>{m.label}</span>
+            <div className="section-title">🍕 Distribución de Gastos</div>
+            <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+              <svg width="120" height="120" viewBox="0 0 120 120">
+                {(() => {
+                  let offset = 0;
+                  const total = [].filter(()=>false).reduce((a, c) => a + c.amount, 0);
+                  const r = 44; const circ = 2 * Math.PI * r;
+                  return [].filter(()=>false).map((cat, i) => {
+                    const pct = cat.amount / total;
+                    const dash = circ * pct;
+                    const el = <circle key={i} cx="60" cy="60" r={r} fill="none" stroke={cat.color} strokeWidth="20" strokeDasharray={`${dash} ${circ - dash}`} strokeDashoffset={-offset} transform="rotate(-90 60 60)" />;
+                    offset += dash;
+                    return el;
+                  });
+                })()}
+                <circle cx="60" cy="60" r="34" fill="#0F0F18" />
+                <text x="60" y="64" textAnchor="middle" fill="#64748B" fontSize="9" fontFamily="Rajdhani,sans-serif">${(resumen.monthExpense / 1000).toFixed(1)}k</text>
+              </svg>
+              <div style={{ flex: 1 }}>
+                {[].filter(()=>false).map((cat, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, padding: "3px 0" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: 2, background: cat.color }} />
+                      <span style={{ color: "#94A3B8" }}>{cat.name}</span>
                     </div>
-                  );
-                })}
+                    <span style={{ color: cat.color, fontWeight: 700 }}>{cat.pct}%</span>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
-
-          {/* Distribución por categoría */}
-          <div className="card" style={{ padding: 18 }}>
-            <div className="section-title">🍕 Distribución de Gastos este Mes</div>
-            {presupuesto.length === 0 ? (
-              <div style={{ textAlign: "center", color: "#4A5568", padding: 20 }}>Crea categorías en el backend para ver la distribución</div>
-            ) : (
-              <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
-                <svg width="140" height="140" viewBox="0 0 120 120">
-                  {(() => {
-                    let offset = 0;
-                    const total = presupuesto.reduce((a, c) => a + c.gastado, 0) || 1;
-                    const r = 44; const circ = 2 * Math.PI * r;
-                    return presupuesto.filter(c => c.gastado > 0).map((cat, i) => {
-                      const pct = cat.gastado / total;
-                      const dash = circ * pct;
-                      const el = <circle key={i} cx="60" cy="60" r={r} fill="none" stroke={cat.color} strokeWidth="20" strokeDasharray={`${dash} ${circ - dash}`} strokeDashoffset={-offset} transform="rotate(-90 60 60)" />;
-                      offset += dash;
-                      return el;
-                    });
-                  })()}
-                  <circle cx="60" cy="60" r="34" fill="#0F0F18" />
-                  <text x="60" y="64" textAnchor="middle" fill="#64748B" fontSize="9" fontFamily="Rajdhani,sans-serif">${(resumen.monthExpense / 1000).toFixed(1)}k</text>
-                </svg>
-                <div style={{ flex: 1 }}>
-                  {presupuesto.filter(c => c.gastado > 0).map((cat, i) => {
-                    const total = presupuesto.reduce((a, c) => a + c.gastado, 0) || 1;
-                    return (
-                      <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, padding: "4px 0", borderBottom: "1px solid #1A1A28" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <div style={{ width: 8, height: 8, borderRadius: 2, background: cat.color }} />
-                          <span style={{ color: "#94A3B8" }}>{cat.emoji} {cat.nombre}</span>
-                        </div>
-                        <span style={{ color: cat.color, fontWeight: 700 }}>{Math.round((cat.gastado/total)*100)}%</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       )}
@@ -4198,7 +3324,7 @@ const FechaTag = ({ fecha, estado }) => {
   );
 };
 
-const TareasPage = ({ setGame }) => {
+const TareasPage = () => {
   const [tareas, setTareas] = useState([]);
   const [cargando, setCargando] = useState(true);
 
@@ -4248,70 +3374,33 @@ const TareasPage = ({ setGame }) => {
   const getCat = (id) => TAREAS_CATEGORIAS.find(c => c.id === id) || TAREAS_CATEGORIAS[0];
 
   // Acciones
-  const toggleEstado = async (id) => {
-    const tarea = tareas.find(t => t.id === id);
-    if (!tarea) return;
-    const siguiente = tarea.estado === "pendiente" ? "progreso" : tarea.estado === "progreso" ? "completado" : "pendiente";
-    const statusMap = { pendiente: "pending", progreso: "in_progress", completado: "completed" };
-    try {
-      await api.tareas.editar(id, { status: statusMap[siguiente] });
-      setTareas(prev => prev.map(t => t.id !== id ? t : { ...t, estado: siguiente }));
-      if (siguiente === "completado") {
-        if (setGame) setGame(g => ({ ...g, xp: g.xp + 1, coins: g.coins + 1 }));
-        setToast({ msg: `✅ "${tarea.titulo}" completada +1 XP`, color: "#10B981" });
-      }
-    } catch (e) {
-      setToast({ msg: `❌ Error: ${e.message}`, color: "#EF4444" });
-    }
+  const toggleEstado = (id) => {
+    setTareas(prev => prev.map(t => {
+      if (t.id !== id) return t;
+      const siguiente = t.estado === "pendiente" ? "progreso" : t.estado === "progreso" ? "completado" : "pendiente";
+      if (siguiente === "completado") setToast({ msg: `✅ "${t.titulo}" completada +50 XP`, color: "#10B981" });
+      return { ...t, estado: siguiente };
+    }));
   };
 
-  const cambiarEstadoKanban = async (id, nuevoEstado) => {
-    const statusMap = { pendiente: "pending", progreso: "in_progress", completado: "completed" };
-    try {
-      await api.tareas.editar(id, { status: statusMap[nuevoEstado] });
-      setTareas(prev => prev.map(t => t.id === id ? { ...t, estado: nuevoEstado } : t));
-    } catch (e) {
-      setToast({ msg: `❌ Error: ${e.message}`, color: "#EF4444" });
-    }
+  const cambiarEstadoKanban = (id, nuevoEstado) => {
+    setTareas(prev => prev.map(t => t.id === id ? { ...t, estado: nuevoEstado } : t));
   };
 
-  const toggleSubtarea = async (tareaId, subId) => {
-    const tarea = tareas.find(t => t.id === tareaId);
-    const sub = tarea?.subtareas?.find(s => s.id === subId);
-    if (!sub) return;
-    try {
-      await api.tareas.toggleSubtarea(tareaId, subId, !sub.done);
-      setTareas(prev => prev.map(t => t.id !== tareaId ? t : {
-        ...t,
-        subtareas: t.subtareas.map(s => s.id === subId ? { ...s, done: !s.done } : s),
-      }));
-    } catch (e) {
-      // Actualizar local de todas formas
-      setTareas(prev => prev.map(t => t.id !== tareaId ? t : {
-        ...t,
-        subtareas: t.subtareas.map(s => s.id === subId ? { ...s, done: !s.done } : s),
-      }));
-    }
+  const toggleSubtarea = (tareaId, subId) => {
+    setTareas(prev => prev.map(t => t.id !== tareaId ? t : {
+      ...t,
+      subtareas: t.subtareas.map(s => s.id === subId ? { ...s, done: !s.done } : s),
+    }));
   };
 
-  const agregarSubtarea = async (tareaId) => {
+  const agregarSubtarea = (tareaId) => {
     if (!nuevoSub.trim()) return;
-    try {
-      const res = await api.tareas.agregarSubtarea(tareaId, { title: nuevoSub.trim() });
-      const nueva = { id: res.id, texto: res.title || nuevoSub.trim(), done: res.completed || false };
-      setTareas(prev => prev.map(t => t.id !== tareaId ? t : {
-        ...t,
-        subtareas: [...t.subtareas, nueva],
-      }));
-      setNuevoSub("");
-    } catch (e) {
-      // Fallback local si falla
-      setTareas(prev => prev.map(t => t.id !== tareaId ? t : {
-        ...t,
-        subtareas: [...t.subtareas, { id: Date.now(), texto: nuevoSub.trim(), done: false }],
-      }));
-      setNuevoSub("");
-    }
+    setTareas(prev => prev.map(t => t.id !== tareaId ? t : {
+      ...t,
+      subtareas: [...t.subtareas, { id: Date.now(), texto: nuevoSub.trim(), done: false }],
+    }));
+    setNuevoSub("");
   };
 
   const eliminarTarea = async (id) => {
@@ -4765,44 +3854,17 @@ const MALOS_INICIAL = [
 const FREQ_LABELS = { daily: "Diario", weekly: "Semanal", "3x": "3x semana" };
 const FREQ_OPTIONS = [["daily","📅 Diario"], ["3x","🔄 3x semana"], ["weekly","📆 Semanal"]];
 
-// Mini calendario tipo GitHub — 12 semanas alineado por día real
+// Mini calendario tipo GitHub — 12 semanas
 const HabitCalendar = ({ history, color }) => {
-  // history[0] = hace 83 días, history[83] = hoy
-  // Necesitamos saber qué día de semana fue el día más antiguo
-  // para alinear correctamente (L=0 ... D=6)
-
-  // Construir mapa de fecha→done
-  const donePorFecha = {};
-  (history || []).forEach(d => {
-    if (d.dateStr || d.date) donePorFecha[d.dateStr || d.date] = d.done;
-  });
-
-  // Calcular el inicio del grid: el lunes de la semana de hace 83 días
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-  const hace83 = new Date(hoy);
-  hace83.setDate(hoy.getDate() - 83);
-
-  // Retroceder hasta el lunes de esa semana (getDay(): 0=Dom,1=Lun,...,6=Sáb)
-  const diaSemana = hace83.getDay(); // 0=Dom
-  const diasHastaLunes = diaSemana === 0 ? 6 : diaSemana - 1;
-  const inicioGrid = new Date(hace83);
-  inicioGrid.setDate(hace83.getDate() - diasHastaLunes);
-
-  // Construir 12 semanas × 7 días desde inicioGrid
   const weeks = [];
   for (let w = 0; w < 12; w++) {
     const week = [];
     for (let d = 0; d < 7; d++) {
-      const fecha = new Date(inicioGrid);
-      fecha.setDate(inicioGrid.getDate() + w * 7 + d);
-      const key = fecha.toISOString().split("T")[0];
-      const esFuturo = fecha > hoy;
-      week.push({ dateStr: key, done: !!donePorFecha[key], futuro: esFuturo });
+      const idx = w * 7 + d;
+      week.push(history[idx] || { done: false, date: "" });
     }
     weeks.push(week);
   }
-
   const dayLabels = ["L","M","X","J","V","S","D"];
   return (
     <div style={{ display: "flex", gap: 3, alignItems: "flex-start" }}>
@@ -4817,12 +3879,12 @@ const HabitCalendar = ({ history, color }) => {
         <div key={wi} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {week.map((day, di) => (
             <div key={di}
-              title={day.dateStr}
+              title={day.date}
               style={{
                 width: 10, height: 10, borderRadius: 2,
-                background: day.futuro ? "transparent" : day.done ? color : "#1A1A28",
-                border: `1px solid ${day.futuro ? "transparent" : day.done ? color + "60" : "#252535"}`,
-                opacity: day.futuro ? 0 : day.done ? 1 : 0.7,
+                background: day.done ? color : "#1A1A28",
+                border: `1px solid ${day.done ? color + "60" : "#252535"}`,
+                opacity: day.done ? 1 : 0.7,
                 transition: "all 0.1s",
                 cursor: "default",
               }}
@@ -4834,116 +3896,32 @@ const HabitCalendar = ({ history, color }) => {
   );
 };
 
-const HabitosPage = ({ onHabitUpdate, setGame }) => {
+const HabitosPage = () => {
   const [habitos, setHabitos] = useState([]);
-  const [malos, setMalos] = useState(() => {
-    try {
-      const guardados = JSON.parse(localStorage.getItem("lifehud_malos") || "[]");
-      const hoy = new Date(); hoy.setHours(0,0,0,0);
-      return guardados.map(m => {
-        if (m.lastRelapseDate) {
-          const ultima = new Date(m.lastRelapseDate); ultima.setHours(0,0,0,0);
-          return { ...m, daysFree: Math.floor((hoy - ultima) / 86400000) };
-        }
-        if (m.createdAt) {
-          const creado = new Date(m.createdAt); creado.setHours(0,0,0,0);
-          return { ...m, daysFree: Math.floor((hoy - creado) / 86400000) };
-        }
-        return m;
-      });
-    } catch(e) { return []; }
-  });
+  const [malos, setMalos] = useState(MALOS_INICIAL);
   const [cargando, setCargando] = useState(true);
-  const yaFueCargado = useRef(false);
-  // Al desmontar, resetear para que recargue al volver
-  useEffect(() => () => { yaFueCargado.current = false; }, []);
 
-  // ── Helper: leer/guardar completions en localStorage ────────
-  const getLocalCalendar = (habitId) => {
-    try { return JSON.parse(localStorage.getItem(`lifehud_habit_cal_${habitId}`) || '{}'); }
-    catch { return {}; }
-  };
-  const saveLocalCalendar = (habitId, calendar) => {
-    localStorage.setItem(`lifehud_habit_cal_${habitId}`, JSON.stringify(calendar));
-  };
-
-  // ── Helper: construir historial 84 días fusionando backend + localStorage ──
-  const buildHistory = (calendar, habitId) => {
-    const local = habitId ? getLocalCalendar(habitId) : {};
-    const merged = { ...calendar, ...local }; // localStorage gana si hay conflicto
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    return Array(84).fill(null).map((_, j) => {
-      const d = new Date(hoy);
-      d.setDate(d.getDate() - (83 - j));
-      const key = d.toISOString().split("T")[0];
-      return { date: j, dateStr: key, done: !!merged[key] };
-    });
-  };
-
-  // Calcular streak real desde el calendario — cuenta días consecutivos hacia atrás desde hoy
-  const calcStreakDesdeCalendar = (calendar) => {
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    let streak = 0;
-    for (let i = 0; i < 365; i++) {
-      const d = new Date(hoy);
-      d.setDate(d.getDate() - i);
-      const key = d.toISOString().split("T")[0];
-      if (calendar[key]) {
-        streak++;
-      } else {
-        break; // Primer día sin completar → racha termina
-      }
-    }
-    return streak;
-  };
-
-  const recargarHabitos = async () => {
-    setCargando(true);
-    const token = localStorage.getItem("life_hud_token");
-    try {
-      const data = await api.habitos.listar();
-      // Solo hábitos activos sin prefijo [MALO]
-      const activos = (data || []).filter(h => h.is_active !== false && !h.name?.startsWith("[MALO]"));
-      const statsArray = await Promise.all(
-        activos.map(h =>
-          fetch(`http://127.0.0.1:8000/api/v1/habits/${h.id}/stats`, {
-            headers: { "Authorization": `Bearer ${token}` }
-          }).then(r => r.ok ? r.json() : null).catch(() => null)
-        )
-      );
-      const mapeados = activos.map((h, i) => {
-        const calendar = statsArray[i]?.calendar || {};
-        return {
+  useEffect(() => {
+    api.habitos.listar()
+      .then(data => {
+        const mapeados = (data || []).map(h => ({
           id:        h.id,
           name:      h.name,
           icon:      h.icon || "⭐",
           color:     "#7C3AED",
           frequency: h.frequency_type?.toLowerCase() || "daily",
-          streak:    calcStreakDesdeCalendar(calendar),
+          streak:    h.current_streak || 0,
           best:      h.best_streak    || 0,
-          history:   buildHistory(calendar, h.id),
+          history: Array(7).fill(null).map((_, i) => ({ date: i, done: false })),
           type:      "good",
-        };
-      });
-      setHabitos(mapeados);
-    } catch(e) {
-      setHabitos([]);
-    } finally {
-      setCargando(false);
-    }
-  };
-
-  useEffect(() => {
-    if (yaFueCargado.current) return;
-    yaFueCargado.current = true;
-    recargarHabitos();
-    // Hábitos malos ya cargados desde localStorage en useState
+        }));
+        setHabitos(mapeados);
+      })
+      .catch(() => setHabitos([]))
+      .finally(() => setCargando(false));
   }, []);
-
-  const [view, setView] = useState("buenos");
-  const [selectedId, setSelectedId] = useState(null);
+  const [view, setView] = useState("buenos"); // buenos | malos | stats
+  const [selectedId, setSelectedId] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [showMaloForm, setShowMaloForm] = useState(false);
   const [form, setForm] = useState({ name: "", icon: "⭐", color: "#7C3AED", frequency: "daily" });
@@ -4953,69 +3931,32 @@ const HabitosPage = ({ onHabitUpdate, setGame }) => {
   const selected = habitos.find(h => h.id === selectedId) || habitos[0];
   const todayStr = new Date().toISOString().split("T")[0];
 
-  const guardarMalos = (nuevos) => {
-    localStorage.setItem("lifehud_malos", JSON.stringify(nuevos));
-  };
-
   const toggleHoy = async (id) => {
     const h = habitos.find(h => h.id === id);
     if (!h) return;
-    const doneHoy = h.history[h.history.length - 1]?.done;
-    if (doneHoy) return;
+    const alreadyDone = h.history[h.history.length - 1]?.done;
+    if (alreadyDone) return; // El backend no permite desmarcar
     try {
       const res = await api.habitos.completar(id);
-      const xpGanado = 1;
-      // Guardar en localStorage como backup del calendario
-      const hoyStr = new Date().toISOString().split("T")[0];
-      const calLocal = getLocalCalendar(id);
-      calLocal[hoyStr] = true;
-      saveLocalCalendar(id, calLocal);
-
-      // Marcar hoy en historial local inmediatamente
+      const nuevoStreak = res.habit?.current_streak || h.streak + 1;
       setHabitos(prev => prev.map(hh => {
         if (hh.id !== id) return hh;
         const newHistory = [...hh.history];
         newHistory[newHistory.length - 1] = { ...newHistory[newHistory.length - 1], done: true };
-        return { ...hh, history: newHistory };
+        return { ...hh, history: newHistory, streak: nuevoStreak, best: Math.max(hh.best, nuevoStreak) };
       }));
-      if (setGame) setGame(g => ({ ...g, xp: g.xp + 1, coins: g.coins + 1 }));
-      setToast({ msg: `🔥 ${h.icon} ${h.name} — ¡completado! +${xpGanado} XP`, color: h.color });
-      // Obtener streak real del backend
-      const token = localStorage.getItem("life_hud_token");
-      const actualizado = await fetch(`http://127.0.0.1:8000/api/v1/habits/${id}`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      }).then(r => r.json()).catch(() => null);
-      const nuevoStreak = actualizado?.current_streak > 0 ? actualizado.current_streak : h.streak + 1;
-      setHabitos(prev => prev.map(hh =>
-        hh.id !== id ? hh : { ...hh, streak: nuevoStreak, best: Math.max(hh.best, nuevoStreak) }
-      ));
-      // Sincronizar con LifeHUD
-      if (onHabitUpdate) onHabitUpdate(id, { done: true, streak: nuevoStreak });
+      setToast({ msg: `🔥 ${h.icon} ${h.name} — ¡completado! +${res.rewards?.xp || 15} XP`, color: h.color });
     } catch (e) {
       setToast({ msg: `❌ Error: ${e.message}`, color: "#EF4444" });
     }
   };
 
   const registrarRecaida = (id) => {
-    const hoy = new Date().toISOString().split("T")[0];
-    const nuevos = malos.map(m => m.id === id
-      ? { ...m, daysFree: 0, relapses: m.relapses + 1, lastRelapseDate: hoy }
+    setMalos(prev => prev.map(m => m.id === id
+      ? { ...m, daysFree: 0, relapses: m.relapses + 1 }
       : m
-    );
-    setMalos(nuevos);
-    guardarMalos(nuevos);
+    ));
     setToast({ msg: "💪 Registrado. ¡Mañana es un nuevo día!", color: "#F59E0B" });
-  };
-
-  const eliminarHabito = async (id) => {
-    try {
-      await api.habitos.eliminar(id);
-      setHabitos(prev => prev.filter(h => h.id !== id));
-      setSelectedId(null);
-      setToast({ msg: "🗑️ Hábito eliminado", color: "#EF4444" });
-    } catch (e) {
-      setToast({ msg: `❌ Error: ${e.message}`, color: "#EF4444" });
-    }
   };
 
   const agregarHabito = async () => {
@@ -5035,7 +3976,7 @@ const HabitosPage = ({ onHabitUpdate, setGame }) => {
         streak:    0,
         best:      0,
         type:      "good",
-        history:   buildHistory({}, res.id),
+        history: Array(7).fill(null).map((_, i) => ({ date: i, done: false })),
       };
       setHabitos(p => [...p, nuevo]);
       setSelectedId(nuevo.id);
@@ -5047,24 +3988,13 @@ const HabitosPage = ({ onHabitUpdate, setGame }) => {
     }
   };
 
-  // Hábitos malos — solo localStorage, no backend
   const agregarMalo = () => {
     if (!maloForm.name) return;
-    const nuevo = { id: Date.now(), name: maloForm.name, icon: maloForm.icon, color: maloForm.color, daysFree: 0, best: 0, relapses: 0, active: true, createdAt: new Date().toISOString().split("T")[0] };
-    const nuevos = [...malos, nuevo];
-    setMalos(nuevos);
-    guardarMalos(nuevos);
+    const nuevo = { id: Date.now(), name: maloForm.name, icon: maloForm.icon, color: maloForm.color, daysFree: 0, best: 0, relapses: 0, active: true };
+    setMalos(p => [...p, nuevo]);
     setMaloForm({ name: "", icon: "🚫", color: "#EF4444" });
     setShowMaloForm(false);
     setToast({ msg: `💪 Eliminando "${nuevo.name}" — ¡tú puedes!`, color: "#10B981" });
-  };
-
-  const eliminarMalo = (id) => {
-    if (!window.confirm("¿Eliminar este hábito malo?")) return;
-    const nuevos = malos.filter(m => m.id !== id);
-    setMalos(nuevos);
-    guardarMalos(nuevos);
-    setToast({ msg: "🗑️ Hábito malo eliminado", color: "#EF4444" });
   };
 
   const totalHoy = habitos.filter(h => h.history[h.history.length - 1]?.done).length;
@@ -5178,8 +4108,6 @@ const HabitosPage = ({ onHabitUpdate, setGame }) => {
                     style={{ fontSize: 13, padding: "8px 18px" }}>
                     {selected.history[selected.history.length - 1]?.done ? "✓ Completado hoy" : "Marcar hoy"}
                   </button>
-                  <button onClick={() => { if(window.confirm(`¿Eliminar "${selected.name}"?`)) eliminarHabito(selected.id); }}
-                    className="btn-danger" style={{ fontSize: 12, padding: "8px 12px" }}>🗑️</button>
                 </div>
               </div>
 
@@ -5292,18 +4220,12 @@ const HabitosPage = ({ onHabitUpdate, setGame }) => {
                       : "🎖️ ¡Más de 66 días — ya es automático!"}
                   </div>
 
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <button onClick={() => registrarRecaida(m.id)}
-                      style={{ flex: 1, padding: "8px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.07)", color: "#EF4444", cursor: "pointer", fontSize: 12, fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, transition: "all 0.15s" }}
-                      onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,0.15)"}
-                      onMouseLeave={e => e.currentTarget.style.background = "rgba(239,68,68,0.07)"}>
-                      ⚠️ Registrar recaída
-                    </button>
-                    <button onClick={() => eliminarMalo(m.id)}
-                      style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(100,116,139,0.3)", background: "transparent", color: "#64748B", cursor: "pointer", fontSize: 12, fontFamily: "'Rajdhani',sans-serif", fontWeight: 700 }}>
-                      🗑️
-                    </button>
-                  </div>
+                  <button onClick={() => registrarRecaida(m.id)}
+                    style={{ width: "100%", padding: "8px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.07)", color: "#EF4444", cursor: "pointer", fontSize: 12, fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, transition: "all 0.15s" }}
+                    onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,0.15)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "rgba(239,68,68,0.07)"}>
+                    ⚠️ Registrar recaída
+                  </button>
                 </div>
               );
             })}
@@ -5485,152 +4407,21 @@ const MODO_MACROS = {
 };
 
 const NutricionPage = () => {
+  const n = mockData.nutrition;
   const [tab, setTab] = useState("hoy");
-  const [vasos, setVasos] = useState(0);
-  const todayKey = () => `lifehud_meals_${new Date().toISOString().split('T')[0]}`;
-  const [meals, setMeals] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(todayKey()) || '[]'); }
-    catch { return []; }
-  });
+  const [vasos, setVasos] = useState(6); // de 8 vasos (250ml c/u)
+  const [meals, setMeals] = useState(n.meals);
   const [showMealModal, setShowMealModal] = useState(false);
   const [toast, setToast] = useState(null);
-  const [cargando, setCargando] = useState(true);
-
-  // ── Recetas ────────────────────────────────────────────────
-  const [recetas, setRecetas] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('lifehud_recetas') || '[]'); }
-    catch { return []; }
-  });
-  const [showFormReceta, setShowFormReceta] = useState(false);
-  const [formReceta, setFormReceta] = useState({
-    nombre: '', emoji: '🍽️', tiempo: '', tipo: 'almuerzo', ingredientes: [],
-  });
-  const [formIng, setFormIng] = useState({ nombre: '', gramos: '', cal100: '', p100: '', c100: '', f100: '' });
-
-  const scaleIng = (val, g) => Math.round(((parseFloat(val) || 0) * (parseFloat(g) || 0)) / 100 * 10) / 10;
-
-  const agregarIngrediente = () => {
-    if (!formIng.nombre || !formIng.gramos) return;
-    const g = parseFloat(formIng.gramos) || 0;
-    const ing = {
-      nombre: formIng.nombre,
-      gramos: g,
-      cal:  scaleIng(formIng.cal100, g),
-      p:    scaleIng(formIng.p100,   g),
-      c:    scaleIng(formIng.c100,   g),
-      fat:  scaleIng(formIng.f100,   g),
-    };
-    setFormReceta(r => ({ ...r, ingredientes: [...r.ingredientes, ing] }));
-    setFormIng({ nombre: '', gramos: '', cal100: '', p100: '', c100: '', f100: '' });
-  };
-
-  const guardarReceta = () => {
-    if (!formReceta.nombre || formReceta.ingredientes.length === 0) return;
-    const totales = formReceta.ingredientes.reduce(
-      (a, i) => ({ cal: a.cal + i.cal, p: a.p + i.p, c: a.c + i.c, fat: a.fat + i.fat }),
-      { cal: 0, p: 0, c: 0, fat: 0 }
-    );
-    const nueva = {
-      id: Date.now(),
-      nombre:        formReceta.nombre,
-      emoji:         formReceta.emoji,
-      tiempo:        formReceta.tiempo,
-      tipo:          formReceta.tipo,
-      ingredientes:  formReceta.ingredientes,
-      cal:           Math.round(totales.cal),
-      proteina:      Math.round(totales.p),
-      carbs:         Math.round(totales.c),
-      grasa:         Math.round(totales.fat),
-    };
-    const nuevas = [...recetas, nueva];
-    setRecetas(nuevas);
-    localStorage.setItem('lifehud_recetas', JSON.stringify(nuevas));
-    setFormReceta({ nombre: '', emoji: '🍽️', tiempo: '', tipo: 'almuerzo', ingredientes: [] });
-    setFormIng({ nombre: '', gramos: '', cal100: '', p100: '', c100: '', f100: '' });
-    setShowFormReceta(false);
-    setToast({ msg: `📖 Receta "${nueva.nombre}" guardada`, color: '#10B981' });
-  };
-
-  const eliminarReceta = (id) => {
-    const nuevas = recetas.filter(r => r.id !== id);
-    setRecetas(nuevas);
-    localStorage.setItem('lifehud_recetas', JSON.stringify(nuevas));
-  };
-
-  const registrarRecetaComoComida = (r) => {
-    const mt = MEAL_TYPES.find(m => m.key === r.tipo) || MEAL_TYPES[1];
-    const nueva = {
-      id: Date.now(), name: r.nombre, type: r.tipo,
-      time: new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
-      calories: r.cal, icon: r.emoji,
-      foods: r.ingredientes.map(i => ({ name: i.nombre, cal: i.cal, p: i.p, c: i.c, f: i.fat, gramos: i.gramos })),
-    };
-    setMeals(prev => {
-      const nuevas = [...prev, nueva];
-      localStorage.setItem(todayKey(), JSON.stringify(nuevas));
-      return nuevas;
-    });
-    setToast({ msg: `${r.emoji} ${r.nombre} registrada — ${r.cal} kcal`, color: mt.color });
-  };
-  const [statsHoy, setStatsHoy] = useState({
-    calories_consumed: 0, calories_target: 2200,
-    protein_consumed_g: 0, carbs_consumed_g: 0, fat_consumed_g: 0,
-    protein_target_g: 150, carbs_target_g: 250, fat_target_g: 80,
-    water_consumed_ml: 0, water_target_ml: 2000,
-  });
-
-  useEffect(() => {
-    Promise.all([
-      api.nutricion.resumenHoy(),
-      api.nutricion.comidas(),
-    ])
-    .then(([stats, mealsData]) => {
-      if (stats) {
-        setStatsHoy(stats);
-        setVasos(Math.round((stats.water_consumed_ml || 0) / 250));
-        if (stats.calories_target) setCalMeta(stats.calories_target);
-      }
-      const lista = mealsData?.meals || mealsData || [];
-      const mapeadas = lista.map(m => ({
-        id:       m.id,
-        name:     m.name || m.meal_type,
-        type:     m.meal_type === "breakfast" ? "desayuno" :
-                  m.meal_type === "lunch"     ? "almuerzo" :
-                  m.meal_type === "dinner"    ? "cena"     : "snack",
-        time:     m.meal_date ? m.meal_date.split("T")[1]?.slice(0,5) : "",
-        calories: m.total_calories || 0,
-        icon:     m.meal_type === "breakfast" ? "🌅" :
-                  m.meal_type === "lunch"     ? "☀️" :
-                  m.meal_type === "dinner"    ? "🌙" : "🍎",
-        foods:    (m.foods || []).map(f => ({
-          name: f.food_name, cal: f.calories,
-          p: f.protein_g, c: f.carbs_g, f: f.fat_g
-        })),
-      }));
-      // Solo reemplazar si el backend devuelve datos reales;
-      // si viene vacío, conservar lo guardado en localStorage
-      if (mapeadas.length > 0) {
-        setMeals(mapeadas);
-      }
-    })
-    .catch(() => {})
-    .finally(() => setCargando(false));
-  }, []);
 
   // TDEE state
-  const [tdeeForm, setTdeeForm] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('lifehud_tdee_form') || 'null') || { peso: 75, altura: 175, edad: 25, sexo: "hombre", actividad: 1.55 }; }
-    catch { return { peso: 75, altura: 175, edad: 25, sexo: "hombre", actividad: 1.55 }; }
-  });
+  const [tdeeForm, setTdeeForm] = useState({ peso: 75, altura: 175, edad: 25, sexo: "hombre", actividad: 1.55 });
   const [tdeeResult, setTdeeResult] = useState(null);
 
-  // Macros editables — persisten en localStorage
-  const [modoMacro, setModoMacro] = useState(() => localStorage.getItem('lifehud_modo_macro') || "mantenimiento");
-  const [calMeta, setCalMeta] = useState(() => parseInt(localStorage.getItem('lifehud_cal_meta') || '2200'));
-  const [macrosMeta, setMacrosMeta] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('lifehud_macros_meta') || 'null') || { proteina: 150, carbs: 250, grasa: 80 }; }
-    catch { return { proteina: 150, carbs: 250, grasa: 80 }; }
-  });
+  // Macros editables
+  const [modoMacro, setModoMacro] = useState("mantenimiento");
+  const [calMeta, setCalMeta] = useState(2200);
+  const [macrosMeta, setMacrosMeta] = useState({ proteina: 150, carbs: 250, grasa: 80 });
 
   const calcularTDEE = () => {
     const { peso, altura, edad, sexo, actividad } = tdeeForm;
@@ -5638,32 +4429,26 @@ const NutricionPage = () => {
       ? 88.36 + 13.4 * peso + 4.8 * altura - 5.7 * edad
       : 447.6 + 9.2 * peso + 3.1 * altura - 4.3 * edad;
     const tdee = Math.round(tmb * actividad);
+    setTdeeResult({ tmb: Math.round(tmb), tdee, cutting: tdee - 400, bulking: tdee + 300 });
+    setCalMeta(tdee);
     const modo = MODO_MACROS[modoMacro];
-    const nuevosMacros = {
+    setMacrosMeta({
       proteina: Math.round(peso * modo.proteina * (modoMacro === "mantenimiento" ? 1.8 : modoMacro === "bulking" ? 2.0 : 2.4)),
       carbs: Math.round((tdee * modo.carbs) / 4),
       grasa: Math.round((tdee * modo.grasa) / 9),
-    };
-    setTdeeResult({ tmb: Math.round(tmb), tdee, cutting: tdee - 400, bulking: tdee + 300 });
-    setCalMeta(tdee);
-    setMacrosMeta(nuevosMacros);
-    localStorage.setItem('lifehud_tdee_form',   JSON.stringify(tdeeForm));
-    localStorage.setItem('lifehud_cal_meta',    String(tdee));
-    localStorage.setItem('lifehud_macros_meta', JSON.stringify(nuevosMacros));
-    setToast({ msg: `✅ TDEE calculado: ${tdee} kcal/día — metas actualizadas`, color: "#06B6D4" });
+    });
+    setToast({ msg: `✅ TDEE calculado: ${tdee} kcal/día`, color: "#06B6D4" });
   };
 
   const aplicarModo = (modo) => {
+    setModoMacro(modo);
     const m = MODO_MACROS[modo];
-    const nuevosMacros = {
+    const meta = modoMacro === modo ? calMeta : calMeta;
+    setMacrosMeta({
       proteina: Math.round(tdeeForm.peso * (modo === "cutting" ? 2.4 : modo === "bulking" ? 2.0 : 1.8)),
       carbs: Math.round((calMeta * m.carbs) / 4),
       grasa: Math.round((calMeta * m.grasa) / 9),
-    };
-    setModoMacro(modo);
-    setMacrosMeta(nuevosMacros);
-    localStorage.setItem('lifehud_modo_macro',  modo);
-    localStorage.setItem('lifehud_macros_meta', JSON.stringify(nuevosMacros));
+    });
   };
 
   const handleSaveMeal = (mealData) => {
@@ -5671,23 +4456,11 @@ const NutricionPage = () => {
     const nueva = {
       id: Date.now(), name: mt.label, type: mealData.type,
       time: mealData.time, calories: mealData.totalCal, icon: mt.icon,
-      foods: mealData.foods.map(f => ({ name: f.name, cal: f.cal, p: f.p || 0, c: f.c || 0, f: f.f || 0, gramos: f.gramos || 100 })),
+      foods: mealData.foods.map(f => ({ name: f.name, cal: f.cal, p: f.p || 0, c: f.c || 0, f: f.f || 0 })),
     };
-    setMeals(prev => {
-      const nuevas = [...prev, nueva];
-      localStorage.setItem(todayKey(), JSON.stringify(nuevas));
-      return nuevas;
-    });
+    setMeals(prev => [...prev, nueva]);
     setToast({ msg: `${mt.icon} ${mt.label} registrado — ${mealData.totalCal} kcal`, color: mt.color });
     setShowMealModal(false);
-  };
-
-  const eliminarComida = (id) => {
-    setMeals(prev => {
-      const nuevas = prev.filter(m => m.id !== id);
-      localStorage.setItem(todayKey(), JSON.stringify(nuevas));
-      return nuevas;
-    });
   };
 
   // Cálculos del día
@@ -5706,17 +4479,9 @@ const NutricionPage = () => {
   const macroLabels = { proteina: "Proteína", carbs: "Carbos", grasa: "Grasa" };
 
   const aguaLitros = (vasos * 250 / 1000).toFixed(1);
-  const VASOS_META = statsHoy.water_target_ml ? Math.round(statsHoy.water_target_ml / 250) : 10;
+  const VASOS_META = 8;
 
-  const maxCal = calMeta;
-
-  if (cargando) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", flexDirection: "column", gap: 14 }}>
-      <div style={{ width: 40, height: 40, borderRadius: "50%", border: "3px solid #1E1E30", borderTop: "3px solid #10B981", animation: "spin 0.8s linear infinite" }} />
-      <div style={{ fontSize: 12, color: "#4A5568", letterSpacing: 2 }}>CARGANDO NUTRICIÓN...</div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
-  );
+  const maxCal = Math.max(...SEMANA_CALORIAS.map(d => d.cal), calMeta);
 
   return (
     <div className="page" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -5852,15 +4617,11 @@ const NutricionPage = () => {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8, marginBottom: 16 }}>
               {Array.from({ length: VASOS_META }).map((_, i) => (
                 <div key={i}
-                  onClick={() => {
-                    if (i >= vasos) {
-                      // Agregar vaso
-                      setVasos(i + 1);
-                      api.nutricion.registrarAgua(250).catch(()=>{});
-                    }
-                  }}
-                  title={i < vasos ? "Ya registrado" : "Click para marcar"}
-                  style={{ aspectRatio: "1", borderRadius: 10, border: `2px solid ${i < vasos ? "#06B6D4" : "#1E1E30"}`, background: i < vasos ? "rgba(6,182,212,0.15)" : "#0A0A12", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: i < vasos ? "default" : "pointer", transition: "all 0.15s", gap: 2 }}>
+                  onClick={() => setVasos(i < vasos ? i : i + 1)}
+                  title={i < vasos ? "Click para desmarcar" : "Click para marcar"}
+                  style={{ aspectRatio: "1", borderRadius: 10, border: `2px solid ${i < vasos ? "#06B6D4" : "#1E1E30"}`, background: i < vasos ? "rgba(6,182,212,0.15)" : "#0A0A12", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.15s", gap: 2 }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = "#06B6D4"}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = i < vasos ? "#06B6D4" : "#1E1E30"}>
                   <span style={{ fontSize: 20 }}>{i < vasos ? "🥤" : "⬜"}</span>
                   <span style={{ fontSize: 9, color: i < vasos ? "#06B6D4" : "#4A5568" }}>{(i + 1) * 250}ml</span>
                 </div>
@@ -5869,126 +4630,88 @@ const NutricionPage = () => {
 
             <ProgressBar value={vasos} max={VASOS_META} color="#06B6D4" height={8} />
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 11 }}>
-              <span style={{ color: "#64748B" }}>Meta: {statsHoy.water_target_ml ? (statsHoy.water_target_ml/1000).toFixed(1) : (VASOS_META * 0.25).toFixed(1)}L</span>
+              <span style={{ color: "#64748B" }}>Meta: {(VASOS_META * 0.25).toFixed(1)}L</span>
               <span style={{ color: vasos >= VASOS_META ? "#10B981" : "#06B6D4", fontWeight: 700 }}>
                 {vasos >= VASOS_META ? "✅ ¡Meta lograda!" : `Faltan ${VASOS_META - vasos} vasos`}
               </span>
             </div>
             <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-              {[250, 500, 1000].map(ml => (
-                <button key={ml} onClick={() => {
-                  const vasosExtra = Math.round(ml / 250);
-                  setVasos(v => Math.min(v + vasosExtra, VASOS_META));
-                  api.nutricion.registrarAgua(ml).catch(()=>{});
-                  setToast({ msg: `💧 +${ml}ml registrados`, color: "#06B6D4" });
-                }} className="btn-secondary" style={{ flex: 1, fontSize: 11, padding: "8px 4px" }}>
-                  +{ml}ml
-                </button>
-              ))}
+              <button onClick={() => setVasos(v => Math.max(v - 1, 0))} className="btn-secondary" style={{ flex: 1, fontSize: 18 }}>−</button>
+              <button onClick={() => setVasos(v => Math.min(v + 1, VASOS_META))} className="btn-primary" style={{ flex: 1, fontSize: 18 }}>+</button>
             </div>
           </div>
         </div>
       )}
 
       {/* ── TAB: SEMANA ── */}
-      {tab === "semana" && (() => {
-        const diasNombres = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
-        const semanaData = Array.from({ length: 7 }, (_, i) => {
-          const d = new Date();
-          d.setDate(d.getDate() - (6 - i));
-          const fecha = d.toISOString().split('T')[0];
-          let calDia = 0;
-          try {
-            const stored = JSON.parse(localStorage.getItem(`lifehud_meals_${fecha}`) || '[]');
-            calDia = stored.reduce((sum, m) => sum + (m.calories || 0), 0);
-          } catch {}
-          return { dia: i === 6 ? "Hoy" : diasNombres[d.getDay()], cal: calDia, meta: calMeta, esHoy: i === 6 };
-        });
-        const diasConDatos  = semanaData.filter(d => d.cal > 0).length;
-        const totalSemana   = semanaData.reduce((s, d) => s + d.cal, 0);
-        const promedio      = diasConDatos > 0 ? Math.round(totalSemana / diasConDatos) : 0;
-        const dentroMeta    = semanaData.filter(d => d.cal > 0 && d.cal <= d.meta).length;
-        const excedidos     = semanaData.filter(d => d.cal > d.meta).length;
-        const peakCal       = Math.max(...semanaData.map(d => d.cal), calMeta, 1);
-        return (
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
-            <div className="card" style={{ padding: 20 }}>
-              <div className="section-title">📅 Calorías — Últimos 7 días</div>
-              {diasConDatos === 0 ? (
-                <div style={{ textAlign: "center", color: "#4A5568", fontSize: 13, padding: "40px 0" }}>
-                  <div style={{ fontSize: 32, marginBottom: 8 }}>📊</div>
-                  Registra comidas en el tab Hoy para ver tu historial aquí
-                </div>
-              ) : (
-                <div style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 180, marginBottom: 10 }}>
-                  {semanaData.map((d, i) => {
-                    const pct     = d.cal  / peakCal;
-                    const metaPct = d.meta / peakCal;
-                    const sobre   = d.cal > d.meta && d.cal > 0;
-                    return (
-                      <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                        {d.cal > 0 && (
-                          <div style={{ fontSize: 9, color: sobre ? "#EF4444" : "#10B981", fontWeight: 700 }}>
-                            {sobre ? `+${d.cal - d.meta}` : `${d.cal}`}
-                          </div>
-                        )}
-                        <div style={{ width: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end", height: 140, position: "relative" }}>
-                          <div style={{ position: "absolute", bottom: `${metaPct * 140}px`, left: 0, right: 0, borderTop: "1px dashed #374151", zIndex: 1 }} />
-                          <div style={{ width: "100%", height: `${Math.max(pct * 140, d.cal > 0 ? 4 : 0)}px`, borderRadius: "4px 4px 0 0", background: sobre ? "#EF4444" : d.esHoy ? "#7C3AED" : "#06B6D4", opacity: d.esHoy ? 1 : 0.75, transition: "all 0.3s" }} />
-                        </div>
-                        <div style={{ fontSize: 10, color: d.esHoy ? "#A78BFA" : "#64748B", fontWeight: d.esHoy ? 700 : 400 }}>{d.dia}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
-                {[{ c: "#7C3AED", l: "Hoy" }, { c: "#06B6D4", l: "Días anteriores" }, { c: "#EF4444", l: "Excedido" }, { c: "#374151", l: "-- Meta" }].map(x => (
-                  <div key={x.l} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                    <div style={{ width: x.l === "-- Meta" ? 16 : 10, height: x.l === "-- Meta" ? 0 : 10, background: x.c, borderRadius: 2, borderTop: x.l === "-- Meta" ? `2px dashed ${x.c}` : "none" }} />
-                    <span style={{ fontSize: 10, color: "#64748B" }}>{x.l}</span>
+      {tab === "semana" && (
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
+          <div className="card" style={{ padding: 20 }}>
+            <div className="section-title">📅 Calorías — Últimos 7 días</div>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 180, marginBottom: 10 }}>
+              {SEMANA_CALORIAS.map((d, i) => {
+                const pct = d.cal / maxCal;
+                const metaPct = d.meta / maxCal;
+                const isHoy = d.dia === "Hoy";
+                const sobre = d.cal > d.meta;
+                return (
+                  <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                    <div style={{ fontSize: 10, color: sobre ? "#EF4444" : "#10B981", fontWeight: 700 }}>
+                      {sobre ? `+${d.cal - d.meta}` : `-${d.meta - d.cal}`}
+                    </div>
+                    <div style={{ width: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end", height: 140, position: "relative" }}>
+                      {/* Línea de meta */}
+                      <div style={{ position: "absolute", bottom: `${metaPct * 140}px`, left: 0, right: 0, borderTop: "1px dashed #2D2D45", zIndex: 1 }} />
+                      {/* Barra */}
+                      <div style={{ width: "100%", height: `${pct * 140}px`, borderRadius: "4px 4px 0 0", background: sobre ? "#EF4444" : isHoy ? "#7C3AED" : "#06B6D4", opacity: isHoy ? 1 : 0.75, transition: "all 0.3s", minHeight: 4 }} />
+                    </div>
+                    <div style={{ fontSize: 10, color: isHoy ? "#A78BFA" : "#64748B", fontWeight: isHoy ? 700 : 400 }}>{d.dia}</div>
+                    <div style={{ fontSize: 9, color: sobre ? "#EF4444" : "#4A5568" }}>{d.cal}</div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <div className="card" style={{ padding: 16 }}>
-                <div className="section-title">📊 Resumen Semanal</div>
-                {[
-                  { label: "Promedio diario",     val: diasConDatos > 0 ? `${promedio} kcal`    : "—", color: "#06B6D4" },
-                  { label: "Días dentro de meta", val: diasConDatos > 0 ? `${dentroMeta}/7`     : "—", color: "#10B981" },
-                  { label: "Días excedidos",       val: diasConDatos > 0 ? `${excedidos}/7`      : "—", color: "#EF4444" },
-                  { label: "Total semana",         val: diasConDatos > 0 ? `${totalSemana} kcal` : "—", color: "#F59E0B" },
-                ].map((s, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "9px 0", borderBottom: "1px solid #1A1A28", fontSize: 12 }}>
-                    <span style={{ color: "#94A3B8" }}>{s.label}</span>
-                    <span style={{ color: s.color, fontWeight: 700, fontFamily: "'Orbitron',monospace" }}>{s.val}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="card" style={{ padding: 16 }}>
-                <div className="section-title">💡 Análisis</div>
-                {diasConDatos === 0
-                  ? <div style={{ fontSize: 12, color: "#4A5568", padding: "8px 0" }}>Registra comidas para ver tu análisis semanal.</div>
-                  : [
-                      promedio <= calMeta
-                        ? { icon: "🟢", msg: `Promedio de ${promedio} kcal — dentro de tu meta de ${calMeta} kcal.` }
-                        : { icon: "🔴", msg: `Promedio de ${promedio} kcal — ${promedio - calMeta} kcal sobre tu meta diaria.` },
-                      dentroMeta >= 5
-                        ? { icon: "💡", msg: `${dentroMeta} de 7 días dentro de meta. ¡Excelente consistencia!` }
-                        : { icon: "🟡", msg: `Solo ${dentroMeta} días dentro de meta. Intenta reducir porciones.` },
-                    ].map((t, i) => (
-                      <div key={i} style={{ display: "flex", gap: 8, padding: "8px 0", borderBottom: "1px solid #1A1A28", fontSize: 11 }}>
-                        <span>{t.icon}</span>
-                        <span style={{ color: "#94A3B8", lineHeight: 1.5 }}>{t.msg}</span>
-                      </div>
-                    ))
-                }
-              </div>
+            <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+              {[{ c: "#7C3AED", l: "Hoy" }, { c: "#06B6D4", l: "Días anteriores" }, { c: "#EF4444", l: "Excedido" }, { c: "#2D2D45", l: "-- Meta" }].map(x => (
+                <div key={x.l} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <div style={{ width: x.l === "-- Meta" ? 16 : 10, height: x.l === "-- Meta" ? 1 : 10, background: x.c, borderRadius: x.l === "-- Meta" ? 0 : 2, borderTop: x.l === "-- Meta" ? `2px dashed ${x.c}` : "none" }} />
+                  <span style={{ fontSize: 10, color: "#64748B" }}>{x.l}</span>
+                </div>
+              ))}
             </div>
           </div>
-        );
-      })()}
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div className="card" style={{ padding: 16 }}>
+              <div className="section-title">📊 Resumen Semanal</div>
+              {[
+                { label: "Promedio diario", val: `${Math.round(SEMANA_CALORIAS.reduce((a,d) => a+d.cal, 0) / SEMANA_CALORIAS.length)} kcal`, color: "#06B6D4" },
+                { label: "Días dentro de meta", val: `${SEMANA_CALORIAS.filter(d => d.cal <= d.meta).length}/7`, color: "#10B981" },
+                { label: "Días excedidos", val: `${SEMANA_CALORIAS.filter(d => d.cal > d.meta).length}/7`, color: "#EF4444" },
+                { label: "Total semana", val: `${SEMANA_CALORIAS.reduce((a,d) => a+d.cal, 0).toLocaleString()} kcal`, color: "#F59E0B" },
+              ].map((s, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "9px 0", borderBottom: "1px solid #1A1A28", fontSize: 12 }}>
+                  <span style={{ color: "#94A3B8" }}>{s.label}</span>
+                  <span style={{ color: s.color, fontWeight: 700, fontFamily: "'Orbitron',monospace" }}>{s.val}</span>
+                </div>
+              ))}
+            </div>
+            <div className="card" style={{ padding: 16 }}>
+              <div className="section-title">🤖 Análisis IA</div>
+              {[
+                { icon: "🟢", msg: `Promedio de ${Math.round(SEMANA_CALORIAS.reduce((a,d)=>a+d.cal,0)/7)} kcal — cerca de tu meta.` },
+                { icon: "🟡", msg: "El sábado excediste 380 kcal. Revisa snacks nocturnos." },
+                { icon: "💡", msg: "5 de 7 días dentro de meta — ¡excelente consistencia!" },
+              ].map((t, i) => (
+                <div key={i} style={{ display: "flex", gap: 8, padding: "8px 0", borderBottom: "1px solid #1A1A28", fontSize: 11 }}>
+                  <span>{t.icon}</span>
+                  <span style={{ color: "#94A3B8", lineHeight: 1.5 }}>{t.msg}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── TAB: COMIDAS ── */}
       {tab === "comidas" && (
@@ -6015,19 +4738,18 @@ const NutricionPage = () => {
                   <div key={i} style={{ padding: "10px 12px", borderRadius: 8, background: "#0A0A12", border: "1px solid #1A1A28", marginBottom: 6 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                       <span style={{ fontSize: 12, fontWeight: 700, color: "#F1F5F9" }}>{comida.name}</span>
-                      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                      <div style={{ display: "flex", gap: 8 }}>
                         <span style={{ fontSize: 11, color: "#64748B" }}>{comida.time}</span>
                         <span style={{ fontFamily: "'Orbitron',monospace", fontSize: 12, color: mt.color, fontWeight: 700 }}>{comida.calories} kcal</span>
-                        <span onClick={() => eliminarComida(comida.id)} style={{ color: "#EF4444", cursor: "pointer", fontWeight: 700, fontSize: 14, lineHeight: 1 }} title="Eliminar">x</span>
                       </div>
                     </div>
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      {comida.foods.slice(0, 5).map((f, j) => (
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {comida.foods.slice(0, 4).map((f, j) => (
                         <span key={j} style={{ fontSize: 10, padding: "2px 7px", borderRadius: 999, background: `${mt.color}15`, color: mt.color }}>
-                          {f.name}{f.gramos ? ` ${f.gramos}g` : ""} - {f.cal} kcal
+                          {f.name} ({f.cal} kcal)
                         </span>
                       ))}
-                      {comida.foods.length > 5 && <span style={{ fontSize: 10, color: "#4A5568" }}>+{comida.foods.length - 5} mas</span>}
+                      {comida.foods.length > 4 && <span style={{ fontSize: 10, color: "#4A5568" }}>+{comida.foods.length - 4} más</span>}
                     </div>
                   </div>
                 ))}
@@ -6245,195 +4967,40 @@ const NutricionPage = () => {
 
       {/* ── TAB: RECETAS ── */}
       {tab === "recetas" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-          {/* Header */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ fontSize: 12, color: "#64748B" }}>{recetas.length} receta{recetas.length !== 1 ? "s" : ""} guardada{recetas.length !== 1 ? "s" : ""}</div>
-            <button className="btn-primary" style={{ fontSize: 13 }} onClick={() => setShowFormReceta(true)}>+ Nueva receta</button>
-          </div>
-
-          {/* Modal nueva receta */}
-          {showFormReceta && (
-            <div className="modal-bg" onClick={e => e.target === e.currentTarget && setShowFormReceta(false)}>
-              <div className="modal" style={{ width: 600, maxHeight: "90vh", overflowY: "auto" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                  <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 14, fontWeight: 700, color: "#F1F5F9" }}>📖 Nueva Receta</div>
-                  <button onClick={() => setShowFormReceta(false)} style={{ background: "none", border: "none", color: "#64748B", cursor: "pointer", fontSize: 18 }}>✕</button>
-                </div>
-
-                {/* Datos básicos */}
-                <div style={{ display: "grid", gridTemplateColumns: "60px 1fr 100px", gap: 10, marginBottom: 14 }}>
-                  <input placeholder="🍽️" value={formReceta.emoji}
-                    onChange={e => setFormReceta(r => ({ ...r, emoji: e.target.value }))}
-                    style={{ fontSize: 22, textAlign: "center" }} />
-                  <input placeholder="Nombre de la receta" value={formReceta.nombre}
-                    onChange={e => setFormReceta(r => ({ ...r, nombre: e.target.value }))}
-                    style={{ fontSize: 13 }} />
-                  <input placeholder="⏱ 20 min" value={formReceta.tiempo}
-                    onChange={e => setFormReceta(r => ({ ...r, tiempo: e.target.value }))}
-                    style={{ fontSize: 12 }} />
-                </div>
-
-                {/* Tipo de comida */}
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontSize: 10, color: "#64748B", marginBottom: 8, letterSpacing: 1 }}>REGISTRAR COMO</div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    {MEAL_TYPES.map(mt => (
-                      <button key={mt.key} onClick={() => setFormReceta(r => ({ ...r, tipo: mt.key }))}
-                        className={formReceta.tipo === mt.key ? "btn-primary" : "btn-secondary"}
-                        style={{ flex: 1, fontSize: 11, padding: "6px 4px" }}>
-                        {mt.icon} {mt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Agregar ingrediente */}
-                <div style={{ padding: 14, borderRadius: 10, background: "#0A0A12", border: "1px solid #1E1E30", marginBottom: 14 }}>
-                  <div style={{ fontSize: 10, color: "#64748B", marginBottom: 10, letterSpacing: 1 }}>+ INGREDIENTE (valores por 100g)</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "2fr 70px 70px 60px 60px 60px", gap: 7, marginBottom: 8 }}>
-                    <input placeholder="Ingrediente" value={formIng.nombre}
-                      onChange={e => setFormIng(f => ({ ...f, nombre: e.target.value }))} style={{ fontSize: 12 }} />
-                    <input type="number" placeholder="Gramos" value={formIng.gramos}
-                      onChange={e => setFormIng(f => ({ ...f, gramos: e.target.value }))} style={{ fontSize: 12 }} />
-                    <input type="number" placeholder="kcal" value={formIng.cal100}
-                      onChange={e => setFormIng(f => ({ ...f, cal100: e.target.value }))} style={{ fontSize: 12 }} />
-                    <input type="number" placeholder="P(g)" value={formIng.p100}
-                      onChange={e => setFormIng(f => ({ ...f, p100: e.target.value }))} style={{ fontSize: 12 }} />
-                    <input type="number" placeholder="C(g)" value={formIng.c100}
-                      onChange={e => setFormIng(f => ({ ...f, c100: e.target.value }))} style={{ fontSize: 12 }} />
-                    <input type="number" placeholder="G(g)" value={formIng.f100}
-                      onChange={e => setFormIng(f => ({ ...f, f100: e.target.value }))} style={{ fontSize: 12 }} />
-                  </div>
-                  {/* Preview del ingrediente */}
-                  {formIng.nombre && formIng.gramos && (
-                    <div style={{ fontSize: 11, color: "#94A3B8", marginBottom: 8, padding: "6px 8px", background: "rgba(16,185,129,0.06)", borderRadius: 6 }}>
-                      {formIng.nombre} · {formIng.gramos}g →
-                      <span style={{ color: "#F59E0B" }}> {scaleIng(formIng.cal100, formIng.gramos)} kcal</span>
-                      <span style={{ color: "#7C3AED" }}> · P:{scaleIng(formIng.p100, formIng.gramos)}g</span>
-                      <span style={{ color: "#06B6D4" }}> · C:{scaleIng(formIng.c100, formIng.gramos)}g</span>
-                      <span style={{ color: "#F59E0B" }}> · G:{scaleIng(formIng.f100, formIng.gramos)}g</span>
-                    </div>
-                  )}
-                  <button className="btn-secondary" style={{ fontSize: 12, width: "100%" }}
-                    onClick={agregarIngrediente} disabled={!formIng.nombre || !formIng.gramos}>
-                    + Agregar ingrediente
-                  </button>
-                </div>
-
-                {/* Lista de ingredientes agregados */}
-                {formReceta.ingredientes.length > 0 && (
-                  <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 10, color: "#64748B", marginBottom: 8, letterSpacing: 1 }}>INGREDIENTES ({formReceta.ingredientes.length})</div>
-                    {formReceta.ingredientes.map((ing, i) => (
-                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: "1px solid #1A1A28", fontSize: 12 }}>
-                        <span style={{ color: "#F1F5F9" }}>{ing.nombre} <span style={{ color: "#64748B" }}>({ing.gramos}g)</span></span>
-                        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                          <span style={{ color: "#F59E0B", fontSize: 11, fontFamily: "'Orbitron',monospace" }}>{ing.cal} kcal</span>
-                          <span style={{ color: "#7C3AED", fontSize: 10 }}>P:{ing.p}g</span>
-                          <span style={{ color: "#06B6D4", fontSize: 10 }}>C:{ing.c}g</span>
-                          <span onClick={() => setFormReceta(r => ({ ...r, ingredientes: r.ingredientes.filter((_, j) => j !== i) }))}
-                            style={{ color: "#EF4444", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>×</span>
-                        </div>
-                      </div>
-                    ))}
-                    {/* Totales */}
-                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 10, padding: "8px 0" }}>
-                      {(() => {
-                        const tot = formReceta.ingredientes.reduce((a, i) => ({ cal: a.cal + i.cal, p: a.p + i.p, c: a.c + i.c, fat: a.fat + i.fat }), { cal: 0, p: 0, c: 0, fat: 0 });
-                        return [
-                          { l: "Total", v: `${Math.round(tot.cal)} kcal`, c: "#F59E0B" },
-                          { l: "P", v: `${Math.round(tot.p)}g`, c: "#7C3AED" },
-                          { l: "C", v: `${Math.round(tot.c)}g`, c: "#06B6D4" },
-                          { l: "G", v: `${Math.round(tot.fat)}g`, c: "#F59E0B" },
-                        ].map((s, i) => (
-                          <div key={i} style={{ textAlign: "center" }}>
-                            <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 13, fontWeight: 700, color: s.c }}>{s.v}</div>
-                            <div style={{ fontSize: 9, color: "#4A5568" }}>{s.l}</div>
-                          </div>
-                        ));
-                      })()}
-                    </div>
-                  </div>
-                )}
-
-                <div style={{ display: "flex", gap: 10 }}>
-                  <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowFormReceta(false)}>Cancelar</button>
-                  <button className="btn-primary" style={{ flex: 2 }}
-                    disabled={!formReceta.nombre || formReceta.ingredientes.length === 0}
-                    onClick={guardarReceta}>✅ Guardar receta</button>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+          {n.recipes.map(r => (
+            <div key={r.id} className="card" style={{ padding: 16 }}>
+              <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 12 }}>
+                <span style={{ fontSize: 36 }}>{r.emoji}</span>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#F1F5F9" }}>{r.name}</div>
+                  <div style={{ fontSize: 11, color: "#64748B" }}>⏱ {r.time}</div>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Grid de recetas */}
-          {recetas.length === 0 ? (
-            <div className="card" style={{ padding: 40, textAlign: "center", color: "#4A5568" }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>📖</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#64748B", marginBottom: 6 }}>Sin recetas todavía</div>
-              <div style={{ fontSize: 12, marginBottom: 16 }}>Crea tu primera receta con sus ingredientes y valores nutricionales</div>
-              <button className="btn-primary" onClick={() => setShowFormReceta(true)}>+ Crear primera receta</button>
-            </div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
-              {recetas.map(r => {
-                const mt = MEAL_TYPES.find(m => m.key === r.tipo) || MEAL_TYPES[1];
-                return (
-                  <div key={r.id} className="card" style={{ padding: 16, borderTop: `3px solid ${mt.color}` }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-                      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                        <span style={{ fontSize: 32 }}>{r.emoji}</span>
-                        <div>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: "#F1F5F9" }}>{r.nombre}</div>
-                          <div style={{ display: "flex", gap: 6, marginTop: 3 }}>
-                            {r.tiempo && <span style={{ fontSize: 10, color: "#64748B" }}>⏱ {r.tiempo}</span>}
-                            <span style={{ fontSize: 10, color: mt.color }}>{mt.icon} {mt.label}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <span onClick={() => eliminarReceta(r.id)}
-                        style={{ color: "#EF4444", cursor: "pointer", fontSize: 16, fontWeight: 700, lineHeight: 1 }}>×</span>
-                    </div>
-
-                    {/* Macros */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 5, marginBottom: 12 }}>
-                      {[
-                        { l: "kcal", v: r.cal,      c: "#F59E0B" },
-                        { l: "Prot", v: `${r.proteina}g`, c: "#7C3AED" },
-                        { l: "Carb", v: `${r.carbs}g`,    c: "#06B6D4" },
-                        { l: "Gras", v: `${r.grasa}g`,    c: "#10B981" },
-                      ].map((s, i) => (
-                        <div key={i} style={{ padding: "6px 4px", borderRadius: 7, background: "#0A0A12", border: "1px solid #1A1A28", textAlign: "center" }}>
-                          <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 12, fontWeight: 700, color: s.c }}>{s.v}</div>
-                          <div style={{ fontSize: 9, color: "#4A5568" }}>{s.l}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Ingredientes */}
-                    <div style={{ marginBottom: 12 }}>
-                      <div style={{ fontSize: 10, color: "#4A5568", marginBottom: 5 }}>INGREDIENTES ({r.ingredientes.length})</div>
-                      {r.ingredientes.slice(0, 3).map((ing, i) => (
-                        <div key={i} style={{ fontSize: 11, color: "#94A3B8", padding: "3px 0", borderBottom: "1px solid #1A1A28" }}>
-                          · {ing.nombre} <span style={{ color: "#64748B" }}>({ing.gramos}g · {ing.cal} kcal)</span>
-                        </div>
-                      ))}
-                      {r.ingredientes.length > 3 && (
-                        <div style={{ fontSize: 10, color: "#4A5568", marginTop: 3 }}>+{r.ingredientes.length - 3} más</div>
-                      )}
-                    </div>
-
-                    <button className="btn-success" style={{ width: "100%", fontSize: 12 }}
-                      onClick={() => registrarRecetaComoComida(r)}>
-                      + Registrar hoy
-                    </button>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 6, marginBottom: 12 }}>
+                {[
+                  { l: "Calorías", v: `${r.calories}`, c: "#F59E0B" },
+                  { l: "Proteína", v: `${r.protein}g`, c: "#7C3AED" },
+                  { l: "Carbos", v: `${r.carbs}g`, c: "#06B6D4" },
+                ].map((s, i) => (
+                  <div key={i} style={{ padding: "7px 6px", borderRadius: 7, background: "#0A0A12", border: "1px solid #1A1A28", textAlign: "center" }}>
+                    <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 13, fontWeight: 700, color: s.c }}>{s.v}</div>
+                    <div style={{ fontSize: 9, color: "#4A5568" }}>{s.l}</div>
                   </div>
-                );
-              })}
+                ))}
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 10, color: "#4A5568", marginBottom: 6 }}>Ingredientes:</div>
+                {r.ingredients.map((ing, i) => (
+                  <div key={i} style={{ fontSize: 11, color: "#94A3B8", padding: "3px 0", borderBottom: "1px solid #1A1A28" }}>· {ing}</div>
+                ))}
+              </div>
+              <button className="btn-success" style={{ width: "100%", fontSize: 12 }}
+                onClick={() => { setShowMealModal(true); setToast({ msg: `📖 ${r.name} listo para registrar`, color: "#10B981" }); }}>
+                + Registrar esta receta
+              </button>
             </div>
-          )}
+          ))}
         </div>
       )}
     </div>
@@ -6592,178 +5159,43 @@ const DIAS_ESTUDIO = generar30Dias();
 
 const NIVEL_COLORS_L = { Fundamento: "#10B981", Intermedio: "#06B6D4", Avanzado: "#F59E0B", Élite: "#A78BFA" };
 
-// Tracks disponibles para el Roadmap
-const ROADMAP_TRACKS = {
-  programacion: {
-    label: "Programación", emoji: "💻", color: "#7C3AED",
-    desc: "Desde cero hasta backend/fullstack profesional",
-    nodos: [
-      { id: 1, name: "Lógica de Programación", emoji: "🧠", nivel: "Fundamento", horas: 20, color: "#10B981", bloqueado: false, unlocks: [2, 3], desc: "Algoritmos, variables, bucles, funciones" },
-      { id: 2, name: "Python / JS Básico",     emoji: "🐍", nivel: "Fundamento", horas: 30, color: "#10B981", bloqueado: false, unlocks: [4, 5], desc: "Sintaxis, listas, objetos, funciones" },
-      { id: 3, name: "HTML + CSS",             emoji: "🎨", nivel: "Fundamento", horas: 20, color: "#F59E0B", bloqueado: false, unlocks: [6],    desc: "Estructura web, estilos, layout" },
-      { id: 4, name: "Python Intermedio",      emoji: "⚙️", nivel: "Intermedio", horas: 40, color: "#7C3AED", bloqueado: true,  unlocks: [7],    desc: "POO, decoradores, async, generators" },
-      { id: 5, name: "SQL",                    emoji: "🗄️", nivel: "Intermedio", horas: 25, color: "#06B6D4", bloqueado: true,  unlocks: [7, 8], desc: "SELECT, JOINs, funciones ventana" },
-      { id: 6, name: "React / Vue",            emoji: "⚛️", nivel: "Intermedio", horas: 35, color: "#F59E0B", bloqueado: true,  unlocks: [9],    desc: "Componentes, estado, hooks" },
-      { id: 7, name: "FastAPI / Node.js",      emoji: "⚡", nivel: "Avanzado",   horas: 30, color: "#EF4444", bloqueado: true,  unlocks: [10],   desc: "APIs REST, autenticación, WebSockets" },
-      { id: 8, name: "PostgreSQL Avanzado",    emoji: "🐘", nivel: "Avanzado",   horas: 20, color: "#0EA5E9", bloqueado: true,  unlocks: [10],   desc: "Índices, CTEs, rendimiento" },
-      { id: 9, name: "TypeScript",             emoji: "🔷", nivel: "Avanzado",   horas: 25, color: "#3B82F6", bloqueado: true,  unlocks: [11],   desc: "Tipado estático, interfaces, genéricos" },
-      { id: 10, name: "Docker + CI/CD",        emoji: "🐳", nivel: "Avanzado",   horas: 30, color: "#10B981", bloqueado: true,  unlocks: [11],   desc: "Contenedores, pipelines, despliegue" },
-      { id: 11, name: "Arquitectura Senior",   emoji: "🏆", nivel: "Élite",      horas: 60, color: "#A78BFA", bloqueado: true,  unlocks: [],     desc: "Microservicios, patrones, escalabilidad" },
-    ],
-  },
-  diseno: {
-    label: "Diseño UI/UX", emoji: "🎨", color: "#EC4899",
-    desc: "De cero a diseñador de producto profesional",
-    nodos: [
-      { id: 1, name: "Fundamentos Diseño",   emoji: "✏️", nivel: "Fundamento", horas: 15, color: "#EC4899", bloqueado: false, unlocks: [2, 3], desc: "Tipografía, color, composición, espacio" },
-      { id: 2, name: "Figma Básico",         emoji: "🖌️", nivel: "Fundamento", horas: 20, color: "#EC4899", bloqueado: false, unlocks: [4],    desc: "Frames, componentes, auto layout" },
-      { id: 3, name: "Principios UX",        emoji: "👤", nivel: "Fundamento", horas: 15, color: "#F59E0B", bloqueado: false, unlocks: [5],    desc: "Investigación, empatía, flows, wireframes" },
-      { id: 4, name: "Figma Avanzado",       emoji: "⚙️", nivel: "Intermedio", horas: 25, color: "#7C3AED", bloqueado: true,  unlocks: [6],    desc: "Variants, prototipos, sistemas de diseño" },
-      { id: 5, name: "UX Research",          emoji: "🔬", nivel: "Intermedio", horas: 20, color: "#06B6D4", bloqueado: true,  unlocks: [7],    desc: "Entrevistas, tests usabilidad, heurísticas" },
-      { id: 6, name: "Design System",        emoji: "📐", nivel: "Avanzado",   horas: 30, color: "#EF4444", bloqueado: true,  unlocks: [8],    desc: "Tokens, librería de componentes, guías" },
-      { id: 7, name: "Product Design",       emoji: "📱", nivel: "Avanzado",   horas: 35, color: "#F59E0B", bloqueado: true,  unlocks: [8],    desc: "Discovery, métricas, roadmap de producto" },
-      { id: 8, name: "Senior UI/UX",         emoji: "🏆", nivel: "Élite",      horas: 50, color: "#A78BFA", bloqueado: true,  unlocks: [],     desc: "Liderazgo de diseño, cultura, mentoría" },
-    ],
-  },
-  idiomas: {
-    label: "Idiomas", emoji: "🌍", color: "#10B981",
-    desc: "Domina un nuevo idioma desde cero hasta C2",
-    nodos: [
-      { id: 1, name: "Fonética + Pronunciación", emoji: "🗣️", nivel: "Fundamento", horas: 10, color: "#10B981", bloqueado: false, unlocks: [2],    desc: "Sonidos, ritmo, entonación del idioma" },
-      { id: 2, name: "Vocabulario A1–A2",        emoji: "📖", nivel: "Fundamento", horas: 25, color: "#10B981", bloqueado: false, unlocks: [3, 4], desc: "500–1000 palabras esenciales, frases cotidianas" },
-      { id: 3, name: "Gramática Básica",         emoji: "✏️", nivel: "Fundamento", horas: 20, color: "#F59E0B", bloqueado: false, unlocks: [5],    desc: "Tiempos verbales, sustantivos, artículos" },
-      { id: 4, name: "Listening & Speaking A2",  emoji: "🎧", nivel: "Intermedio", horas: 30, color: "#06B6D4", bloqueado: true,  unlocks: [6],    desc: "Podcasts, shadowing, conversación básica" },
-      { id: 5, name: "Gramática Intermedia B1",  emoji: "📚", nivel: "Intermedio", horas: 30, color: "#7C3AED", bloqueado: true,  unlocks: [7],    desc: "Condicionales, modales, subjuntivo" },
-      { id: 6, name: "Conversación Fluida B2",   emoji: "💬", nivel: "Avanzado",   horas: 40, color: "#EF4444", bloqueado: true,  unlocks: [8],    desc: "Debates, expresión de opinión, argot" },
-      { id: 7, name: "Lectura Avanzada B2+",     emoji: "📰", nivel: "Avanzado",   horas: 35, color: "#F59E0B", bloqueado: true,  unlocks: [8],    desc: "Artículos, libros, análisis de contexto" },
-      { id: 8, name: "Dominio C1–C2",            emoji: "🏆", nivel: "Élite",      horas: 60, color: "#A78BFA", bloqueado: true,  unlocks: [],     desc: "Fluidez nativa, matices, escritura académica" },
-    ],
-  },
-  negocios: {
-    label: "Negocios", emoji: "💼", color: "#F59E0B",
-    desc: "De empleado a emprendedor con bases sólidas",
-    nodos: [
-      { id: 1, name: "Mindset Emprendedor",  emoji: "🧠", nivel: "Fundamento", horas: 10, color: "#F59E0B", bloqueado: false, unlocks: [2, 3], desc: "Mentalidad de crecimiento, tolerancia al riesgo" },
-      { id: 2, name: "Finanzas Personales",  emoji: "💰", nivel: "Fundamento", horas: 15, color: "#10B981", bloqueado: false, unlocks: [4],    desc: "Presupuesto, ahorro, inversión básica" },
-      { id: 3, name: "Marketing Digital",    emoji: "📱", nivel: "Fundamento", horas: 20, color: "#EC4899", bloqueado: false, unlocks: [5],    desc: "Redes sociales, contenido, funnel básico" },
-      { id: 4, name: "Contabilidad Básica",  emoji: "📊", nivel: "Intermedio", horas: 20, color: "#06B6D4", bloqueado: true,  unlocks: [6],    desc: "Flujo de caja, P&L, impuestos simples" },
-      { id: 5, name: "Ventas & Persuasión",  emoji: "🤝", nivel: "Intermedio", horas: 25, color: "#7C3AED", bloqueado: true,  unlocks: [7],    desc: "Objeciones, cierre, propuesta de valor" },
-      { id: 6, name: "Modelo de Negocio",    emoji: "🏗️", nivel: "Avanzado",   horas: 30, color: "#EF4444", bloqueado: true,  unlocks: [8],    desc: "Canvas, validación, unit economics" },
-      { id: 7, name: "Crecimiento & Equipo", emoji: "📈", nivel: "Avanzado",   horas: 35, color: "#F59E0B", bloqueado: true,  unlocks: [8],    desc: "Hiring, liderazgo, OKRs, sistemas" },
-      { id: 8, name: "Scale Up",             emoji: "🚀", nivel: "Élite",      horas: 50, color: "#A78BFA", bloqueado: true,  unlocks: [],     desc: "Inversión, expansión, exit strategy" },
-    ],
-  },
-  musica: {
-    label: "Música", emoji: "🎵", color: "#8B5CF6",
-    desc: "Aprende un instrumento o producción musical",
-    nodos: [
-      { id: 1, name: "Teoría Musical Básica",  emoji: "🎼", nivel: "Fundamento", horas: 15, color: "#8B5CF6", bloqueado: false, unlocks: [2, 3], desc: "Notas, ritmo, compás, escalas" },
-      { id: 2, name: "Instrumento: Nivel 1",   emoji: "🎸", nivel: "Fundamento", horas: 30, color: "#EC4899", bloqueado: false, unlocks: [4],    desc: "Acordes básicos, postura, primeras canciones" },
-      { id: 3, name: "Oído Musical",           emoji: "👂", nivel: "Fundamento", horas: 20, color: "#F59E0B", bloqueado: false, unlocks: [5],    desc: "Intervalos, dictado, reconocimiento de acordes" },
-      { id: 4, name: "Instrumento: Nivel 2",   emoji: "🎹", nivel: "Intermedio", horas: 40, color: "#7C3AED", bloqueado: true,  unlocks: [6],    desc: "Técnica, velocidad, repertorio intermedio" },
-      { id: 5, name: "Armonía & Composición",  emoji: "🎵", nivel: "Intermedio", horas: 30, color: "#10B981", bloqueado: true,  unlocks: [7],    desc: "Progresiones, modulación, crear melodías" },
-      { id: 6, name: "Instrumento: Nivel 3",   emoji: "🥁", nivel: "Avanzado",   horas: 50, color: "#EF4444", bloqueado: true,  unlocks: [8],    desc: "Improvisación, estilos, interpretación" },
-      { id: 7, name: "Producción / DAW",       emoji: "🎛️", nivel: "Avanzado",   horas: 40, color: "#06B6D4", bloqueado: true,  unlocks: [8],    desc: "DAW, mezcla, masterización básica" },
-      { id: 8, name: "Artista Completo",       emoji: "🏆", nivel: "Élite",      horas: 80, color: "#A78BFA", bloqueado: true,  unlocks: [],     desc: "Presentaciones en vivo, grabación profesional" },
-    ],
-  },
-  fitness_learn: {
-    label: "Fitness", emoji: "💪", color: "#EF4444",
-    desc: "Conocimiento profundo del cuerpo y entrenamiento",
-    nodos: [
-      { id: 1, name: "Anatomía Básica",       emoji: "🧬", nivel: "Fundamento", horas: 10, color: "#10B981", bloqueado: false, unlocks: [2, 3], desc: "Grupos musculares, articulaciones, movimientos" },
-      { id: 2, name: "Nutrición Deportiva",   emoji: "🥗", nivel: "Fundamento", horas: 15, color: "#F59E0B", bloqueado: false, unlocks: [4],    desc: "Macros, timing, suplementos básicos" },
-      { id: 3, name: "Principios Entren.",    emoji: "📋", nivel: "Fundamento", horas: 15, color: "#EF4444", bloqueado: false, unlocks: [5],    desc: "Sobrecarga progresiva, volumen, frecuencia" },
-      { id: 4, name: "Periodización",         emoji: "📅", nivel: "Intermedio", horas: 20, color: "#7C3AED", bloqueado: true,  unlocks: [6],    desc: "Mesociclos, deload, adaptación" },
-      { id: 5, name: "Biomecánica",           emoji: "⚙️", nivel: "Intermedio", horas: 20, color: "#06B6D4", bloqueado: true,  unlocks: [7],    desc: "Técnica profunda, palancas, ejecución" },
-      { id: 6, name: "Planificación Avanzada",emoji: "🏋️", nivel: "Avanzado",   horas: 30, color: "#EF4444", bloqueado: true,  unlocks: [8],    desc: "Diseño de mesociclos, autorregulación" },
-      { id: 7, name: "Nutrición Avanzada",    emoji: "🔬", nivel: "Avanzado",   horas: 25, color: "#10B981", bloqueado: true,  unlocks: [8],    desc: "Déficit/superávit calculado, recomposición" },
-      { id: 8, name: "Coach Experto",         emoji: "🏆", nivel: "Élite",      horas: 50, color: "#A78BFA", bloqueado: true,  unlocks: [],     desc: "Programas personalizados, evaluación, coaching" },
-    ],
-  },
-};
-
-const LEARNING_ROADMAP = ROADMAP_TRACKS.programacion.nodos; // compatibilidad hacia atrás
 // Pomodoro mejorado con vinculación
 const PomodoroMejorado = ({ cursos, skills, onSesionCompletada }) => {
-  const HOY_KEY = `lifehud_pom_${new Date().toISOString().split("T")[0]}`;
-
-  // ── Cargar desde localStorage al montar ──────────────────────
   const [mode, setMode] = useState("focus");
-  const [duracion, setDuracion] = useState(25);
   const [seconds, setSeconds] = useState(25 * 60);
   const [running, setRunning] = useState(false);
-  const [pomodoros, setPomodoros] = useState(() => {
-    const saved = localStorage.getItem(`${HOY_KEY}_count`);
-    return saved ? parseInt(saved) : 0;
-  });
-  const [vinculo, setVinculo] = useState(null);
-  const [sesiones, setSesiones] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(`${HOY_KEY}_sesiones`) || "[]"); }
-    catch { return []; }
-  });
+  const [pomodoros, setPomodoros] = useState(3);
+  const [vinculo, setVinculo] = useState(null); // { tipo: "curso"|"skill", id }
+  const [sesiones, setSesiones] = useState([
+    { topic: "Python - Decoradores", minutos: 25, tipo: "🐍 Python Completo", calidad: 9 },
+    { topic: "FastAPI - JWT", minutos: 50, tipo: "⚡ FastAPI Moderno", calidad: 8 },
+    { topic: "SQL - Window Functions", minutos: 25, tipo: "🗄️ SQL Avanzado", calidad: 7 },
+  ]);
   const timerRef = useRef(null);
-  const firedRef = useRef(false); // ← guard contra doble disparo
 
-  // ── Refs para evitar stale closure dentro del timer ──────────
-  const vincuRef    = useRef(vinculo);
-  const onSesionRef = useRef(onSesionCompletada);
-  const cursosRef   = useRef(cursos);
-  const skillsRef   = useRef(skills);
-  const modeRef     = useRef(mode);
-
-  useEffect(() => { vincuRef.current    = vinculo;            }, [vinculo]);
-  useEffect(() => { onSesionRef.current = onSesionCompletada; }, [onSesionCompletada]);
-  useEffect(() => { cursosRef.current   = cursos;             }, [cursos]);
-  useEffect(() => { skillsRef.current   = skills;             }, [skills]);
-  useEffect(() => { modeRef.current     = mode;               }, [mode]);
-
-  const total = duracion * 60;
+  const total = mode === "focus" ? 25 * 60 : 5 * 60;
   const r = 54; const circ = 2 * Math.PI * r;
   const pct = ((total - seconds) / total) * 100;
 
   useEffect(() => {
     if (running) {
-      firedRef.current = false; // resetear guard al iniciar
       timerRef.current = setInterval(() => {
         setSeconds(s => {
-          if (s === 1 && !firedRef.current) {
-            firedRef.current = true; // ← evita doble disparo en s=0
+          if (s <= 1) {
             clearInterval(timerRef.current);
             setRunning(false);
-
-            if (modeRef.current === "focus") {
-              const minutos = duracion;
-              const vinculoActual = vincuRef.current;
-              const etiqueta = vinculoActual
-                ? (vinculoActual.tipo === "curso"
-                  ? cursosRef.current.find(c => c.id === vinculoActual.id)?.name
-                  : skillsRef.current.find(s => s.id === vinculoActual.id)?.name) || "General"
-                : "Sin vínculo";
-
-              const nueva = {
-                tipo: etiqueta,
-                minutos,
-                hora: new Date().toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }),
-              };
-
-              // Actualizar sesiones y persistir
-              setSesiones(prev => {
-                const nuevas = [nueva, ...prev];
-                localStorage.setItem(`${HOY_KEY}_sesiones`, JSON.stringify(nuevas));
-                return nuevas;
-              });
-
-              // Actualizar contador y persistir
-              setPomodoros(p => {
-                const nuevo = p + 1;
-                localStorage.setItem(`${HOY_KEY}_count`, nuevo);
-                return nuevo;
-              });
-
-              // Notificar al padre (actualiza mapa + skills)
-              onSesionRef.current(vinculoActual, minutos);
-
+            if (mode === "focus") {
+              const nuevos = pomodoros + 1;
+              setPomodoros(nuevos);
+              const minutos = 25;
+              const etiqueta = vinculo
+                ? (vinculo.tipo === "curso"
+                  ? cursos.find(c => c.id === vinculo.id)?.name
+                  : skills.find(s => s.id === vinculo.id)?.name) || "General"
+                : "General";
+              const nueva = { topic: etiqueta, minutos, tipo: etiqueta, calidad: 8 };
+              setSesiones(prev => [nueva, ...prev]);
+              if (vinculo) onSesionCompletada(vinculo, minutos);
               setMode("break");
               return 5 * 60;
             } else {
@@ -6771,14 +5203,14 @@ const PomodoroMejorado = ({ cursos, skills, onSesionCompletada }) => {
               return 25 * 60;
             }
           }
-          return s <= 0 ? 0 : s - 1;
+          return s - 1;
         });
       }, 1000);
     } else clearInterval(timerRef.current);
     return () => clearInterval(timerRef.current);
-  }, [running]); // solo depende de running; refs manejan el resto
+  }, [running, mode]);
 
-  const reset = () => { setRunning(false); setSeconds(duracion * 60); };
+  const reset = () => { setRunning(false); setSeconds(mode === "focus" ? 25 * 60 : 5 * 60); };
   const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
   const ss = String(seconds % 60).padStart(2, "0");
   const vincObj = vinculo && (vinculo.tipo === "curso"
@@ -6788,19 +5220,13 @@ const PomodoroMejorado = ({ cursos, skills, onSesionCompletada }) => {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 16 }}>
       <div className="card" style={{ padding: 20, display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-        {/* Selector duración */}
-        <div style={{ width: "100%" }}>
-          <div style={{ fontSize: 11, color: "#64748B", marginBottom: 6, fontWeight: 700 }}>⏱ Duración</div>
-          <div style={{ display: "flex", gap: 6 }}>
-            {[{ m: 1, l: "1m" }, { m: 5, l: "5m" }, { m: 25, l: "25m" }, { m: 30, l: "30m" }, { m: 60, l: "1h" }].map(op => (
-              <button key={op.m}
-                onClick={() => { if (!running) { setDuracion(op.m); setSeconds(op.m * 60); } }}
-                className={duracion === op.m ? "btn-primary" : "btn-secondary"}
-                style={{ flex: 1, fontSize: 11, padding: "5px 4px", opacity: running ? 0.5 : 1 }}>
-                {op.l}
-              </button>
-            ))}
-          </div>
+        {/* Selector modo */}
+        <div style={{ display: "flex", gap: 6, width: "100%" }}>
+          {[{ k: "focus", l: "🔴 Focus 25m" }, { k: "break", l: "🟢 Descanso 5m" }].map(m => (
+            <button key={m.k} onClick={() => { setMode(m.k); setRunning(false); setSeconds(m.k === "focus" ? 25 * 60 : 5 * 60); }}
+              className={mode === m.k ? "btn-primary" : "btn-secondary"}
+              style={{ flex: 1, fontSize: 11, padding: "5px 8px" }}>{m.l}</button>
+          ))}
         </div>
 
         {/* Timer */}
@@ -6821,7 +5247,7 @@ const PomodoroMejorado = ({ cursos, skills, onSesionCompletada }) => {
           </div>
         </div>
 
-        {/* Puntos de pomodoro */}
+        {/* Pomodoros */}
         <div style={{ display: "flex", gap: 6 }}>
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} style={{ width: 18, height: 18, borderRadius: "50%", background: i < pomodoros % 4 ? "#7C3AED" : "#1E1E30", border: `2px solid ${i < pomodoros % 4 ? "#7C3AED" : "#2D2D45"}` }} />
@@ -6847,7 +5273,7 @@ const PomodoroMejorado = ({ cursos, skills, onSesionCompletada }) => {
               setVinculo({ tipo, id: tipo === "curso" ? Number(id) : id });
             }}
             style={{ width: "100%", fontSize: 11, padding: "6px 8px" }}>
-            <option value="">— Solo mapa de estudio —</option>
+            <option value="">— Sin vincular —</option>
             <optgroup label="📚 Cursos">
               {cursos.map(c => <option key={c.id} value={`curso:${c.id}`}>{c.icon} {c.name}</option>)}
             </optgroup>
@@ -6855,13 +5281,9 @@ const PomodoroMejorado = ({ cursos, skills, onSesionCompletada }) => {
               {skills.map(s => <option key={s.id} value={`skill:${s.id}`}>{s.icon} {s.name}</option>)}
             </optgroup>
           </select>
-          {vincObj ? (
+          {vincObj && (
             <div style={{ marginTop: 8, fontSize: 11, color: vincObj.color || "#7C3AED", fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
-              <span>{vincObj.icon || "💡"}</span> Sumará 25 min a <strong>{vincObj.name}</strong>
-            </div>
-          ) : (
-            <div style={{ marginTop: 8, fontSize: 11, color: "#4A5568" }}>
-              ℹ️ Solo se registrará en el mapa de estudio
+              <span>{vincObj.icon}</span> Esta sesión sumará 25 min a {vincObj.name}
             </div>
           )}
         </div>
@@ -6872,9 +5294,9 @@ const PomodoroMejorado = ({ cursos, skills, onSesionCompletada }) => {
         <div className="section-title">📋 Sesiones de hoy</div>
         <div style={{ marginBottom: 14 }}>
           {[
-            { label: "Minutos hoy", val: sesiones.reduce((a, s) => a + s.minutos, 0) + "m", color: "#7C3AED" },
-            { label: "Pomodoros",   val: pomodoros,      color: "#F59E0B" },
-            { label: "Sesiones",    val: sesiones.length, color: "#10B981" },
+            { label: "Minutos hoy", val: sesiones.slice(0, pomodoros).reduce((a, s) => a + s.minutos, 0) + "m", color: "#7C3AED" },
+            { label: "Pomodoros", val: pomodoros, color: "#F59E0B" },
+            { label: "Calidad prom.", val: (sesiones.reduce((a, s) => a + s.calidad, 0) / Math.max(sesiones.length, 1)).toFixed(1), color: "#10B981" },
           ].map((s, i) => (
             <span key={i} style={{ marginRight: 16, fontSize: 12 }}>
               <span style={{ color: "#64748B" }}>{s.label}: </span>
@@ -6882,21 +5304,15 @@ const PomodoroMejorado = ({ cursos, skills, onSesionCompletada }) => {
             </span>
           ))}
         </div>
-        {sesiones.length === 0 && (
-          <div style={{ textAlign: "center", color: "#4A5568", fontSize: 12, padding: "30px 0" }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>🍅</div>
-            Completa tu primer pomodoro para ver el historial
-          </div>
-        )}
         {sesiones.map((s, i) => (
           <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", borderRadius: 8, background: "#0A0A12", border: "1px solid #1A1A28", marginBottom: 6 }}>
             <div>
               <div style={{ fontSize: 13, color: "#F1F5F9", fontWeight: 600 }}>{s.tipo}</div>
-              <div style={{ fontSize: 10, color: "#64748B", marginTop: 2 }}>🕐 {s.hora}</div>
+              <div style={{ fontSize: 10, color: "#64748B", marginTop: 2 }}>🍅 {Math.round(s.minutos / 25)} pomodoro{s.minutos > 25 ? "s" : ""}</div>
             </div>
             <div style={{ textAlign: "right" }}>
               <div style={{ fontSize: 13, color: "#A78BFA", fontWeight: 700, fontFamily: "'Orbitron',monospace" }}>{s.minutos}m</div>
-              <div style={{ fontSize: 10, color: "#64748B" }}>🍅 1 pomodoro</div>
+              <div style={{ fontSize: 10, color: "#64748B" }}>Cal. {s.calidad}/10</div>
             </div>
           </div>
         ))}
@@ -6907,388 +5323,44 @@ const PomodoroMejorado = ({ cursos, skills, onSesionCompletada }) => {
 
 const LearningPage = () => {
   const [tab, setTab] = useState("cursos");
-  const [cursos, setCursos] = useState([]);
-  const [skills, setSkills] = useState([]);
-  const [flashcards, setFlashcards] = useState([]);
-  const [cargando, setCargando] = useState(true);
-
-  useEffect(() => {
-    Promise.all([
-      api.learning.cursos(),
-      api.learning.skills(),
-      api.learning.flashcards(),
-    ])
-    .then(([cursosData, skillsData, flashData]) => {
-      setCursos((cursosData || []).map(c => {
-      // ← esta línea ya existe, agrégale lo de localStorage abajo:
-      const modulosGuardados = JSON.parse(localStorage.getItem(`lifehud_modulos_${c.id}`) || "[]");
-      const todasLecciones  = modulosGuardados.flatMap(m => m.lecciones || []);
-      const leccionesHechas = todasLecciones.filter(l => l.done).length;
-      const progressLocal   = todasLecciones.length > 0
-        ? Math.round((leccionesHechas / todasLecciones.length) * 100)
-        : Math.round(c.progress_percentage || 0);
-      return {
-        id:       c.id,
-        name:     c.name,
-        platform: c.platform || c.provider || "Otro",
-        icon:     "🎓",
-        progress: progressLocal,
-        lessons:  todasLecciones.length || c.total_lessons || 0,
-        done:     leccionesHechas || c.completed_lessons || 0,
-        color:    "#7C3AED",
-        modulos:  modulosGuardados,
-      };
-    }));
-      setSkills((skillsData || []).map(s => {
-        // Fusionar horas del backend con las acumuladas localmente
-        const horasLocal   = parseFloat(localStorage.getItem(`lifehud_skill_hours_${s.id}`) || "0");
-        const horasBackend = s.hours_invested || 0;
-        const horas        = Math.max(horasLocal, horasBackend);
-        return {
-          id:     s.id,
-          name:   s.name,
-          icon:   "💡",
-          level:  s.current_level === "beginner"     ? "Principiante" :
-                  s.current_level === "intermediate"  ? "Intermedio"   :
-                  s.current_level === "advanced"      ? "Avanzado"     : "Experto",
-          xp:     s.xp_accumulated || 0,
-          xpNext: 3000,
-          hours:  horas,
-          color:  "#06B6D4",
-        };
-      }));
-      const due = (flashData || []).map(fc => ({
-        id:       fc.id,
-        front:    fc.question,
-        back:     fc.answer,
-        deck:     "General",
-        due:      new Date(fc.next_review_date) <= new Date(),
-        difficulty: fc.difficulty,
-      }));
-      setFlashcards(due);
-    })
-    .catch(() => {})
-    .finally(() => setCargando(false));
-  }, []);
-
-  // Estado del roadmap con tracks
-  const [roadmapTrack, setRoadmapTrack] = useState("programacion");
-  const [roadmapProgreso, setRoadmapProgreso] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("lifehud_roadmap_progreso") || "{}"); }
-    catch { return {}; }
-  });
-  // Estado de notas
-  const [notas, setNotas] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("lifehud_notas") || "[]"); }
-    catch { return []; }
-  });
-  const [notaActiva, setNotaActiva] = useState(null);
-  const [notaBuscador, setNotaBuscador] = useState("");
-  const [showFormNota, setShowFormNota] = useState(false);
-  const [formNota, setFormNota] = useState({ titulo: "", contenido: "", tag: "General", color: "#7C3AED" });
-
-  const NOTA_TAGS = ["General", "Curso", "Idea", "Resumen", "Tarea", "Investigación"];
-  const NOTA_COLORS = ["#7C3AED", "#06B6D4", "#10B981", "#F59E0B", "#EF4444", "#EC4899"];
-
-  const guardarNota = () => {
-    if (!formNota.titulo.trim()) return;
-    const nueva = {
-      id: Date.now(),
-      titulo: formNota.titulo,
-      contenido: formNota.contenido,
-      tag: formNota.tag,
-      color: formNota.color,
-      fecha: new Date().toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" }),
-      editado: new Date().toISOString(),
-    };
-    const actualizadas = [nueva, ...notas];
-    setNotas(actualizadas);
-    localStorage.setItem("lifehud_notas", JSON.stringify(actualizadas));
-    setNotaActiva(nueva);
-    setShowFormNota(false);
-    setFormNota({ titulo: "", contenido: "", tag: "General", color: "#7C3AED" });
-  };
-
-  const actualizarNota = (id, campo, valor) => {
-    const actualizadas = notas.map(n => n.id === id ? { ...n, [campo]: valor, editado: new Date().toISOString() } : n);
-    setNotas(actualizadas);
-    setNotaActiva(prev => prev?.id === id ? { ...prev, [campo]: valor } : prev);
-    localStorage.setItem("lifehud_notas", JSON.stringify(actualizadas));
-  };
-
-  const eliminarNota = (id) => {
-    const actualizadas = notas.filter(n => n.id !== id);
-    setNotas(actualizadas);
-    if (notaActiva?.id === id) setNotaActiva(null);
-    localStorage.setItem("lifehud_notas", JSON.stringify(actualizadas));
-  };
-
-  const toggleRoadmapNodo = (nodoId) => {
-    const key = `${roadmapTrack}_${nodoId}`;
-    const nuevo = { ...roadmapProgreso, [key]: !roadmapProgreso[key] };
-    setRoadmapProgreso(nuevo);
-    localStorage.setItem("lifehud_roadmap_progreso", JSON.stringify(nuevo));
-  };
-
+  const l = mockData.learning;
+  const [cursos, setCursos] = useState(CURSOS_INICIAL);
+  const [skills, setSkills] = useState(l.skills);
+  const [flashcards, setFlashcards] = useState(l.flashcards);
   const [selectedCurso, setSelectedCurso] = useState(null);
-  const [selectedRoadmap, setSelectedRoadmap] = useState(null);
+  const [selectedRoadmap, setSelectedRoadmap] = useState(SKILL_ROADMAP[2]);
   const [showFormFlash, setShowFormFlash] = useState(false);
-  const [newFlash, setNewFlash] = useState({ front: "", back: "", deck: "General", skillId: "", difficulty: "medium" });
+  const [newFlash, setNewFlash] = useState({ front: "", back: "", deck: "Python" });
   const [toast, setToast] = useState(null);
-  const [diasEstudio, setDiasEstudio] = useState([]);
+  const [diasEstudio] = useState(DIAS_ESTUDIO);
 
-  useEffect(() => {
-  // Construir los últimos 30 días desde localStorage
-  const dias30 = Array(30).fill(0).map((_, i) => {
-    const d = new Date(Date.now() - (29 - i) * 86400000);
-    const fecha = d.toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
-    const key = `lifehud_study_${d.toISOString().split("T")[0]}`;
-    const minutos = parseInt(localStorage.getItem(key) || "0");
-    return { fecha, minutos };
-  });
-  setDiasEstudio(dias30);
-}, []);
-  const [showFormCurso, setShowFormCurso] = useState(false);
-  const [showFormSkill, setShowFormSkill] = useState(false);
-  const [newSkill, setNewSkill] = useState({ name: "", category: "programming", target_hours: "" });
-
-  const crearSkill = async () => {
-    if (!newSkill.name.trim()) return;
-    try {
-      const res = await api.learning.crearSkill({
-        name:         newSkill.name,
-        category:     newSkill.category,
-        target_hours: parseFloat(newSkill.target_hours) || null,
-      });
-      setSkills(prev => [...prev, {
-        id:     res.id,
-        name:   res.name,
-        icon:   "💡",
-        level:  "Principiante",
-        xp:     0,
-        xpNext: 3000,
-        hours:  0,
-        color:  "#06B6D4",
-      }]);
-      setNewSkill({ name: "", category: "programming", target_hours: "" });
-      setShowFormSkill(false);
-      setToast({ msg: `💡 Skill "${res.name}" creada`, color: "#06B6D4" });
-    } catch (e) {
-      setToast({ msg: `❌ Error: ${e.message}`, color: "#EF4444" });
+  const onSesionCompletada = ({ tipo, id }, minutos) => {
+    if (tipo === "curso") {
+      setCursos(prev => prev.map(c => c.id === id ? { ...c, progress: Math.min(c.progress + 3, 100) } : c));
+    } else {
+      setSkills(prev => prev.map(s => s.id === id ? { ...s, hours: s.hours + Math.round(minutos / 60 * 10) / 10, xp: s.xp + Math.round(minutos * 2) } : s));
     }
-  };
-  const [moduloExpandido, setModuloExpandido] = useState(null);
-  const [nuevaLeccionTexto, setNuevaLeccionTexto] = useState("");
-  const [newCurso, setNewCurso] = useState({ name: "", platform: "", url: "", total_lessons: 0 });
-  const [libros, setLibros] = useState([]);
-  const [showFormLibro, setShowFormLibro] = useState(false);
-  const [newLibro, setNewLibro] = useState({ title: "", author: "", total_pages: "", notes: "" });
-
-  useEffect(() => {
-    api.learning.libros()
-      .then(data => setLibros(data || []))
-      .catch(() => {});
-  }, []);
-
-  const crearLibro = async () => {
-    if (!newLibro.title.trim()) return;
-    try {
-      const res = await api.learning.crearLibro({
-        title:       newLibro.title,
-        author:      newLibro.author || null,
-        total_pages: parseInt(newLibro.total_pages) || null,
-        notes:       newLibro.notes || null,
-      });
-      setLibros(prev => [...prev, res]);
-      setNewLibro({ title: "", author: "", total_pages: "", notes: "" });
-      setShowFormLibro(false);
-      setToast({ msg: `📚 "${res.title}" agregado`, color: "#06B6D4" });
-    } catch (e) {
-      setToast({ msg: `❌ Error: ${e.message}`, color: "#EF4444" });
-    }
-  };
-
-  const eliminarLibro = async (id) => {
-    try {
-      const res = await fetch(`http://127.0.0.1:8000/api/v1/learning/books/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
-      });
-      if (!res.ok && res.status !== 204) throw new Error(`Error ${res.status}`);
-      setLibros(prev => prev.filter(b => b.id !== id));
-      setToast({ msg: "🗑️ Libro eliminado", color: "#EF4444" });
-    } catch (e) {
-      setToast({ msg: `❌ Error: ${e.message}`, color: "#EF4444" });
-    }
-  };
-
-  const eliminarCurso = async (id, nombre) => {
-    if (!window.confirm(`¿Eliminar "${nombre}"?`)) return;
-    try {
-      await fetch(`http://127.0.0.1:8000/api/v1/learning/courses/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
-      });
-      setCursos(prev => prev.filter(c => c.id !== id));
-      if (selectedCurso?.id === id) setSelectedCurso(null);
-      setToast({ msg: "🗑️ Curso eliminado", color: "#EF4444" });
-    } catch (e) {
-      setToast({ msg: `❌ Error: ${e.message}`, color: "#EF4444" });
-    }
-  };
-
-  const crearCurso = async () => {
-    if (!newCurso.name.trim()) return;
-    try {
-      const res = await api.learning.crearCurso({
-        name:         newCurso.name,
-        platform:     newCurso.platform || null,
-        url:          newCurso.url || null,
-        total_lessons: parseInt(newCurso.total_lessons) || 0,
-      });
-      setCursos(prev => [...prev, {
-        id:       res.id,
-        name:     res.name,
-        platform: res.platform || res.provider || "Otro",
-        icon:     "🎓",
-        progress: 0,
-        lessons:  res.total_lessons || 0,
-        done:     0,
-        color:    "#7C3AED",
-        modulos:  [],
-      }]);
-      setNewCurso({ name: "", platform: "", url: "", total_lessons: 0 });
-      setShowFormCurso(false);
-      setToast({ msg: `📚 Curso "${res.name}" agregado`, color: "#7C3AED" });
-    } catch (e) {
-      setToast({ msg: `❌ Error: ${e.message}`, color: "#EF4444" });
-    }
-  };
-
-  const onSesionCompletada = async (vinculo, minutos) => {
-    const tipo = vinculo?.tipo || null;
-    const id   = vinculo?.id   || null;
-
-    // 1) Guardar en backend + actualizar skill/curso en pantalla
-    if (tipo) {
-      try {
-        await api.learning.iniciarSesion({
-          duration_minutes:    minutos,
-          pomodoros_completed: Math.floor(minutos / 25),
-          skill_id:  tipo === "skill" ? id : null,
-          course_id: tipo === "curso" ? id : null,
-        });
-      } catch (_) {}
-
-      if (tipo === "curso") {
-        setCursos(prev => prev.map(c =>
-          c.id === id ? { ...c, progress: Math.min(c.progress + 3, 100) } : c
-        ));
-      } else {
-        // Actualizar horas en pantalla Y persistir en localStorage
-        setSkills(prev => prev.map(s => {
-          if (s.id !== id) return s;
-          const nuevasHoras = +(s.hours + minutos / 60).toFixed(2);
-          const nuevoXp    = s.xp + Math.round(minutos * 2);
-          // Guardar horas acumuladas localmente para sobrevivir recargas
-          const lsKey = `lifehud_skill_hours_${id}`;
-          localStorage.setItem(lsKey, nuevasHoras);
-          return { ...s, hours: nuevasHoras, xp: nuevoXp };
-        }));
-      }
-    }
-
-    // 2) SIEMPRE guardar al mapa de estudio (con o sin vínculo)
-    const hoy = new Date().toISOString().split("T")[0];
-    const mapaKey = `lifehud_study_${hoy}`;
-    localStorage.setItem(mapaKey, parseInt(localStorage.getItem(mapaKey) || "0") + minutos);
-
-    // 3) Actualizar cuadro de hoy en el mapa visual inmediatamente
-    setDiasEstudio(prev => prev.map((d, i) =>
-      i === prev.length - 1 ? { ...d, minutos: d.minutos + minutos } : d
-    ));
-
-    const etiquetaToast = tipo
-      ? `en ${tipo === "curso" ? "curso" : "skill"}`
-      : "en mapa de estudio";
-    setToast({ msg: `🍅 +${minutos}min registrados ${etiquetaToast}`, color: "#10B981" });
-  };
-
-  const agregarModulo = (cursoId, nombreModulo) => {
-  if (!nombreModulo.trim()) return;
-  setCursos(prev => {
-    const actualizados = prev.map(c => {
-      if (c.id !== cursoId) return c;
-      const nuevoMod = { id: Date.now(), nombre: nombreModulo, lecciones: [] };
-      const nuevoCurso = { ...c, modulos: [...(c.modulos || []), nuevoMod] };
-      // Guardar en localStorage
-      localStorage.setItem(`lifehud_modulos_${cursoId}`, JSON.stringify(nuevoCurso.modulos));
-      return nuevoCurso;
-    });
-    return actualizados;
-  });
-};
-
-  const agregarLeccion = (cursoId, moduloId, tituloLeccion) => {
-    if (!tituloLeccion.trim()) return;
-    setCursos(prev => prev.map(c => {
-      if (c.id !== cursoId) return c;
-      const modulos = (c.modulos || []).map(m => {
-        if (m.id !== moduloId) return m;
-        const nuevaLec = { id: Date.now(), titulo: tituloLeccion, done: false };
-        return { ...m, lecciones: [...m.lecciones, nuevaLec] };
-      });
-      const totalL = modulos.flatMap(m => m.lecciones).length;
-      const doneL = modulos.flatMap(m => m.lecciones).filter(l => l.done).length;
-      return { ...c, modulos, lessons: totalL, done: doneL };
-    }));
+    setToast({ msg: `+${minutos} min registrados ✅`, color: "#10B981" });
   };
 
   const toggleLeccion = (cursoId, moduloId, leccionId) => {
-  setCursos(prev => {
-    const actualizados = prev.map(c => {
+    setCursos(prev => prev.map(c => {
       if (c.id !== cursoId) return c;
       const modulos = c.modulos.map(m => m.id !== moduloId ? m : {
         ...m,
         lecciones: m.lecciones.map(l => l.id !== leccionId ? l : { ...l, done: !l.done }),
       });
       const totalL = modulos.flatMap(m => m.lecciones).length;
-      const doneL  = modulos.flatMap(m => m.lecciones).filter(l => l.done).length;
-      // Guardar en localStorage
-      localStorage.setItem(`lifehud_modulos_${cursoId}`, JSON.stringify(modulos));
+      const doneL = modulos.flatMap(m => m.lecciones).filter(l => l.done).length;
       return { ...c, modulos, progress: Math.round((doneL / totalL) * 100), done: doneL, lessons: totalL };
-    });
-    return actualizados;
-  });
-};
+    }));
+  };
 
-  const agregarFlashcard = async () => {
+  const agregarFlashcard = () => {
     if (!newFlash.front || !newFlash.back) return;
-    // Requiere skill_id obligatorio
-    const skillId = newFlash.skillId || skills[0]?.id || null;
-    if (!skillId) {
-      setToast({ msg: "⚠️ Crea una skill primero para asociar la flashcard", color: "#F59E0B" });
-      return;
-    }
-    try {
-      const res = await api.learning.crearFlashcard({
-        skill_id:   skillId,
-        question:   newFlash.front,
-        answer:     newFlash.back,
-        difficulty: newFlash.difficulty || "medium",
-      });
-      setFlashcards(prev => [...prev, {
-        id:    res.id,
-        front: res.question,
-        back:  res.answer,
-        deck:  newFlash.deck,
-        due:   true,
-      }]);
-      setNewFlash({ front: "", back: "", deck: newFlash.deck });
-      setToast({ msg: `🃏 Flashcard agregada a ${newFlash.deck}`, color: "#F59E0B" });
-    } catch (e) {
-      setToast({ msg: `❌ Error: ${e.message}`, color: "#EF4444" });
-    }
+    setFlashcards(prev => [...prev, { id: Date.now(), ...newFlash, due: true }]);
+    setNewFlash({ front: "", back: "", deck: newFlash.deck });
+    setToast({ msg: `🃏 Flashcard agregada a ${newFlash.deck}`, color: "#F59E0B" });
   };
 
   const diasActivos = diasEstudio.filter(d => d.minutos > 0).length;
@@ -7302,14 +5374,6 @@ const LearningPage = () => {
     return racha;
   })();
 
-  if (cargando) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", flexDirection: "column", gap: 14 }}>
-      <div style={{ width: 40, height: 40, borderRadius: "50%", border: "3px solid #1E1E30", borderTop: "3px solid #7C3AED", animation: "spin 0.8s linear infinite" }} />
-      <div style={{ fontSize: 12, color: "#4A5568", letterSpacing: 2 }}>CARGANDO LEARNING...</div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
-  );
-
   return (
     <div className="page" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {toast && <Toast msg={toast.msg} color={toast.color} onDone={() => setToast(null)} />}
@@ -7317,7 +5381,7 @@ const LearningPage = () => {
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
         {[
-          { label: "Hoy", value: `${minutosTotales}m`, icon: "⏱️", color: "#7C3AED" },
+          { label: "Hoy", value: `${l.todayMinutes}m`, icon: "⏱️", color: "#7C3AED" },
           { label: "Racha actual", value: `${rachaActual}d`, icon: "🔥", color: "#EF4444" },
           { label: "Días activos", value: `${diasActivos}/30`, icon: "📅", color: "#10B981" },
           { label: "Flashcards pend.", value: flashcards.filter(f => f.due).length, icon: "🃏", color: "#F59E0B" },
@@ -7333,31 +5397,24 @@ const LearningPage = () => {
       {/* Tabs */}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {[
-          { k: "cursos",    l: "🎓 Cursos" },
-          { k: "pomodoro",  l: "⏱️ Pomodoro" },
-          { k: "mapa",      l: "📅 Mapa de Estudio" },
-          { k: "flashcards",l: "🃏 Flashcards" },
-          { k: "libros",    l: "📖 Libros" },
-          { k: "skills",    l: "🧠 Skills" },
-          { k: "roadmap",   l: "🗺️ Roadmap" },
-          { k: "notas",     l: "📝 Notas" },
+          { k: "cursos", l: "🎓 Cursos" },
+          { k: "pomodoro", l: "⏱️ Pomodoro" },
+          { k: "mapa", l: "📅 Mapa de Estudio" },
+          { k: "roadmap", l: "🗺️ Roadmap" },
+          { k: "flashcards", l: "🃏 Flashcards" },
+          { k: "libros", l: "📖 Libros" },
+          { k: "skills", l: "🧠 Skills" },
         ].map(t => (
           <button key={t.k} onClick={() => setTab(t.k)}
             className={tab === t.k ? "btn-primary" : "btn-secondary"}
             style={{ fontSize: 12 }}>{t.l}</button>
         ))}
-      </div>    
+      </div>
 
       {/* ── CURSOS ── */}
       {tab === "cursos" && (
         <div style={{ display: "grid", gridTemplateColumns: selectedCurso ? "1fr 380px" : "1fr 1fr 1fr", gap: 16 }}>
           <div style={{ display: selectedCurso ? "flex" : "grid", flexDirection: "column", gridTemplateColumns: selectedCurso ? undefined : "repeat(3,1fr)", gap: 14 }}>
-            {/* Botón agregar curso */}
-            <div className="card" onClick={() => setShowFormCurso(true)}
-              style={{ padding: 16, borderTop: "3px solid #7C3AED", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, minHeight: 80, background: "rgba(124,58,237,0.04)", border: "1px dashed #3D2070" }}>
-              <span style={{ fontSize: 24 }}>+</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#A78BFA" }}>Agregar curso</span>
-            </div>
             {cursos.map(c => (
               <div key={c.id} className="card"
                 onClick={() => setSelectedCurso(selectedCurso?.id === c.id ? null : c)}
@@ -7369,8 +5426,6 @@ const LearningPage = () => {
                     <div style={{ fontSize: 11, color: "#64748B" }}>{c.platform}</div>
                   </div>
                   <span style={{ fontFamily: "'Orbitron',monospace", fontSize: 16, fontWeight: 700, color: c.color }}>{c.progress}%</span>
-                  <button onClick={e => { e.stopPropagation(); eliminarCurso(c.id, c.name); }}
-                    style={{ background: "none", border: "none", color: "#4A5568", cursor: "pointer", fontSize: 14, padding: "2px 4px", marginLeft: 4 }}>🗑️</button>
                 </div>
                 <ProgressBar value={c.progress} max={100} color={c.color} height={7} />
                 <div style={{ fontSize: 11, color: "#64748B", marginTop: 6 }}>{c.done}/{c.lessons} lecciones</div>
@@ -7389,39 +5444,17 @@ const LearningPage = () => {
                     <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 13, fontWeight: 700, color: "#F1F5F9" }}>{c.name}</div>
                     <div style={{ fontSize: 11, color: "#64748B", marginTop: 2 }}>📋 Módulos y lecciones</div>
                   </div>
-                  <div style={{ display: "flex", gap: 6 }}>
-                  <button onClick={() => {
-                    const nom = window.prompt("Nombre del módulo:");
-                    if (nom) agregarModulo(c.id, nom);
-                  }} className="btn-secondary" style={{ fontSize: 11, padding: "4px 10px" }}>+ Módulo</button>
                   <button onClick={() => setSelectedCurso(null)} style={{ background: "none", border: "none", color: "#64748B", cursor: "pointer", fontSize: 18 }}>✕</button>
                 </div>
-                </div>
-                {(c.modulos || []).length === 0 && (
-                  <div style={{ textAlign: "center", color: "#4A5568", fontSize: 12, padding: "12px 0" }}>Sin módulos. Agrega el primero:</div>
-                )}
-                {(c.modulos || []).map(mod => {
+                {c.modulos.map(mod => {
                   const doneL = mod.lecciones.filter(l => l.done).length;
-                  const modKey = `${c.id}-${mod.id}`;
                   return (
                     <div key={mod.id} style={{ marginBottom: 16 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                         <div style={{ fontSize: 12, fontWeight: 700, color: "#CBD5E1" }}>📦 {mod.nombre}</div>
-                        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                          <span style={{ fontSize: 10, color: c.color, fontWeight: 700 }}>{doneL}/{mod.lecciones.length}</span>
-                          <button onClick={() => setModuloExpandido(moduloExpandido === modKey ? null : modKey)}
-                            style={{ background: "none", border: "none", color: "#4A5568", cursor: "pointer", fontSize: 14 }}>+</button>
-                        </div>
+                        <span style={{ fontSize: 10, color: c.color, fontWeight: 700 }}>{doneL}/{mod.lecciones.length}</span>
                       </div>
-                      {moduloExpandido === modKey && (
-                        <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-                          <input placeholder="Título de lección" value={nuevaLeccionTexto} onChange={e => setNuevaLeccionTexto(e.target.value)}
-                            style={{ flex: 1, fontSize: 11, padding: "4px 8px" }} />
-                          <button onClick={() => { agregarLeccion(c.id, mod.id, nuevaLeccionTexto); setNuevaLeccionTexto(""); setModuloExpandido(null); }}
-                            className="btn-primary" style={{ fontSize: 11, padding: "4px 8px" }}>✓</button>
-                        </div>
-                      )}
-                      <ProgressBar value={doneL} max={Math.max(mod.lecciones.length, 1)} color={c.color} height={3} />
+                      <ProgressBar value={doneL} max={mod.lecciones.length} color={c.color} height={3} />
                       <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
                         {mod.lecciones.map(lec => (
                           <div key={lec.id}
@@ -7505,7 +5538,7 @@ const LearningPage = () => {
                     <div style={{ fontSize: 10, color: "#A78BFA", fontWeight: 700 }}>{d.minutos > 0 ? `${d.minutos}m` : ""}</div>
                     <div style={{ width: "100%", height: `${Math.max(pct * 90, d.minutos > 0 ? 6 : 0)}px`, borderRadius: "4px 4px 0 0", background: isHoy ? "#7C3AED" : "#4C1D95", opacity: isHoy ? 1 : 0.7, minHeight: d.minutos > 0 ? 4 : 0, transition: "all 0.3s" }} />
                     <div style={{ fontSize: 10, color: isHoy ? "#A78BFA" : "#64748B", fontWeight: isHoy ? 700 : 400 }}>
-                      {(d.fecha || d.dia || "").charAt(0).toUpperCase() + (d.fecha || d.dia || "").slice(1, 3)}
+                      {d.dia.charAt(0).toUpperCase() + d.dia.slice(1, 3)}
                     </div>
                   </div>
                 );
@@ -7516,240 +5549,98 @@ const LearningPage = () => {
       )}
 
       {/* ── ROADMAP ── */}
-      {/* ── ROADMAP CON TRACKS ── */}
-      {tab === "roadmap" && (() => {
-        const track = ROADMAP_TRACKS[roadmapTrack];
-        const nodos = track.nodos.map(nodo => {
-          const key = `${roadmapTrack}_${nodo.id}`;
-          const completado = !!roadmapProgreso[key];
-          // desbloquear si el nodo que lo desbloquea ya está completado
-          let bloqueado = nodo.bloqueado;
-          if (bloqueado) {
-            const desbloqueador = track.nodos.find(n => n.unlocks.includes(nodo.id) && roadmapProgreso[`${roadmapTrack}_${n.id}`]);
-            if (desbloqueador) bloqueado = false;
-          }
-          return { ...nodo, completado, bloqueado };
-        });
-        const completados = nodos.filter(n => n.completado).length;
-        const pctTotal = Math.round((completados / nodos.length) * 100);
-        return (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* Selector de track */}
-            <div className="card" style={{ padding: 16 }}>
-              <div style={{ fontSize: 11, color: "#4A5568", fontFamily: "'Orbitron',monospace", letterSpacing: 1, marginBottom: 12 }}>ELIGE TU ÁREA DE APRENDIZAJE</div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {Object.entries(ROADMAP_TRACKS).map(([k, t]) => (
-                  <button key={k} onClick={() => setRoadmapTrack(k)}
-                    style={{ padding: "8px 14px", borderRadius: 20, border: `2px solid ${roadmapTrack === k ? t.color : "#2D2D45"}`, background: roadmapTrack === k ? `${t.color}18` : "transparent", color: roadmapTrack === k ? t.color : "#64748B", cursor: "pointer", fontSize: 13, fontWeight: roadmapTrack === k ? 700 : 400, transition: "all 0.15s", fontFamily: "'Rajdhani',sans-serif" }}>
-                    {t.emoji} {t.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Header del track */}
-            <div className="card" style={{ padding: "16px 20px", borderTop: `3px solid ${track.color}`, background: `linear-gradient(135deg,${track.color}08,#0F0F1A)` }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 15, fontWeight: 700, color: "#F1F5F9" }}>{track.emoji} {track.label}</div>
-                  <div style={{ fontSize: 12, color: "#64748B", marginTop: 4 }}>{track.desc}</div>
+      {tab === "roadmap" && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 16 }}>
+          <div className="card" style={{ padding: 20 }}>
+            <div className="section-title">🗺️ Roadmap de Aprendizaje</div>
+            {["Fundamento", "Intermedio", "Avanzado", "Élite"].map(nivel => (
+              <div key={nivel} style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 10, color: NIVEL_COLORS_L[nivel], fontWeight: 700, fontFamily: "'Orbitron',monospace", letterSpacing: 2, marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ flex: 1, height: 1, background: `${NIVEL_COLORS_L[nivel]}30` }} />
+                  {nivel.toUpperCase()}
+                  <div style={{ flex: 1, height: 1, background: `${NIVEL_COLORS_L[nivel]}30` }} />
                 </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 28, fontWeight: 900, color: track.color }}>{pctTotal}%</div>
-                  <div style={{ fontSize: 11, color: "#4A5568" }}>{completados}/{nodos.length} skills</div>
-                </div>
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <ProgressBar value={pctTotal} max={100} color={track.color} height={6} />
-              </div>
-            </div>
-
-            {/* Nodos por nivel */}
-            {["Fundamento", "Intermedio", "Avanzado", "Élite"].map(nivel => {
-              const delNivel = nodos.filter(n => n.nivel === nivel);
-              if (!delNivel.length) return null;
-              const coloresNivel = { Fundamento: "#10B981", Intermedio: "#06B6D4", Avanzado: "#F59E0B", Élite: "#A78BFA" };
-              const cn = coloresNivel[nivel];
-              return (
-                <div key={nivel}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                    <div style={{ flex: 1, height: 1, background: `${cn}30` }} />
-                    <span style={{ fontSize: 10, color: cn, fontWeight: 700, fontFamily: "'Orbitron',monospace", letterSpacing: 2 }}>{nivel.toUpperCase()}</span>
-                    <div style={{ flex: 1, height: 1, background: `${cn}30` }} />
-                  </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                    {delNivel.map(nodo => (
-                      <div key={nodo.id}
-                        onClick={() => !nodo.bloqueado && toggleRoadmapNodo(nodo.id)}
-                        style={{ flex: 1, minWidth: 150, maxWidth: 220, padding: "14px 16px", borderRadius: 14, background: nodo.completado ? `${nodo.color}15` : nodo.bloqueado ? "#09090F" : "#0F0F18", border: `2px solid ${nodo.completado ? nodo.color : nodo.bloqueado ? "#1A1A28" : nodo.color + "40"}`, cursor: nodo.bloqueado ? "default" : "pointer", opacity: nodo.bloqueado ? 0.4 : 1, transition: "all 0.2s" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                          <span style={{ fontSize: 24 }}>{nodo.emoji}</span>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                  {SKILL_ROADMAP.filter(s => s.nivel === nivel).map(skill => {
+                    const pct = skill.completado ? 100 : skill.horasHechas ? Math.round((skill.horasHechas / skill.horas) * 100) : 0;
+                    const isSelected = selectedRoadmap?.id === skill.id;
+                    return (
+                      <div key={skill.id}
+                        onClick={() => !skill.bloqueado && setSelectedRoadmap(skill)}
+                        style={{ flex: 1, minWidth: 140, maxWidth: 200, padding: "12px 14px", borderRadius: 12, background: isSelected ? `${skill.color}12` : skill.bloqueado ? "#09090F" : "#0F0F18", border: `2px solid ${isSelected ? skill.color : skill.bloqueado ? "#1A1A28" : skill.color + "40"}`, cursor: skill.bloqueado ? "default" : "pointer", opacity: skill.bloqueado ? 0.4 : 1, transition: "all 0.15s" }}>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
+                          <span style={{ fontSize: 22 }}>{skill.emoji}</span>
                           <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: nodo.bloqueado ? "#4A5568" : "#F1F5F9", lineHeight: 1.2 }}>{nodo.name}</div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: skill.bloqueado ? "#4A5568" : "#F1F5F9" }}>{skill.name}</div>
+                            <div style={{ fontSize: 9, color: NIVEL_COLORS_L[skill.nivel] }}>{skill.nivel}</div>
                           </div>
-                          <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${nodo.completado ? nodo.color : nodo.bloqueado ? "#2D2D45" : nodo.color + "60"}`, background: nodo.completado ? nodo.color : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 12 }}>
-                            {nodo.completado ? "✓" : nodo.bloqueado ? "🔒" : ""}
+                          {skill.completado ? <span style={{ fontSize: 14 }}>✅</span> : skill.bloqueado ? <span style={{ fontSize: 14 }}>🔒</span> : null}
+                        </div>
+                        {!skill.bloqueado && (
+                          <>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, marginBottom: 4 }}>
+                              <span style={{ color: "#64748B" }}>{skill.horasHechas || 0}/{skill.horas}h</span>
+                              <span style={{ color: skill.color, fontWeight: 700 }}>{pct}%</span>
+                            </div>
+                            <ProgressBar value={pct} max={100} color={skill.completado ? "#10B981" : skill.color} height={4} />
+                          </>
+                        )}
+                        {skill.unlocks.length > 0 && !skill.bloqueado && (
+                          <div style={{ fontSize: 9, color: "#4A5568", marginTop: 5 }}>
+                            🔓 {skill.unlocks.length} skill{skill.unlocks.length > 1 ? "s" : ""} al completar
                           </div>
-                        </div>
-                        <div style={{ fontSize: 10, color: "#4A5568", lineHeight: 1.4 }}>{nodo.desc}</div>
-                        <div style={{ marginTop: 8, display: "flex", justifyContent: "space-between" }}>
-                          <span style={{ fontSize: 9, color: nodo.bloqueado ? "#2D2D45" : nodo.color, fontWeight: 700, fontFamily: "'Orbitron',monospace" }}>{nodo.horas}h estimadas</span>
-                          {nodo.unlocks.length > 0 && !nodo.bloqueado && !nodo.completado && (
-                            <span style={{ fontSize: 9, color: "#4A5568" }}>🔓 desbloquea {nodo.unlocks.length}</span>
-                          )}
-                        </div>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Instrucciones */}
-            <div style={{ textAlign: "center", fontSize: 11, color: "#2D2D45", padding: "4px 0" }}>
-              Haz clic en un skill para marcarlo como completado · Los skills bloqueados se desbloquean al completar sus prerequisitos
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* ── NOTAS ── */}
-      {tab === "notas" && (
-        <div style={{ display: "grid", gridTemplateColumns: notaActiva ? "320px 1fr" : "1fr", gap: 16 }}>
-
-          {/* Panel izquierdo: lista de notas */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {/* Buscador + botón nueva */}
-            <div style={{ display: "flex", gap: 8 }}>
-              <input
-                placeholder="🔍 Buscar notas..."
-                value={notaBuscador}
-                onChange={e => setNotaBuscador(e.target.value)}
-                style={{ flex: 1, padding: "8px 12px", fontSize: 12 }}
-              />
-              <button className="btn-primary" style={{ fontSize: 12, whiteSpace: "nowrap" }}
-                onClick={() => { setShowFormNota(true); setNotaActiva(null); }}>
-                + Nueva
-              </button>
-            </div>
-
-            {/* Formulario nueva nota */}
-            {showFormNota && (
-              <div className="card" style={{ padding: 16, border: "1px solid rgba(124,58,237,0.3)" }}>
-                <div style={{ fontSize: 11, color: "#A78BFA", fontFamily: "'Orbitron',monospace", marginBottom: 12 }}>NUEVA NOTA</div>
-                <input
-                  placeholder="Título de la nota"
-                  value={formNota.titulo}
-                  onChange={e => setFormNota(p => ({ ...p, titulo: e.target.value }))}
-                  style={{ width: "100%", marginBottom: 8, padding: "7px 10px", fontSize: 13 }}
-                />
-                {/* Selector de tag */}
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-                  {NOTA_TAGS.map(tag => (
-                    <button key={tag} onClick={() => setFormNota(p => ({ ...p, tag }))}
-                      style={{ padding: "3px 10px", borderRadius: 999, border: `1px solid ${formNota.tag === tag ? "#7C3AED" : "#2D2D45"}`, background: formNota.tag === tag ? "rgba(124,58,237,0.2)" : "transparent", color: formNota.tag === tag ? "#A78BFA" : "#4A5568", cursor: "pointer", fontSize: 11, fontFamily: "'Rajdhani',sans-serif" }}>
-                      {tag}
-                    </button>
-                  ))}
-                </div>
-                {/* Selector de color */}
-                <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
-                  {NOTA_COLORS.map(c => (
-                    <div key={c} onClick={() => setFormNota(p => ({ ...p, color: c }))}
-                      style={{ width: 18, height: 18, borderRadius: 4, background: c, cursor: "pointer", border: formNota.color === c ? "2px solid #F1F5F9" : "2px solid transparent", transition: "border 0.1s" }} />
-                  ))}
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button className="btn-secondary" style={{ flex: 1, fontSize: 12 }} onClick={() => setShowFormNota(false)}>Cancelar</button>
-                  <button className="btn-primary" style={{ flex: 2, fontSize: 12 }} onClick={guardarNota} disabled={!formNota.titulo.trim()}>Crear nota</button>
+                    );
+                  })}
                 </div>
               </div>
-            )}
+            ))}
+          </div>
 
-            {/* Lista de notas */}
-            {notas
-              .filter(n => !notaBuscador || n.titulo.toLowerCase().includes(notaBuscador.toLowerCase()) || n.contenido?.toLowerCase().includes(notaBuscador.toLowerCase()))
-              .map(nota => (
-                <div key={nota.id}
-                  onClick={() => { setNotaActiva(nota); setShowFormNota(false); }}
-                  style={{ padding: "12px 14px", borderRadius: 12, background: notaActiva?.id === nota.id ? `${nota.color}15` : "#0F0F18", border: `2px solid ${notaActiva?.id === nota.id ? nota.color : "#1A1A28"}`, cursor: "pointer", borderLeft: `4px solid ${nota.color}`, transition: "all 0.15s" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#F1F5F9", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{nota.titulo}</div>
-                      <div style={{ fontSize: 10, color: "#4A5568", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {nota.contenido ? nota.contenido.substring(0, 60) + (nota.contenido.length > 60 ? "..." : "") : "Sin contenido aún"}
-                      </div>
+          {/* Panel detalle roadmap */}
+          {selectedRoadmap && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div className="card" style={{ padding: 18, borderTop: `3px solid ${selectedRoadmap.color}` }}>
+                <div style={{ textAlign: "center", marginBottom: 14 }}>
+                  <span style={{ fontSize: 48 }}>{selectedRoadmap.emoji}</span>
+                  <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 14, fontWeight: 700, color: "#F1F5F9", marginTop: 8 }}>{selectedRoadmap.name}</div>
+                  <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 4 }}>{selectedRoadmap.desc}</div>
+                  <span className="tag" style={{ background: `${NIVEL_COLORS_L[selectedRoadmap.nivel]}15`, color: NIVEL_COLORS_L[selectedRoadmap.nivel], marginTop: 8, display: "inline-block" }}>{selectedRoadmap.nivel}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 8 }}>
+                  <span style={{ color: "#64748B" }}>Horas necesarias</span>
+                  <span style={{ color: selectedRoadmap.color, fontWeight: 700 }}>{selectedRoadmap.horas}h</span>
+                </div>
+                {!selectedRoadmap.completado && (
+                  <>
+                    <ProgressBar value={selectedRoadmap.horasHechas || 0} max={selectedRoadmap.horas} color={selectedRoadmap.color} height={8} />
+                    <div style={{ fontSize: 11, color: "#64748B", marginTop: 6, textAlign: "right" }}>
+                      Faltan {selectedRoadmap.horas - (selectedRoadmap.horasHechas || 0)}h
                     </div>
-                    <button onClick={e => { e.stopPropagation(); eliminarNota(nota.id); }}
-                      style={{ background: "none", border: "none", color: "#2D2D45", cursor: "pointer", fontSize: 14, padding: "0 0 0 8px", flexShrink: 0 }}
-                      onMouseEnter={e => e.currentTarget.style.color = "#EF4444"}
-                      onMouseLeave={e => e.currentTarget.style.color = "#2D2D45"}>×</button>
-                  </div>
-                  <div style={{ display: "flex", gap: 6, marginTop: 6, alignItems: "center" }}>
-                    <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 999, background: `${nota.color}20`, color: nota.color, fontWeight: 700 }}>{nota.tag}</span>
-                    <span style={{ fontSize: 9, color: "#2D2D45" }}>{nota.fecha}</span>
-                  </div>
-                </div>
-              ))
-            }
-
-            {notas.length === 0 && !showFormNota && (
-              <div style={{ textAlign: "center", color: "#2D2D45", padding: "30px 0", fontSize: 13 }}>
-                <div style={{ fontSize: 32, marginBottom: 8 }}>📝</div>
-                Crea tu primera nota de estudio
+                  </>
+                )}
               </div>
-            )}
-          </div>
-
-          {/* Panel derecho: editor de nota activa */}
-          {notaActiva && (
-            <div className="card" style={{ padding: 0, overflow: "hidden", borderTop: `3px solid ${notaActiva.color}` }}>
-              {/* Barra superior del editor */}
-              <div style={{ padding: "12px 18px", background: `${notaActiva.color}08`, borderBottom: "1px solid #1A1A28", display: "flex", alignItems: "center", gap: 10 }}>
-                <input
-                  value={notaActiva.titulo}
-                  onChange={e => actualizarNota(notaActiva.id, "titulo", e.target.value)}
-                  style={{ flex: 1, fontFamily: "'Orbitron',monospace", fontSize: 14, fontWeight: 700, background: "transparent", border: "none", outline: "none", color: "#F1F5F9" }}
-                />
-                <div style={{ display: "flex", gap: 5 }}>
-                  {NOTA_TAGS.map(tag => (
-                    <button key={tag} onClick={() => actualizarNota(notaActiva.id, "tag", tag)}
-                      style={{ padding: "3px 9px", borderRadius: 999, border: `1px solid ${notaActiva.tag === tag ? notaActiva.color : "#2D2D45"}`, background: notaActiva.tag === tag ? `${notaActiva.color}20` : "transparent", color: notaActiva.tag === tag ? notaActiva.color : "#4A5568", cursor: "pointer", fontSize: 10, fontFamily: "'Rajdhani',sans-serif" }}>
-                      {tag}
-                    </button>
-                  ))}
+              {selectedRoadmap.unlocks.length > 0 && (
+                <div className="card" style={{ padding: 16 }}>
+                  <div className="section-title">🔓 Desbloquea</div>
+                  {selectedRoadmap.unlocks.map(uid => {
+                    const s = SKILL_ROADMAP.find(x => x.id === uid);
+                    if (!s) return null;
+                    return (
+                      <div key={uid} onClick={() => setSelectedRoadmap(s)}
+                        style={{ display: "flex", gap: 10, alignItems: "center", padding: "8px 10px", borderRadius: 8, background: "#0A0A12", border: `1px solid ${s.color}30`, marginBottom: 6, cursor: "pointer" }}>
+                        <span style={{ fontSize: 20 }}>{s.emoji}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: "#F1F5F9" }}>{s.name}</div>
+                          <div style={{ fontSize: 10, color: NIVEL_COLORS_L[s.nivel] }}>{s.nivel}</div>
+                        </div>
+                        <span style={{ color: "#4A5568" }}>›</span>
+                      </div>
+                    );
+                  })}
                 </div>
-                {/* Selector color inline */}
-                <div style={{ display: "flex", gap: 4 }}>
-                  {NOTA_COLORS.map(c => (
-                    <div key={c} onClick={() => actualizarNota(notaActiva.id, "color", c)}
-                      style={{ width: 14, height: 14, borderRadius: 3, background: c, cursor: "pointer", border: notaActiva.color === c ? "2px solid #F1F5F9" : "2px solid transparent" }} />
-                  ))}
-                </div>
-              </div>
-
-              {/* Área de escritura */}
-              <textarea
-                value={notaActiva.contenido || ""}
-                onChange={e => actualizarNota(notaActiva.id, "contenido", e.target.value)}
-                placeholder="Escribe aquí tus notas, apuntes, ideas, resúmenes...
-
-Puedes usar formato de texto libre:
-- Viñetas con el símbolo •
-→ Flechas para flujos
-# Títulos con #
-[ ] Tareas pendientes
-[x] Tareas completadas"
-                style={{ width: "100%", minHeight: "60vh", padding: "20px 24px", background: "#080810", border: "none", outline: "none", color: "#F1F5F9", fontSize: 14, lineHeight: 1.8, resize: "none", fontFamily: "'Rajdhani',sans-serif", boxSizing: "border-box" }}
-              />
-
-              {/* Pie del editor */}
-              <div style={{ padding: "8px 18px", background: "#0A0A12", borderTop: "1px solid #1A1A28", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: 10, color: "#2D2D45" }}>
-                  {notaActiva.contenido ? notaActiva.contenido.length : 0} caracteres · Guardado automáticamente
-                </span>
-                <span style={{ fontSize: 10, color: "#2D2D45" }}>Editado: {notaActiva.fecha}</span>
-              </div>
+              )}
             </div>
           )}
         </div>
@@ -7767,29 +5658,9 @@ Puedes usar formato de texto libre:
             <div className="card" style={{ padding: 18 }}>
               <div className="section-title">+ Nueva Flashcard</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <div>
-                  <div style={{ fontSize: 11, color: "#64748B", marginBottom: 4 }}>Skill asociada *</div>
-                  {skills.length === 0 ? (
-                    <div style={{ fontSize: 12, color: "#EF4444", padding: "8px", borderRadius: 6, background: "rgba(239,68,68,0.08)" }}>
-                      ⚠️ Crea una skill primero en el tab Skills
-                    </div>
-                  ) : (
-                    <select value={newFlash.skillId} onChange={e => setNewFlash(f => ({...f, skillId: e.target.value}))} style={{ fontSize: 12 }}>
-                      <option value="">-- Selecciona una skill --</option>
-                      {skills.map(s => <option key={s.id} value={s.id}>💡 {s.name}</option>)}
-                    </select>
-                  )}
-                </div>
-                <div>
-                  <div style={{ fontSize: 11, color: "#64748B", marginBottom: 4 }}>Dificultad</div>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    {[{v:"easy",l:"🟢 Fácil"},{v:"medium",l:"🟡 Media"},{v:"hard",l:"🔴 Difícil"}].map(o => (
-                      <button key={o.v} onClick={() => setNewFlash(f => ({...f, difficulty: o.v}))}
-                        className={newFlash.difficulty === o.v ? "btn-primary" : "btn-secondary"}
-                        style={{ flex: 1, fontSize: 11, padding: "5px 4px" }}>{o.l}</button>
-                    ))}
-                  </div>
-                </div>
+                <select value={newFlash.deck} onChange={e => setNewFlash(f => ({ ...f, deck: e.target.value }))} style={{ fontSize: 12 }}>
+                  {["Python", "FastAPI", "SQL"].map(d => <option key={d} value={d}>📦 {d}</option>)}
+                </select>
                 <textarea placeholder="❓ Pregunta (anverso)..." value={newFlash.front}
                   onChange={e => setNewFlash(f => ({ ...f, front: e.target.value }))}
                   style={{ minHeight: 70, resize: "vertical", fontSize: 12 }} />
@@ -7797,7 +5668,7 @@ Puedes usar formato de texto libre:
                   onChange={e => setNewFlash(f => ({ ...f, back: e.target.value }))}
                   style={{ minHeight: 70, resize: "vertical", fontSize: 12 }} />
                 <button onClick={agregarFlashcard} className="btn-primary" style={{ fontSize: 13 }}
-                  disabled={!newFlash.front || !newFlash.back || !newFlash.skillId}>
+                  disabled={!newFlash.front || !newFlash.back}>
                   + Agregar tarjeta
                 </button>
               </div>
@@ -7806,18 +5677,15 @@ Puedes usar formato de texto libre:
 
           {/* Mazos */}
           <div className="card" style={{ padding: 18 }}>
-            <div className="section-title">📦 Mazos por Skill</div>
-            {skills.length === 0 ? (
-              <div style={{ textAlign: "center", color: "#4A5568", fontSize: 12, padding: 20 }}>Crea skills para organizar tus flashcards</div>
-            ) : skills.map(skill => {
-              const dc = flashcards.filter(f => f.skillId === skill.id || f.deck === skill.name);
+            <div className="section-title">📦 Mazos</div>
+            {["Python", "FastAPI", "SQL"].map(deck => {
+              const dc = flashcards.filter(f => f.deck === deck);
               const due = dc.filter(f => f.due).length;
-              const deck = skill.name;
               return (
-                <div key={skill.id} style={{ marginBottom: 16 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderRadius: 10, background: "#0F0F18", border: `1px solid ${skill.color}30`, marginBottom: 8 }}>
+                <div key={deck} style={{ marginBottom: 16 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderRadius: 10, background: "#0F0F18", border: "1px solid #1E1E30", marginBottom: 8 }}>
                     <div>
-                      <div style={{ fontSize: 13, color: "#F1F5F9", fontWeight: 700 }}>💡 {deck}</div>
+                      <div style={{ fontSize: 13, color: "#F1F5F9", fontWeight: 700 }}>📦 {deck}</div>
                       <div style={{ fontSize: 11, color: "#64748B" }}>{dc.length} tarjetas en total</div>
                     </div>
                     <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -7840,102 +5708,41 @@ Puedes usar formato de texto libre:
 
       {/* ── LIBROS ── */}
       {tab === "libros" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ fontSize: 13, color: "#94A3B8" }}>{libros.length} libros registrados</div>
-            <button className="btn-primary" onClick={() => setShowFormLibro(true)} style={{ fontSize: 12 }}>+ Agregar libro</button>
-          </div>
-          {libros.length === 0 && (
-            <div className="card" style={{ padding: 40, textAlign: "center", color: "#4A5568" }}>
-              <div style={{ fontSize: 40, marginBottom: 10 }}>📚</div>
-              <div>Aún no tienes libros registrados</div>
-            </div>
-          )}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
-            {libros.map(b => {
-              const sc = { reading: "#06B6D4", completed: "#10B981", to_read: "#64748B", abandoned: "#EF4444" };
-              const sl = { reading: "📖 Leyendo", completed: "✅ Listo", to_read: "📚 Pendiente", abandoned: "❌ Abandonado" };
-              const status = b.status || "to_read";
-              return (
-                <div key={b.id} className="card" style={{ padding: 18, borderTop: `3px solid ${sc[status] || "#64748B"}` }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "#F1F5F9" }}>{b.title}</div>
-                      <div style={{ fontSize: 11, color: "#64748B", marginTop: 2 }}>{b.author || "Autor desconocido"}</div>
-                      <span className="tag" style={{ background: `${sc[status]}20`, color: sc[status], marginTop: 6, display: "inline-block" }}>{sl[status]}</span>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+          {l.books.map(b => {
+            const sc = { reading: "#06B6D4", completed: "#10B981", pending: "#64748B" };
+            const sl = { reading: "📖 Leyendo", completed: "✅ Listo", pending: "📚 Pendiente" };
+            return (
+              <div key={b.id} className="card" style={{ padding: 18 }}>
+                <div style={{ display: "flex", gap: 12, marginBottom: 14 }}>
+                  <span style={{ fontSize: 38 }}>{b.emoji}</span>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#F1F5F9" }}>{b.title}</div>
+                    <div style={{ fontSize: 12, color: "#64748B" }}>{b.author}</div>
+                    <span className="tag" style={{ background: `${sc[b.status]}20`, color: sc[b.status], marginTop: 4, display: "inline-block" }}>{sl[b.status]}</span>
+                  </div>
+                </div>
+                {b.status !== "pending" && (
+                  <>
+                    <ProgressBar value={b.read} max={b.pages} color={sc[b.status]} height={6} />
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginTop: 6, marginBottom: 10 }}>
+                      <span style={{ color: sc[b.status], fontWeight: 700 }}>Pág. {b.read}</span>
+                      <span style={{ color: "#64748B" }}>de {b.pages}</span>
                     </div>
-                    <button onClick={() => { if(window.confirm(`¿Eliminar "${b.title}"?`)) eliminarLibro(b.id); }}
-                      style={{ background: "none", border: "none", color: "#4A5568", cursor: "pointer", fontSize: 16, padding: 4 }}>🗑️</button>
-                  </div>
-                  {b.total_pages && (
-                    <>
-                      <ProgressBar value={b.pages_read || 0} max={b.total_pages} color={sc[status]} height={5} />
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginTop: 5, marginBottom: 8, color: "#64748B" }}>
-                        <span>Pág. {b.pages_read || 0}</span>
-                        <span>de {b.total_pages}</span>
-                      </div>
-                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                        <input type="number" placeholder="Pág. actual"
-                          defaultValue={b.pages_read || 0}
-                          min={0} max={b.total_pages}
-                          id={`pages-${b.id}`}
-                          style={{ width: "80px", fontSize: 12, padding: "4px 8px" }} />
-                        <button onClick={async () => {
-                          const input = document.getElementById(`pages-${b.id}`);
-                          const pages = parseInt(input?.value || 0);
-                          try {
-                            await fetch(`http://127.0.0.1:8000/api/v1/learning/books/${b.id}/pages`, {
-                              method: "PUT",
-                              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` },
-                              body: JSON.stringify({ pages_read: pages })
-                            });
-                            setLibros(prev => prev.map(lb => lb.id === b.id ? { ...lb, pages_read: pages } : lb));
-                            setToast({ msg: `📖 Pág. ${pages} guardada`, color: sc[status] });
-                          } catch(e) { setToast({ msg: "❌ Error al guardar", color: "#EF4444" }); }
-                        }} className="btn-primary" style={{ fontSize: 11, padding: "4px 10px", flex: 1 }}>
-                          Guardar
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          {showFormLibro && (
-            <div className="modal-bg" onClick={e => e.target === e.currentTarget && setShowFormLibro(false)}>
-              <div className="modal" style={{ width: 420 }}>
-                <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 14, fontWeight: 700, color: "#F1F5F9", marginBottom: 20 }}>📚 Agregar Libro</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  <input placeholder="Título *" value={newLibro.title} onChange={e => setNewLibro(f => ({...f, title: e.target.value}))} style={{ fontSize: 14 }} />
-                  <input placeholder="Autor" value={newLibro.author} onChange={e => setNewLibro(f => ({...f, author: e.target.value}))} style={{ fontSize: 13 }} />
-                  <input type="number" placeholder="Total de páginas" value={newLibro.total_pages} onChange={e => setNewLibro(f => ({...f, total_pages: e.target.value}))} style={{ fontSize: 13 }} />
-                  <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-                    <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowFormLibro(false)}>Cancelar</button>
-                    <button className="btn-primary" style={{ flex: 2 }} onClick={crearLibro} disabled={!newLibro.title.trim()}>✓ Agregar</button>
-                  </div>
-                </div>
+                  </>
+                )}
+                <button className={b.status === "pending" ? "btn-secondary" : "btn-primary"} style={{ width: "100%", fontSize: 12 }}>
+                  {b.status === "reading" ? "📝 Registrar lectura" : "▶ Empezar"}
+                </button>
               </div>
-            </div>
-          )}
+            );
+          })}
         </div>
       )}
 
       {/* ── SKILLS ── */}
       {tab === "skills" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ fontSize: 12, color: "#94A3B8" }}>{skills.length} skills registradas</div>
-            <button className="btn-primary" style={{ fontSize: 12 }} onClick={() => setShowFormSkill(true)}>+ Nueva Skill</button>
-          </div>
-          {skills.length === 0 && (
-            <div className="card" style={{ padding: 40, textAlign: "center", color: "#4A5568" }}>
-              <div style={{ fontSize: 40, marginBottom: 10 }}>💡</div>
-              <div style={{ fontSize: 14, marginBottom: 6 }}>Sin skills registradas</div>
-              <div style={{ fontSize: 12 }}>Crea una skill para trackear tus horas y XP (ej. Python, React, Inglés)</div>
-            </div>
-          )}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
           {skills.map(skill => (
             <div key={skill.id} className="card" style={{ padding: 18, borderTop: `3px solid ${skill.color}` }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
@@ -7956,64 +5763,6 @@ Puedes usar formato de texto libre:
               </button>
             </div>
           ))}
-          </div>
-        </div>
-      )}
-      {showFormSkill && (
-        <div className="modal-bg" onClick={e => e.target === e.currentTarget && setShowFormSkill(false)}>
-          <div className="modal" style={{ width: 420 }}>
-            <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 14, fontWeight: 700, color: "#F1F5F9", marginBottom: 20 }}>💡 Nueva Skill</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <input placeholder="Nombre (ej. Python, React, Inglés)" value={newSkill.name}
-                onChange={e => setNewSkill(f => ({...f, name: e.target.value}))} />
-              <div>
-                <div style={{ fontSize: 11, color: "#64748B", marginBottom: 6 }}>Categoría</div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {[{v:"programming",l:"💻 Programación"},{v:"languages",l:"🌍 Idiomas"},{v:"professional",l:"💼 Profesional"},{v:"personal",l:"🧘 Personal"},{v:"creative",l:"🎨 Creativo"},{v:"health",l:"💪 Salud"}].map(o => (
-                    <button key={o.v} onClick={() => setNewSkill(f => ({...f, category: o.v}))}
-                      className={newSkill.category === o.v ? "btn-primary" : "btn-secondary"}
-                      style={{ fontSize: 11, padding: "5px 10px" }}>{o.l}</button>
-                  ))}
-                </div>
-              </div>
-              <input type="number" placeholder="Horas objetivo (opcional)" value={newSkill.target_hours}
-                onChange={e => setNewSkill(f => ({...f, target_hours: e.target.value}))} />
-              <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-                <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowFormSkill(false)}>Cancelar</button>
-                <button className="btn-primary" style={{ flex: 2 }} onClick={crearSkill} disabled={!newSkill.name.trim()}>✓ Crear Skill</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {showFormCurso && (
-        <div className="modal-bg" onClick={e => e.target === e.currentTarget && setShowFormCurso(false)}>
-          <div className="modal" style={{ width: 440 }}>
-            <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 14, fontWeight: 700, color: "#F1F5F9", marginBottom: 20 }}>📚 Nuevo Curso</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <input placeholder="Nombre del curso *" value={newCurso.name}
-                onChange={e => setNewCurso(f => ({ ...f, name: e.target.value }))}
-                style={{ fontSize: 14 }} />
-              <input placeholder="Plataforma (Udemy, YouTube, etc.)" value={newCurso.platform}
-                onChange={e => setNewCurso(f => ({ ...f, platform: e.target.value }))}
-                style={{ fontSize: 13 }} />
-              <input placeholder="URL del curso (opcional)" value={newCurso.url}
-                onChange={e => setNewCurso(f => ({ ...f, url: e.target.value }))}
-                style={{ fontSize: 13 }} />
-              <div>
-                <div style={{ fontSize: 11, color: "#64748B", marginBottom: 6 }}>Total de lecciones</div>
-                <input type="number" placeholder="0" value={newCurso.total_lessons}
-                  onChange={e => setNewCurso(f => ({ ...f, total_lessons: e.target.value }))}
-                  style={{ fontSize: 13, width: "100%", boxSizing: "border-box" }} />
-              </div>
-              <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-                <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowFormCurso(false)}>Cancelar</button>
-                <button className="btn-primary" style={{ flex: 2 }} onClick={crearCurso} disabled={!newCurso.name.trim()}>
-                  ✓ Agregar Curso
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </div>
@@ -8035,121 +5784,6 @@ const PLAN_SEMANAL_BASE = [
   { dia: "Sáb", tipo: "calistenia", rutina: "Piernas" },
   { dia: "Dom", tipo: "descanso", rutina: "Descanso" },
 ];
-
-// Genera plan semanal según perfil de fitness
-const generarPlanDesdePerfilFitness = (perfil) => {
-  const dias = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
-  const metodo = perfil.training_method; // gym | calisthenics | hybrid
-  const split  = perfil.split_type;     // ppl | upper_lower | full_body | bro_split
-  const numDias = perfil.training_days_per_week || 5;
-
-  const tipoRutina = (metodo) => {
-    if (metodo === "gym")          return "gym";
-    if (metodo === "calisthenics") return "calistenia";
-    return "hybrid"; // alterna
-  };
-
-  // Plantillas de splits
-  const splits = {
-    ppl: [
-      { tipo: tipoRutina(metodo), rutina: metodo === "calisthenics" ? "Upper Body" : "Push Day" },
-      { tipo: tipoRutina(metodo), rutina: metodo === "calisthenics" ? "Upper Body" : "Pull Day" },
-      { tipo: tipoRutina(metodo), rutina: "Piernas" },
-      { tipo: tipoRutina(metodo), rutina: metodo === "calisthenics" ? "Core & Skills" : "Push Day" },
-      { tipo: tipoRutina(metodo), rutina: metodo === "calisthenics" ? "Upper Body" : "Pull Day" },
-      { tipo: tipoRutina(metodo), rutina: "Piernas" },
-    ],
-    upper_lower: [
-      { tipo: tipoRutina(metodo), rutina: metodo === "calisthenics" ? "Upper Body" : "Push Day" },
-      { tipo: tipoRutina(metodo), rutina: "Piernas" },
-      { tipo: tipoRutina(metodo), rutina: metodo === "calisthenics" ? "Core & Skills" : "Pull Day" },
-      { tipo: tipoRutina(metodo), rutina: "Piernas" },
-    ],
-    full_body: [
-      { tipo: tipoRutina(metodo), rutina: metodo === "calisthenics" ? "Upper Body" : "Push Day" },
-      { tipo: tipoRutina(metodo), rutina: metodo === "calisthenics" ? "Upper Body" : "Pull Day" },
-      { tipo: tipoRutina(metodo), rutina: metodo === "calisthenics" ? "Core & Skills" : "Push Day" },
-    ],
-    bro_split: [
-      { tipo: "gym", rutina: "Push Day" },
-      { tipo: "gym", rutina: "Pull Day" },
-      { tipo: "gym", rutina: "Leg Day" },
-      { tipo: "calistenia", rutina: "Core & Skills" },
-      { tipo: "gym", rutina: "Push Day" },
-    ],
-  };
-
-  const template = splits[split] || splits.ppl;
-
-  return dias.map((dia, i) => {
-    if (i < numDias) {
-      const rutina = template[i % template.length];
-      return { dia, tipo: rutina.tipo, rutina: rutina.rutina };
-    }
-    return { dia, tipo: "descanso", rutina: "Descanso" };
-  });
-};
-
-// Mapa: nombre de ejercicio → qué músculos activa
-const EJERCICIO_MUSCULO = {
-  // Empuje (Push)
-  "Press de Banca":        ["chest", "frontDelts", "triceps"],
-  "Press Inclinado":       ["chest", "frontDelts", "triceps"],
-  "Press Declinado":       ["chest", "triceps"],
-  "Press Militar":         ["frontDelts", "triceps", "traps"],
-  "Press Arnold":          ["frontDelts", "triceps"],
-  "Elevaciones Laterales": ["frontDelts"],
-  "Elevaciones Frontales": ["frontDelts"],
-  "Fondos lastrados":      ["chest", "triceps", "frontDelts"],
-  "Fondos":                ["chest", "triceps"],
-  "Archer Push-ups":       ["chest", "frontDelts"],
-  "Pike Push-ups":         ["frontDelts", "triceps"],
-  "Flexiones":             ["chest", "triceps", "frontDelts"],
-  "Extensiones Tríceps":   ["triceps"],
-  "Press Francés":         ["triceps"],
-  "Handstand Push-up":     ["frontDelts", "triceps", "traps"],
-  "Handstand Hold":        ["frontDelts", "traps"],
-  // Jalón (Pull)
-  "Peso Muerto":           ["lats", "traps", "lowerBack", "glutes", "hamstrings"],
-  "Dominadas lastradas":   ["lats", "biceps", "rearDelts"],
-  "Dominadas":             ["lats", "biceps", "rearDelts"],
-  "Remo con Barra":        ["lats", "traps", "rearDelts"],
-  "Remo Mancuerna":        ["lats", "traps", "rearDelts"],
-  "Remo Australiano":      ["lats", "traps", "rearDelts"],
-  "Jalón al Pecho":        ["lats", "biceps"],
-  "Face Pulls":            ["traps", "rearDelts"],
-  "Curl Bíceps":           ["biceps", "forearms"],
-  "Curl Martillo":         ["biceps", "forearms"],
-  "One Arm Pull-up":       ["lats", "biceps"],
-  "Front Lever":           ["lats", "abs"],
-  "Back Lever":            ["chest", "lowerBack"],
-  "Human Flag":            ["lats", "obliques"],
-  "Muscle Up":             ["lats", "chest", "triceps"],
-  // Piernas (Legs)
-  "Sentadilla":            ["quads", "glutes", "lowerBack"],
-  "Leg Press":             ["quads", "glutes"],
-  "Romanian Deadlift":     ["hamstrings", "lowerBack", "glutes"],
-  "Peso Muerto Rumano":    ["hamstrings", "lowerBack", "glutes"],
-  "Leg Curl":              ["hamstrings"],
-  "Pantorrillas":          ["calves"],
-  "Calf Raises":           ["calves"],
-  "Pistol Squat":          ["quads", "glutes"],
-  "Jump Squats":           ["quads", "glutes", "calves"],
-  "Nordic Curls":          ["hamstrings"],
-  "Bulgarian Split":       ["quads", "glutes", "hamstrings"],
-  "Zancadas":              ["quads", "glutes", "hamstrings"],
-  "Hip Thrust":            ["glutes", "hamstrings"],
-  // Core / Núcleo
-  "L-Sit":                 ["abs", "quads"],
-  "Hollow Body":           ["abs"],
-  "Dragon Flag":           ["abs", "lowerBack"],
-  "Ab Wheel":              ["abs", "lowerBack"],
-  "Planche":               ["chest", "frontDelts", "abs"],
-  "Plancha":               ["abs", "lowerBack"],
-  "Crunches":              ["abs"],
-  "Abdominales":           ["abs"],
-  "Russian Twist":         ["obliques", "abs"],
-};
 
 const GYM_RUTINAS = [
   {
@@ -8460,15 +6094,7 @@ const WorkoutLog = ({ rutina, tipo, onFinish }) => {
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={() => setShowTimer(true)} className="btn-secondary" style={{ fontSize: 12 }}>⏱ Descanso</button>
-            <button onClick={() => {
-                const logFinal = rutina.ejercicios.map(ej => ({
-                  name:   ej.name,
-                  weight: (seriesLog[ej.id] || []).find(s => s.weight)?.weight || "",
-                  reps:   (seriesLog[ej.id] || []).find(s => s.reps)?.reps   || "",
-                  series: (seriesLog[ej.id] || []).map(s => ({ r: s.reps, w: s.weight })),
-                })).filter(ej => ej.series.some(s => s.r || s.w));
-                onFinish({ duracion: Math.floor(elapsed / 60), series: totalDone, log: logFinal });
-              }} className="btn-success" style={{ fontSize: 12 }}>✓ Terminar</button>
+            <button onClick={() => onFinish({ duracion: Math.floor(elapsed / 60), series: totalDone })} className="btn-success" style={{ fontSize: 12 }}>✓ Terminar</button>
           </div>
         </div>
         <div style={{ marginTop: 12 }}>
@@ -8549,104 +6175,18 @@ const WorkoutLog = ({ rutina, tipo, onFinish }) => {
   );
 };
 
-const FitnessPage = ({ game, setGame }) => {
+const FitnessPage = () => {
   const [tab, setTab] = useState("hoy");
   const [planSemanal, setPlanSemanal] = useState(PLAN_SEMANAL_BASE);
-  const [historial, setHistorial] = useState([]);
+  const [historial, setHistorial] = useState(HISTORIAL_MOCK);
   const [streak, setStreak] = useState(0);
   const [cargandoStats, setCargandoStats] = useState(true);
-  const [records, setRecords] = useState([]);
-  // Array con TODAS las fechas entrenadas (formato "YYYY-MM-DD")
-  const [diasEntrenados, setDiasEntrenados] = useState(() => {
-    try {
-      const arr = JSON.parse(localStorage.getItem('lifehud_dias_entrenados') || '[]');
-      // Migración: si tenía la clave vieja y el array está vacío, importar ese día
-      if (arr.length === 0) {
-        const viejo = localStorage.getItem('lifehud_fitness_hoy');
-        if (viejo) return [viejo];
-      }
-      return arr;
-    } catch { return []; }
-  });
-
-  // Derivado: ¿entrenó hoy?
-  const hoyISO = new Date().toISOString().split('T')[0];
-  const entrenadoHoy = diasEntrenados.includes(hoyISO);
-  const [recordsLocales, setRecordsLocales] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('lifehud_records') || '[]'); }
-    catch { return []; }
-  });
-  const [tienePerfil, setTienePerfil] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [perfilForm, setPerfilForm] = useState({
-    training_method:      "hybrid",
-    primary_goal:         "hypertrophy",
-    training_days_per_week: 5,
-    split_type:           "ppl",
-    available_equipment:  ["pull_up_bar", "dumbbells"],
-    experience_level:     "beginner",
-  });
-  const [guardandoPerfil, setGuardandoPerfil] = useState(false);
-
-  const guardarPerfil = async () => {
-    setGuardandoPerfil(true);
-    try {
-      await fetch("http://127.0.0.1:8000/api/v1/fitness/profile/setup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`,
-        },
-        body: JSON.stringify(perfilForm),
-      });
-      setTienePerfil(true);
-      setShowOnboarding(false);
-      // Regenerar plan semanal con el nuevo perfil
-      const planAdaptado = generarPlanDesdePerfilFitness(perfilForm);
-      setPlanSemanal(planAdaptado);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setGuardandoPerfil(false);
-    }
-  };
 
   useEffect(() => {
     api.fitness.resumen()
       .then(data => setStreak(data.current_streak || data.streak || 0))
       .catch(() => {})
       .finally(() => setCargandoStats(false));
-
-    // Cargar perfil de fitness y adaptar plan semanal
-    fetch("http://127.0.0.1:8000/api/v1/fitness/profile", {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
-    })
-    .then(async r => {
-      if (r.status === 404) {
-        setTienePerfil(false);
-        setShowOnboarding(true);
-        return;
-      }
-      const perfil = await r.json();
-      setTienePerfil(true);
-      // Actualizar form con datos del perfil guardado
-      setPerfilForm({
-        training_method:        perfil.training_method       || "hybrid",
-        primary_goal:           perfil.primary_goal          || "hypertrophy",
-        training_days_per_week: perfil.training_days_per_week|| 5,
-        split_type:             perfil.split_type            || "ppl",
-        available_equipment:    perfil.available_equipment   || ["pull_up_bar"],
-        experience_level:       perfil.experience_level      || "beginner",
-      });
-      // Adaptar plan semanal al perfil
-      const planAdaptado = generarPlanDesdePerfilFitness(perfil);
-      setPlanSemanal(planAdaptado);
-    })
-    .catch(() => {});
-
-    api.fitness.records()
-      .then(data => { if (Array.isArray(data) && data.length) setRecords(data); })
-      .catch(() => {});
 
     api.fitness.workouts({ limit: 10 })
       .then(data => {
@@ -8670,96 +6210,18 @@ const FitnessPage = ({ game, setGame }) => {
       })
       .catch(() => {});
   }, []);
-  // Rutinas personalizadas — guardadas en localStorage
-  const [rutinasCustom, setRutinasCustom] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('lifehud_rutinas') || '[]'); }
-    catch { return []; }
-  });
-  const [showFormRutina, setShowFormRutina] = useState(false);
-  const [formRutina, setFormRutina] = useState({ name: '', emoji: '🏋️', tipo: 'gym', color: '#7C3AED', ejercicios: [] });
-  const [formEjercicio, setFormEjercicio] = useState({ name: '', sets: 3, repsTarget: '10', weightTarget: '' });
   const [workoutActivo, setWorkoutActivo] = useState(false);
   const [rutinaActiva, setRutinaActiva] = useState(null);
   const [tipoActivo, setTipoActivo] = useState(null);
-  const [selectedSkill, setSelectedSkill] = useState(null);
+  const [selectedSkill, setSelectedSkill] = useState(SKILL_TREE[4]); // muscle up por defecto
   const [toast, setToast] = useState(null);
-  // Skills personalizadas + progreso del SKILL_TREE — guardados en localStorage
-  const [skillsCustom, setSkillsCustom] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('lifehud_skills_fitness') || '[]'); }
-    catch { return []; }
-  });
-  const [skillsProgress, setSkillsProgress] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('lifehud_skills_progress') || '{}'); }
-    catch { return {}; }
-  });
-  const [showFormSkillF, setShowFormSkillF] = useState(false);
-  const [formSkillF, setFormSkillF] = useState({ name: '', emoji: '⚡', nivel: 'Base', unit: 'reps', goal: 10, color: '#7C3AED', desc: '' });
-  // Calcula la activación muscular de los últimos 7 días
-  const calcularHeatmapSemana = () => {
-    const musculos = {
-      chest: 0, frontDelts: 0, biceps: 0, forearms: 0, abs: 0, obliques: 0, quads: 0, calves: 0,
-      traps: 0, rearDelts: 0, lats: 0, triceps: 0, lowerBack: 0, glutes: 0, hamstrings: 0,
-    };
-    const ejerciciosPorMusculo = {};
-    Object.keys(musculos).forEach(k => { ejerciciosPorMusculo[k] = []; });
-
-    const haceSiete = new Date();
-    haceSiete.setDate(haceSiete.getDate() - 7);
-
-    let histMuscular = [];
-    try { histMuscular = JSON.parse(localStorage.getItem('lifehud_historial_muscular') || '[]'); } catch {}
-
-    histMuscular.forEach(w => {
-      if (new Date(w.fecha) >= haceSiete) {
-        (w.ejercicios || []).forEach(ej => {
-          const muscs = EJERCICIO_MUSCULO[ej.name] || [];
-          const sets = ej.series?.length || 3;
-          muscs.forEach(m => {
-            if (musculos[m] !== undefined) {
-              musculos[m] = Math.min(100, musculos[m] + sets * 20);
-              if (!ejerciciosPorMusculo[m].includes(ej.name)) {
-                ejerciciosPorMusculo[m].push(ej.name);
-              }
-            }
-          });
-        });
-      }
-    });
-
-    return {
-      front: {
-        chest:      musculos.chest,
-        frontDelts: musculos.frontDelts,
-        biceps:     musculos.biceps,
-        forearms:   musculos.forearms,
-        abs:        musculos.abs,
-        obliques:   musculos.obliques,
-        quads:      musculos.quads,
-        calves:     musculos.calves,
-      },
-      back: {
-        traps:      musculos.traps,
-        rearDelts:  musculos.rearDelts,
-        lats:       musculos.lats,
-        triceps:    musculos.triceps,
-        forearms:   musculos.forearms,
-        lowerBack:  musculos.lowerBack,
-        glutes:     musculos.glutes,
-        hamstrings: musculos.hamstrings,
-        calves:     musculos.calves,
-      },
-      exercises: ejerciciosPorMusculo,
-    };
-  };
 
   const hoyIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
   const hoyPlan = planSemanal[hoyIdx];
 
   const getRutinaObj = (tipo, nombre) => {
-    const custom = rutinasCustom.find(r => r.name === nombre);
-    if (custom) return custom;
-    if (tipo === "gym") return GYM_RUTINAS.find(r => r.name === nombre) || null;
-    if (tipo === "calistenia") return CALI_RUTINAS.find(r => r.name === nombre) || null;
+    if (tipo === "gym") return GYM_RUTINAS.find(r => r.name === nombre) || GYM_RUTINAS[0];
+    if (tipo === "calistenia") return CALI_RUTINAS.find(r => r.name === nombre) || CALI_RUTINAS[0];
     return null;
   };
 
@@ -8772,61 +6234,24 @@ const FitnessPage = ({ game, setGame }) => {
     setTab("hoy");
   };
 
-  const finalizarEntrenamiento = async ({ duracion, series, log = [] }) => {
-    const xpGanado     = 5;
-    const coinsGanados = 2;
-    const hoy = new Date().toISOString().split("T")[0];
+  const finalizarEntrenamiento = async ({ duracion, series }) => {
     const nuevo = {
-      id:         Date.now(),
-      fecha:      new Date().toLocaleDateString("es-MX", { day: "numeric", month: "short" }),
-      tipo:       tipoActivo,
-      rutina:     rutinaActiva.name,
-      emoji:      rutinaActiva.emoji,
-      color:      rutinaActiva.color,
+      id:        Date.now(),
+      fecha:     "Ahora",
+      tipo:      tipoActivo,
+      rutina:    rutinaActiva.name,
+      emoji:     rutinaActiva.emoji,
+      color:     rutinaActiva.color,
       duracion, series,
-      volumen:    tipoActivo === "gym" ? Math.floor(Math.random() * 10000 + 8000) : 0,
+      volumen:   tipoActivo === "gym" ? Math.floor(Math.random() * 10000 + 8000) : 0,
       ejercicios: rutinaActiva.ejercicios.length,
-      log,
+      log:       [],
     };
-
     setHistorial(p => [nuevo, ...p]);
     setWorkoutActivo(false);
     setRutinaActiva(null);
-    // Guardar en array histórico de días entrenados
-    setDiasEntrenados(prev => {
-      if (prev.includes(hoy)) return prev;
-      const nuevo = [...prev, hoy];
-      localStorage.setItem('lifehud_dias_entrenados', JSON.stringify(nuevo));
-      localStorage.setItem('lifehud_fitness_hoy', hoy); // compatibilidad
-      return nuevo;
-    });
-    if (setGame) setGame(g => ({ ...g, xp: g.xp + xpGanado, coins: g.coins + coinsGanados }));
-    if (log.length > 0) {
-      const fecha = new Date().toLocaleDateString("es-MX", { day: "numeric", month: "short" });
-      const nuevosRec = log.filter(ej => ej.weight).map(ej => ({
-        exercise: ej.name, record: ej.weight, reps: ej.reps || "—", date: fecha, trend: "up",
-      }));
-      if (nuevosRec.length > 0) {
-        setRecordsLocales(prev => {
-          const merged = [...nuevosRec, ...prev.filter(r => !nuevosRec.find(n => n.exercise === r.exercise))];
-          localStorage.setItem("lifehud_records", JSON.stringify(merged));
-          return merged;
-        });
-      }
-    }
-
-    // Guardar historial muscular para el mapa de calor
-    try {
-      const histMuscular = JSON.parse(localStorage.getItem('lifehud_historial_muscular') || '[]');
-      const entryMuscular = {
-        fecha: new Date().toISOString(),
-        rutina: rutinaActiva.name,
-        ejercicios: log,
-      };
-      localStorage.setItem('lifehud_historial_muscular', JSON.stringify([entryMuscular, ...histMuscular].slice(0, 30)));
-    } catch (_) {}
-
-    setToast({ msg: `✅ ${rutinaActiva.emoji} ${rutinaActiva.name} — +${xpGanado} XP  +${coinsGanados} 🪙`, color: rutinaActiva.color });
+    setToast({ msg: `✅ ${rutinaActiva.emoji} ${rutinaActiva.name} — ${duracion} min completado!`, color: rutinaActiva.color });
+    // Guardar en backend
     try {
       const tipoMap = { gym: "gym", calistenia: "calisthenics", hybrid: "hybrid" };
       const nombre = rutinaActiva.name || "Entrenamiento";
@@ -8842,7 +6267,7 @@ const FitnessPage = ({ game, setGame }) => {
         name:            nombreFinal,
         workout_type:    workoutTypeFinal,
         training_method: tipoMap[tipoActivo] || "gym",
-        workout_date:    hoy,
+        workout_date:    new Date().toISOString().split("T")[0],
       });
       setStreak(s => s + 1);
     } catch (_) {}
@@ -8860,106 +6285,13 @@ const FitnessPage = ({ game, setGame }) => {
     <div className="page" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {toast && <Toast msg={toast.msg} color={toast.color} onDone={() => setToast(null)} />}
 
-      {/* Banner onboarding si no tiene perfil */}
-      {!tienePerfil && (
-        <div style={{ padding: "16px 20px", borderRadius: 12, background: "linear-gradient(135deg,rgba(124,58,237,0.15),rgba(6,182,212,0.1))", border: "1px solid rgba(124,58,237,0.3)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-          <div>
-            <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 13, fontWeight: 700, color: "#A78BFA", marginBottom: 4 }}>⚡ CONFIGURA TU PERFIL FITNESS</div>
-            <div style={{ fontSize: 12, color: "#64748B" }}>Personaliza tus rutinas según tu método, objetivo y nivel de experiencia.</div>
-          </div>
-          <button className="btn-primary" onClick={() => setShowOnboarding(true)} style={{ flexShrink: 0, fontSize: 13 }}>
-            Configurar →
-          </button>
-        </div>
-      )}
-
-      {/* Modal onboarding */}
-      {showOnboarding && (
-        <div className="modal-bg" onClick={e => e.target === e.currentTarget && setShowOnboarding(false)}>
-          <div className="modal" style={{ width: 500 }}>
-            <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 15, fontWeight: 700, color: "#F1F5F9", marginBottom: 6 }}>⚡ PERFIL FITNESS</div>
-            <div style={{ fontSize: 12, color: "#64748B", marginBottom: 20 }}>Configúralo una vez — la app adapta tus rutinas automáticamente.</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-              {/* Método */}
-              <div>
-                <div style={{ fontSize: 11, color: "#64748B", marginBottom: 8, letterSpacing: 1 }}>MÉTODO DE ENTRENAMIENTO</div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  {[{v:"gym",l:"🏋️ Gym"},{v:"calisthenics",l:"💪 Calistenia"},{v:"hybrid",l:"⚡ Híbrido"}].map(o => (
-                    <button key={o.v} onClick={() => setPerfilForm(f => ({...f, training_method: o.v}))}
-                      className={perfilForm.training_method === o.v ? "btn-primary" : "btn-secondary"}
-                      style={{ flex: 1, fontSize: 12 }}>{o.l}</button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Objetivo */}
-              <div>
-                <div style={{ fontSize: 11, color: "#64748B", marginBottom: 8, letterSpacing: 1 }}>OBJETIVO PRINCIPAL</div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  {[{v:"hypertrophy",l:"💪 Hipertrofia"},{v:"strength",l:"🏆 Fuerza"},{v:"cut",l:"🔥 Definición"},{v:"skills",l:"🤸 Skills"},{v:"maintenance",l:"⚖️ Mantenimiento"}].map(o => (
-                    <button key={o.v} onClick={() => setPerfilForm(f => ({...f, primary_goal: o.v}))}
-                      className={perfilForm.primary_goal === o.v ? "btn-primary" : "btn-secondary"}
-                      style={{ fontSize: 12 }}>{o.l}</button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Split */}
-              <div>
-                <div style={{ fontSize: 11, color: "#64748B", marginBottom: 8, letterSpacing: 1 }}>TIPO DE DIVISIÓN</div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {[{v:"ppl",l:"PPL"},{v:"upper_lower",l:"Upper/Lower"},{v:"full_body",l:"Full Body"},{v:"bro_split",l:"Bro Split"}].map(o => (
-                    <button key={o.v} onClick={() => setPerfilForm(f => ({...f, split_type: o.v}))}
-                      className={perfilForm.split_type === o.v ? "btn-primary" : "btn-secondary"}
-                      style={{ fontSize: 12 }}>{o.l}</button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Días y experiencia */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-                <div>
-                  <div style={{ fontSize: 11, color: "#64748B", marginBottom: 8, letterSpacing: 1 }}>DÍAS POR SEMANA</div>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    {[3,4,5,6,7].map(d => (
-                      <button key={d} onClick={() => setPerfilForm(f => ({...f, training_days_per_week: d}))}
-                        className={perfilForm.training_days_per_week === d ? "btn-primary" : "btn-secondary"}
-                        style={{ flex: 1, fontSize: 13, padding: "8px 4px" }}>{d}</button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 11, color: "#64748B", marginBottom: 8, letterSpacing: 1 }}>EXPERIENCIA</div>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    {[{v:"beginner",l:"Principiante"},{v:"intermediate",l:"Intermedio"},{v:"advanced",l:"Avanzado"}].map(o => (
-                      <button key={o.v} onClick={() => setPerfilForm(f => ({...f, experience_level: o.v}))}
-                        className={perfilForm.experience_level === o.v ? "btn-primary" : "btn-secondary"}
-                        style={{ flex: 1, fontSize: 10, padding: "8px 4px" }}>{o.l}</button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Botones */}
-              <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-                <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowOnboarding(false)}>Cancelar</button>
-                <button className="btn-primary" style={{ flex: 2 }} onClick={guardarPerfil} disabled={guardandoPerfil}>
-                  {guardandoPerfil ? "⏳ Guardando..." : "✅ Guardar Perfil"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
         {[
           { label: "Racha actual", value: `${cargandoStats ? "..." : streak}d`, icon: "🔥", color: "#EF4444" },
           { label: "Entrenamientos (mes)", value: historial.length, icon: "📅", color: "#7C3AED" },
           { label: "Volumen total", value: `${(historial.reduce((a,h)=>a+h.volumen,0)/1000).toFixed(0)}k kg`, icon: "⚖️", color: "#06B6D4" },
-          { label: "Skills fitness", value: "Ver Skills", icon: "🏆", color: "#F59E0B" },
+          { label: "Skills desbloqueados", value: `${SKILL_TREE.filter(s=>s.desbloqueado).length}/${SKILL_TREE.length}`, icon: "🏆", color: "#F59E0B" },
         ].map((s, i) => (
           <div key={i} className="card" style={{ padding: "14px 18px", borderLeft: `3px solid ${s.color}` }}>
             <div style={{ fontSize: 20, marginBottom: 4 }}>{s.icon}</div>
@@ -8991,173 +6323,35 @@ const FitnessPage = ({ game, setGame }) => {
           <WorkoutLog rutina={rutinaActiva} tipo={tipoActivo} onFinish={finalizarEntrenamiento} />
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* Calendario semanal + mensual */}
-            {(() => {
-              // Calcular la fecha ISO de cada día del plan (Lun=0 … Dom=6)
-              const dateForIdx = (i) => {
-                const d = new Date();
-                d.setDate(d.getDate() + (i - hoyIdx));
-                return d.toISOString().split('T')[0];
-              };
-
-              // Calendario mensual
-              const ahora      = new Date();
-              const anio       = ahora.getFullYear();
-              const mes        = ahora.getMonth();
-              const diasEnMes  = new Date(anio, mes + 1, 0).getDate();
-              const primerDia  = new Date(anio, mes, 1).getDay(); // 0=Dom
-              const offsetLun  = primerDia === 0 ? 6 : primerDia - 1; // convertir a lunes=0
-              const nombreMes  = ahora.toLocaleDateString("es-MX", { month: "long", year: "numeric" });
-              const diasSemana = ["L","M","X","J","V","S","D"];
-
-              // Contar entrenados este mes
-              const prefixMes = `${anio}-${String(mes + 1).padStart(2,'0')}`;
-              const entrenadosMes = diasEntrenados.filter(d => d.startsWith(prefixMes)).length;
-              // Racha actual
-              let rachaActual = 0;
-              for (let i = 0; i < 60; i++) {
-                const d = new Date(); d.setDate(d.getDate() - i);
-                if (diasEntrenados.includes(d.toISOString().split('T')[0])) rachaActual++;
-                else break;
-              }
-
-              return (
-                <>
-                  {/* Plan semanal */}
-                  <div className="card" style={{ padding: 18 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                      <div className="section-title" style={{ margin: 0 }}>📅 Plan Semanal</div>
-                      <div style={{ display: "flex", gap: 16 }}>
-                        <div style={{ textAlign: "center" }}>
-                          <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 18, fontWeight: 900, color: "#F59E0B" }}>{rachaActual}</div>
-                          <div style={{ fontSize: 9, color: "#4A5568" }}>racha</div>
-                        </div>
-                        <div style={{ textAlign: "center" }}>
-                          <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 18, fontWeight: 900, color: "#10B981" }}>{entrenadosMes}</div>
-                          <div style={{ fontSize: 9, color: "#4A5568" }}>este mes</div>
-                        </div>
+            {/* Calendario semanal */}
+            <div className="card" style={{ padding: 18 }}>
+              <div className="section-title">📅 Plan Semanal</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 8 }}>
+                {planSemanal.map((d, i) => {
+                  const isHoy = i === hoyIdx;
+                  const color = d.tipo === "gym" ? "#EF4444" : d.tipo === "calistenia" ? "#7C3AED" : "#4A5568";
+                  return (
+                    <div key={i} style={{ textAlign: "center", padding: "12px 6px", borderRadius: 10, background: isHoy ? `${color}15` : "#0A0A12", border: `2px solid ${isHoy ? color : "#1A1A28"}`, position: "relative" }}>
+                      <div style={{ fontSize: 10, color: isHoy ? color : "#64748B", fontWeight: 700, marginBottom: 6 }}>{d.dia}</div>
+                      <div style={{ fontSize: 20, marginBottom: 4 }}>
+                        {d.tipo === "gym" ? "🏋️" : d.tipo === "calistenia" ? "💪" : "😴"}
+                      </div>
+                      <div style={{ fontSize: 9, color: color, fontWeight: 700, marginBottom: 8 }}>{d.rutina}</div>
+                      {/* Selector tipo */}
+                      <div style={{ display: "flex", justifyContent: "center", gap: 3 }}>
+                        {["gym","calistenia","descanso"].map(t => (
+                          <button key={t} onClick={() => cambiarDia(i, t)}
+                            title={t}
+                            style={{ width: 18, height: 18, borderRadius: 4, border: `1px solid ${d.tipo === t ? color : "#2D2D45"}`, background: d.tipo === t ? `${color}30` : "#080810", cursor: "pointer", fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {t === "gym" ? "🏋" : t === "calistenia" ? "💪" : "💤"}
+                          </button>
+                        ))}
                       </div>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 8 }}>
-                      {planSemanal.map((d, i) => {
-                        const fechaDia   = dateForIdx(i);
-                        const fueHoy     = i === hoyIdx;
-                        const esPasado   = fechaDia < hoyISO;
-                        const fueEntren  = diasEntrenados.includes(fechaDia);
-                        const color      = d.tipo === "gym" ? "#EF4444" : d.tipo === "calistenia" ? "#7C3AED" : "#4A5568";
-                        const bg         = fueEntren ? "rgba(16,185,129,0.15)" : fueHoy ? `${color}15` : "#0A0A12";
-                        const border     = fueEntren ? "#10B981" : fueHoy ? color : esPasado && d.tipo !== "descanso" ? "#3D1A1A" : "#1A1A28";
-                        const emoji      = fueEntren ? "✅" : esPasado && d.tipo !== "descanso" ? "❌" : d.tipo === "gym" ? "🏋️" : d.tipo === "calistenia" ? "💪" : "😴";
-                        const textoColor = fueEntren ? "#10B981" : esPasado && d.tipo !== "descanso" ? "#EF4444" : color;
-                        return (
-                          <div key={i} style={{ textAlign: "center", padding: "12px 6px", borderRadius: 10, background: bg, border: `2px solid ${border}`, position: "relative" }}>
-                            <div style={{ fontSize: 10, color: fueHoy ? color : "#64748B", fontWeight: 700, marginBottom: 6 }}>{d.dia}</div>
-                            <div style={{ fontSize: 20, marginBottom: 4 }}>{emoji}</div>
-                            <div style={{ fontSize: 9, color: textoColor, fontWeight: 700, marginBottom: 8 }}>
-                              {fueEntren ? "¡Hecho!" : d.rutina}
-                            </div>
-                            <div style={{ display: "flex", justifyContent: "center", gap: 3 }}>
-                              {["gym","calistenia","descanso"].map(t => (
-                                <button key={t} onClick={() => cambiarDia(i, t)} title={t}
-                                  style={{ width: 18, height: 18, borderRadius: 4, border: `1px solid ${d.tipo === t ? color : "#2D2D45"}`, background: d.tipo === t ? `${color}30` : "#080810", cursor: "pointer", fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                  {t === "gym" ? "🏋" : t === "calistenia" ? "💪" : "💤"}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Calendario mensual */}
-                  <div className="card" style={{ padding: 18 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                      <div className="section-title" style={{ margin: 0, textTransform: "capitalize" }}>
-                        🗓️ {nombreMes}
-                      </div>
-                      <div style={{ display: "flex", gap: 12, fontSize: 10, color: "#64748B" }}>
-                        <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                          <span style={{ width: 10, height: 10, borderRadius: 3, background: "#10B981", display: "inline-block" }} /> Entrenado
-                        </span>
-                        <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                          <span style={{ width: 10, height: 10, borderRadius: 3, background: "#1C2A4A", display: "inline-block" }} /> Descanso
-                        </span>
-                        <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                          <span style={{ width: 10, height: 10, borderRadius: 3, background: "#3D1A1A", display: "inline-block" }} /> Faltó
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Cabecera días semana */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4, marginBottom: 4 }}>
-                      {diasSemana.map(ds => (
-                        <div key={ds} style={{ textAlign: "center", fontSize: 10, color: "#4A5568", fontWeight: 700, fontFamily: "'Orbitron',monospace" }}>{ds}</div>
-                      ))}
-                    </div>
-
-                    {/* Días del mes */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4 }}>
-                      {/* Espacios en blanco para el offset */}
-                      {Array(offsetLun).fill(null).map((_, i) => (
-                        <div key={`off-${i}`} />
-                      ))}
-                      {Array(diasEnMes).fill(null).map((_, i) => {
-                        const numDia   = i + 1;
-                        const fechaStr = `${anio}-${String(mes+1).padStart(2,'0')}-${String(numDia).padStart(2,'0')}`;
-                        const esHoy    = fechaStr === hoyISO;
-                        const esFuturo = fechaStr > hoyISO;
-                        const esPasado = fechaStr < hoyISO;
-                        const esPlanDesc = (() => {
-                          // Saber si ese día estaba planificado como descanso
-                          const dow = new Date(fechaStr + 'T12:00:00').getDay();
-                          const planIdx = dow === 0 ? 6 : dow - 1;
-                          return planSemanal[planIdx]?.tipo === "descanso";
-                        })();
-                        const fueEntren = diasEntrenados.includes(fechaStr);
-                        let bg, borderC, textC;
-                        if (esHoy) {
-                          bg = fueEntren ? "rgba(16,185,129,0.25)" : "rgba(124,58,237,0.2)";
-                          borderC = fueEntren ? "#10B981" : "#7C3AED";
-                          textC = fueEntren ? "#10B981" : "#A78BFA";
-                        } else if (fueEntren) {
-                          bg = "rgba(16,185,129,0.15)"; borderC = "#10B981"; textC = "#10B981";
-                        } else if (esFuturo) {
-                          bg = "#0A0A12"; borderC = "#1A1A28"; textC = "#2D2D45";
-                        } else if (esPasado && esPlanDesc) {
-                          bg = "#0D0D1A"; borderC = "#1A1A28"; textC = "#2D2D45";
-                        } else if (esPasado) {
-                          bg = "rgba(61,26,26,0.4)"; borderC = "#3D1A1A"; textC = "#64748B";
-                        } else {
-                          bg = "#0A0A12"; borderC = "#1A1A28"; textC = "#64748B";
-                        }
-                        return (
-                          <div key={numDia}
-                            style={{ aspectRatio: "1", borderRadius: 6, background: bg, border: `1px solid ${borderC}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: esHoy ? 900 : fueEntren ? 700 : 400, color: textC, fontFamily: esHoy || fueEntren ? "'Orbitron',monospace" : "'Rajdhani',sans-serif", transition: "all 0.2s", position: "relative" }}>
-                            {numDia}
-                            {fueEntren && <div style={{ position: "absolute", top: 1, right: 2, fontSize: 7 }}>✓</div>}
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Resumen del mes */}
-                    <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid #1A1A28", display: "flex", gap: 20, justifyContent: "center" }}>
-                      {[
-                        { l: "Entrenados", v: entrenadosMes, c: "#10B981" },
-                        { l: "Racha actual", v: `${rachaActual} días`, c: "#F59E0B" },
-                        { l: "Este mes", v: `${Math.round((entrenadosMes / diasEnMes) * 100)}%`, c: "#7C3AED" },
-                      ].map(s => (
-                        <div key={s.l} style={{ textAlign: "center" }}>
-                          <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 20, fontWeight: 900, color: s.c }}>{s.v}</div>
-                          <div style={{ fontSize: 10, color: "#4A5568" }}>{s.l}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              );
-            })()}
+                  );
+                })}
+              </div>
+            </div>
 
             {/* Rutina de hoy */}
             {hoyPlan.tipo !== "descanso" ? (
@@ -9245,417 +6439,182 @@ const FitnessPage = ({ game, setGame }) => {
 
       {/* ── TAB: RUTINAS ── */}
       {tab === "rutinas" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-          {/* Header */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ fontSize: 12, color: "#64748B" }}>{rutinasCustom.length} rutina{rutinasCustom.length !== 1 ? "s" : ""} guardada{rutinasCustom.length !== 1 ? "s" : ""}</div>
-            <button className="btn-primary" onClick={() => setShowFormRutina(true)} style={{ fontSize: 12 }}>+ Nueva rutina</button>
-          </div>
-
-          {/* Sin rutinas */}
-          {rutinasCustom.length === 0 && (
-            <div className="card" style={{ padding: 40, textAlign: "center" }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>🏋️</div>
-              <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 13, color: "#F1F5F9", marginBottom: 8 }}>Sin rutinas aún</div>
-              <div style={{ fontSize: 12, color: "#4A5568", marginBottom: 20 }}>Crea tu primera rutina personalizada</div>
-              <button className="btn-primary" onClick={() => setShowFormRutina(true)} style={{ fontSize: 13, padding: "10px 24px" }}>+ Crear rutina</button>
-            </div>
-          )}
-
-          {/* Lista de rutinas */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
-            {rutinasCustom.map((r, idx) => (
-              <div key={r.id} className="card" style={{ padding: 16, borderTop: `3px solid ${r.color || "#7C3AED"}` }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                  <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                    <span style={{ fontSize: 28 }}>{r.emoji}</span>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "#F1F5F9" }}>{r.name}</div>
-                      <span className="tag" style={{ background: r.tipo === "gym" ? "rgba(239,68,68,0.15)" : "rgba(124,58,237,0.15)", color: r.tipo === "gym" ? "#EF4444" : "#A78BFA", marginTop: 4, display: "inline-block" }}>
-                        {r.tipo === "gym" ? "🏋️ Gym" : "💪 Calistenia"}
-                      </span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div>
+            <div style={{ fontSize: 11, color: "#EF4444", fontWeight: 700, fontFamily: "'Orbitron',monospace", letterSpacing: 2, marginBottom: 10 }}>🏋️ GIMNASIO</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+              {GYM_RUTINAS.map(r => (
+                <div key={r.id} className="card" style={{ padding: 16, borderTop: `3px solid ${r.color}` }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                    <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                      <span style={{ fontSize: 28 }}>{r.emoji}</span>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "#F1F5F9" }}>{r.name}</div>
+                        <div style={{ fontSize: 10, color: "#4A5568" }}>{r.dia}</div>
+                      </div>
                     </div>
                   </div>
-                  <button onClick={() => {
-                    const nuevas = rutinasCustom.filter((_, i) => i !== idx);
-                    setRutinasCustom(nuevas);
-                    localStorage.setItem('lifehud_rutinas', JSON.stringify(nuevas));
-                  }} style={{ background: "none", border: "none", color: "#4A5568", cursor: "pointer", fontSize: 16, padding: 4 }}>🗑️</button>
+                  {r.ejercicios.map((ej, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid #1A1A28", fontSize: 12 }}>
+                      <span style={{ color: "#CBD5E1" }}>{ej.name}</span>
+                      <span style={{ color: "#64748B" }}>{ej.sets}×{ej.repsTarget} · {ej.weightTarget}</span>
+                    </div>
+                  ))}
+                  <button onClick={() => iniciarEntrenamiento("gym", r.name)} className="btn-primary" style={{ width: "100%", marginTop: 12, fontSize: 12 }}>▶ Iniciar</button>
                 </div>
-                {(r.ejercicios || []).map((ej, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid #1A1A28", fontSize: 12 }}>
-                    <span style={{ color: "#CBD5E1" }}>{ej.name}</span>
-                    <span style={{ color: "#64748B" }}>{ej.sets}×{ej.repsTarget}{ej.weightTarget ? ` · ${ej.weightTarget}` : ""}</span>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 11, color: "#A78BFA", fontWeight: 700, fontFamily: "'Orbitron',monospace", letterSpacing: 2, marginBottom: 10 }}>💪 CALISTENIA</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+              {CALI_RUTINAS.map(r => (
+                <div key={r.id} className="card" style={{ padding: 16, borderTop: `3px solid ${r.color}` }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                    <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                      <span style={{ fontSize: 28 }}>{r.emoji}</span>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "#F1F5F9" }}>{r.name}</div>
+                        <div style={{ fontSize: 10, color: "#4A5568" }}>{r.dia}</div>
+                      </div>
+                    </div>
                   </div>
-                ))}
-                {(r.ejercicios || []).length === 0 && (
-                  <div style={{ fontSize: 12, color: "#4A5568", textAlign: "center", padding: "8px 0" }}>Sin ejercicios aún</div>
-                )}
-                <button onClick={() => iniciarEntrenamiento(r.tipo, r.name)} className="btn-primary" style={{ width: "100%", marginTop: 12, fontSize: 12 }}>▶ Iniciar</button>
+                  {r.ejercicios.map((ej, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid #1A1A28", fontSize: 12 }}>
+                      <span style={{ color: "#CBD5E1" }}>{ej.name}</span>
+                      <span style={{ color: "#64748B" }}>{ej.sets}×{ej.repsTarget}</span>
+                    </div>
+                  ))}
+                  <button onClick={() => iniciarEntrenamiento("calistenia", r.name)} className="btn-primary" style={{ width: "100%", marginTop: 12, fontSize: 12 }}>▶ Iniciar</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB: SKILLS ── */}
+      {tab === "skills" && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16 }}>
+          {/* Árbol visual */}
+          <div className="card" style={{ padding: 18 }}>
+            <div className="section-title">🌳 Árbol de Progresión</div>
+            {/* Niveles */}
+            {["Base", "Intermedio", "Avanzado", "Élite"].map(nivel => (
+              <div key={nivel} style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 10, color: NIVEL_COLORS[nivel], fontWeight: 700, fontFamily: "'Orbitron',monospace", letterSpacing: 2, marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ flex: 1, height: 1, background: `${NIVEL_COLORS[nivel]}30` }} />
+                  {nivel.toUpperCase()}
+                  <div style={{ flex: 1, height: 1, background: `${NIVEL_COLORS[nivel]}30` }} />
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                  {SKILL_TREE.filter(s => s.nivel === nivel).map(skill => {
+                    const pct = Math.round((skill.current / skill.goal) * 100);
+                    const isSelected = selectedSkill?.id === skill.id;
+                    return (
+                      <div key={skill.id}
+                        onClick={() => setSelectedSkill(skill)}
+                        style={{ padding: "12px 14px", borderRadius: 12, background: isSelected ? `${skill.color}15` : skill.desbloqueado ? "#0F0F18" : "#09090F", border: `2px solid ${isSelected ? skill.color : skill.desbloqueado ? skill.color + "40" : "#1A1A28"}`, cursor: skill.desbloqueado ? "pointer" : "default", opacity: skill.desbloqueado ? 1 : 0.45, transition: "all 0.15s", minWidth: 130, flex: 1, maxWidth: 180 }}>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
+                          <span style={{ fontSize: 22 }}>{skill.emoji}</span>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: skill.desbloqueado ? "#F1F5F9" : "#4A5568" }}>{skill.name}</div>
+                            <div style={{ fontSize: 9, color: NIVEL_COLORS[skill.nivel] }}>{skill.nivel}</div>
+                          </div>
+                          {!skill.desbloqueado && <span style={{ fontSize: 14 }}>🔒</span>}
+                        </div>
+                        {skill.desbloqueado && (
+                          <>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, marginBottom: 4 }}>
+                              <span style={{ color: "#64748B" }}>{skill.current}/{skill.goal} {skill.unit}</span>
+                              <span style={{ color: skill.color, fontWeight: 700 }}>{pct}%</span>
+                            </div>
+                            <ProgressBar value={skill.current} max={skill.goal} color={skill.color} height={4} />
+                          </>
+                        )}
+                        {skill.unlocks.length > 0 && skill.desbloqueado && (
+                          <div style={{ marginTop: 6, fontSize: 9, color: "#4A5568" }}>
+                            🔓 Desbloquea: {skill.unlocks.length} skill{skill.unlocks.length > 1 ? "s" : ""}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             ))}
           </div>
 
-          {/* Modal crear rutina */}
-          {showFormRutina && (
-            <div className="modal-bg" onClick={e => e.target === e.currentTarget && setShowFormRutina(false)}>
-              <div className="modal" style={{ width: 500, maxHeight: "85vh", overflowY: "auto" }}>
-                <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 14, fontWeight: 700, color: "#F1F5F9", marginBottom: 20 }}>🏋️ Nueva Rutina</div>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                  {/* Nombre y emoji */}
-                  <div style={{ display: "flex", gap: 10 }}>
-                    <input placeholder="Emoji" value={formRutina.emoji}
-                      onChange={e => setFormRutina(f => ({ ...f, emoji: e.target.value }))}
-                      style={{ width: 60, fontSize: 20, textAlign: "center", padding: "6px" }} />
-                    <input placeholder="Nombre de la rutina" value={formRutina.name}
-                      onChange={e => setFormRutina(f => ({ ...f, name: e.target.value }))}
-                      style={{ flex: 1, fontSize: 13 }} />
-                  </div>
-
-                  {/* Tipo */}
-                  <div>
-                    <div style={{ fontSize: 11, color: "#64748B", marginBottom: 8 }}>TIPO</div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      {[{ v: "gym", l: "🏋️ Gym" }, { v: "calistenia", l: "💪 Calistenia" }].map(t => (
-                        <button key={t.v} onClick={() => setFormRutina(f => ({ ...f, tipo: t.v }))}
-                          className={formRutina.tipo === t.v ? "btn-primary" : "btn-secondary"}
-                          style={{ flex: 1, fontSize: 12 }}>{t.l}</button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Color */}
-                  <div>
-                    <div style={{ fontSize: 11, color: "#64748B", marginBottom: 8 }}>COLOR</div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      {["#7C3AED","#EF4444","#06B6D4","#10B981","#F59E0B","#EC4899"].map(c => (
-                        <div key={c} onClick={() => setFormRutina(f => ({ ...f, color: c }))}
-                          style={{ width: 28, height: 28, borderRadius: "50%", background: c, cursor: "pointer", border: formRutina.color === c ? "3px solid white" : "2px solid transparent", transition: "all 0.15s" }} />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Ejercicios */}
-                  <div>
-                    <div style={{ fontSize: 11, color: "#64748B", marginBottom: 8 }}>EJERCICIOS ({formRutina.ejercicios.length})</div>
-                    {formRutina.ejercicios.map((ej, i) => (
-                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 10px", borderRadius: 7, background: "#0A0A12", marginBottom: 4 }}>
-                        <span style={{ fontSize: 12, color: "#CBD5E1" }}>{ej.name}</span>
-                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                          <span style={{ fontSize: 11, color: "#64748B" }}>{ej.sets}×{ej.repsTarget}{ej.weightTarget ? ` · ${ej.weightTarget}` : ""}</span>
-                          <button onClick={() => setFormRutina(f => ({ ...f, ejercicios: f.ejercicios.filter((_, j) => j !== i) }))}
-                            style={{ background: "none", border: "none", color: "#4A5568", cursor: "pointer", fontSize: 13 }}>✕</button>
-                        </div>
-                      </div>
-                    ))}
-
-                    {/* Agregar ejercicio */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 50px 60px 70px auto", gap: 6, marginTop: 8 }}>
-                      <input placeholder="Ejercicio" value={formEjercicio.name}
-                        onChange={e => setFormEjercicio(f => ({ ...f, name: e.target.value }))}
-                        style={{ fontSize: 12 }} />
-                      <input type="number" placeholder="Sets" value={formEjercicio.sets}
-                        onChange={e => setFormEjercicio(f => ({ ...f, sets: parseInt(e.target.value) || 3 }))}
-                        style={{ fontSize: 12, textAlign: "center" }} />
-                      <input placeholder="Reps" value={formEjercicio.repsTarget}
-                        onChange={e => setFormEjercicio(f => ({ ...f, repsTarget: e.target.value }))}
-                        style={{ fontSize: 12, textAlign: "center" }} />
-                      <input placeholder="Peso" value={formEjercicio.weightTarget}
-                        onChange={e => setFormEjercicio(f => ({ ...f, weightTarget: e.target.value }))}
-                        style={{ fontSize: 12, textAlign: "center" }} />
-                      <button className="btn-primary" style={{ fontSize: 12, padding: "0 10px" }}
-                        onClick={() => {
-                          if (!formEjercicio.name.trim()) return;
-                          setFormRutina(f => ({ ...f, ejercicios: [...f.ejercicios, { ...formEjercicio, id: Date.now() }] }));
-                          setFormEjercicio({ name: '', sets: 3, repsTarget: '10', weightTarget: '' });
-                        }}>+</button>
-                    </div>
-                  </div>
-
-                  {/* Botones */}
-                  <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-                    <button className="btn-secondary" style={{ flex: 1 }} onClick={() => { setShowFormRutina(false); setFormRutina({ name: '', emoji: '🏋️', tipo: 'gym', color: '#7C3AED', ejercicios: [] }); }}>Cancelar</button>
-                    <button className="btn-primary" style={{ flex: 2 }} disabled={!formRutina.name.trim()}
-                      onClick={() => {
-                        const nueva = { ...formRutina, id: Date.now() };
-                        const nuevas = [...rutinasCustom, nueva];
-                        setRutinasCustom(nuevas);
-                        localStorage.setItem('lifehud_rutinas', JSON.stringify(nuevas));
-                        setShowFormRutina(false);
-                        setFormRutina({ name: '', emoji: '🏋️', tipo: 'gym', color: '#7C3AED', ejercicios: [] });
-                      }}>✅ Guardar rutina</button>
-                  </div>
+          {/* Detalle del skill seleccionado */}
+          {selectedSkill && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div className="card" style={{ padding: 18, borderTop: `3px solid ${selectedSkill.color}` }}>
+                <div style={{ textAlign: "center", marginBottom: 16 }}>
+                  <span style={{ fontSize: 56 }}>{selectedSkill.emoji}</span>
+                  <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 16, fontWeight: 700, color: "#F1F5F9", marginTop: 8 }}>{selectedSkill.name}</div>
+                  <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 4 }}>{selectedSkill.desc}</div>
+                  <span className="tag" style={{ background: `${NIVEL_COLORS[selectedSkill.nivel]}15`, color: NIVEL_COLORS[selectedSkill.nivel], marginTop: 8, display: "inline-block" }}>{selectedSkill.nivel}</span>
                 </div>
+                {selectedSkill.desbloqueado ? (
+                  <>
+                    <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 36, fontWeight: 900, color: selectedSkill.color, textAlign: "center", marginBottom: 4 }}>
+                      {selectedSkill.current}<span style={{ fontSize: 16, color: "#4A5568" }}>/{selectedSkill.goal}</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: "#64748B", textAlign: "center", marginBottom: 12 }}>{selectedSkill.unit}</div>
+                    <ProgressBar value={selectedSkill.current} max={selectedSkill.goal} color={selectedSkill.color} height={10} />
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginTop: 6 }}>
+                      <span style={{ color: "#64748B" }}>Progreso: {Math.round((selectedSkill.current/selectedSkill.goal)*100)}%</span>
+                      <span style={{ color: "#F59E0B", fontWeight: 700 }}>⚡ {selectedSkill.xp} XP al completar</span>
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ padding: "14px", borderRadius: 8, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", textAlign: "center", fontSize: 12, color: "#EF4444" }}>
+                    🔒 Completa los skills anteriores para desbloquear
+                  </div>
+                )}
               </div>
+
+              {/* Skills que desbloquea */}
+              {selectedSkill.unlocks.length > 0 && (
+                <div className="card" style={{ padding: 16 }}>
+                  <div className="section-title">🔓 Desbloquea</div>
+                  {selectedSkill.unlocks.map(uid => {
+                    const s = SKILL_TREE.find(x => x.id === uid);
+                    if (!s) return null;
+                    return (
+                      <div key={uid} onClick={() => setSelectedSkill(s)}
+                        style={{ display: "flex", gap: 10, alignItems: "center", padding: "8px 10px", borderRadius: 8, background: "#0A0A12", border: `1px solid ${s.color}30`, marginBottom: 6, cursor: "pointer" }}>
+                        <span style={{ fontSize: 20 }}>{s.emoji}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: "#F1F5F9" }}>{s.name}</div>
+                          <div style={{ fontSize: 10, color: NIVEL_COLORS[s.nivel] }}>{s.nivel}</div>
+                        </div>
+                        <span style={{ color: "#4A5568", fontSize: 14 }}>›</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
       )}
 
-      {/* ── TAB: SKILLS ── */}
-      {tab === "skills" && (() => {
-        // Combinar SKILL_TREE con progreso guardado y skills custom
-        const allSkills = [
-          ...SKILL_TREE.map(s => ({
-            ...s,
-            current: skillsProgress[s.id] ?? s.current,
-          })),
-          ...skillsCustom,
-        ];
-        const updateProgress = (id, val) => {
-          const valNuevo = Math.max(0, val);
-          const skill    = allSkills.find(s => s.id === id);
-          const anterior = skillsProgress[id] ?? (skill?.current ?? 0);
-          const nuevo    = { ...skillsProgress, [id]: valNuevo };
-          setSkillsProgress(nuevo);
-          localStorage.setItem("lifehud_skills_progress", JSON.stringify(nuevo));
-          if (skill && valNuevo >= skill.goal && anterior < skill.goal && setGame) {
-            const xpSkill = 100;
-            setGame(g => ({ ...g, xp: g.xp + xpSkill }));
-            setToast({ msg: `⚡ ${skill.emoji} ${skill.name} completado! +${xpSkill} XP 🏆`, color: skill.color || "#7C3AED" });
-          }
-          if (selectedSkill?.id === id) setSelectedSkill(sk => ({ ...sk, current: valNuevo }));
-        };
-        return (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16 }}>
-            {/* Árbol visual */}
-            <div className="card" style={{ padding: 18 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <div className="section-title" style={{ margin: 0 }}>🌳 Skills & Árbol de Progresión</div>
-                <button className="btn-primary" onClick={() => setShowFormSkillF(true)} style={{ fontSize: 11 }}>+ Nueva skill</button>
-              </div>
-              {["Base", "Intermedio", "Avanzado", "Élite"].map(nivel => {
-                const skillsNivel = allSkills.filter(s => s.nivel === nivel);
-                if (skillsNivel.length === 0) return null;
-                return (
-                  <div key={nivel} style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 10, color: NIVEL_COLORS[nivel], fontWeight: 700, fontFamily: "'Orbitron',monospace", letterSpacing: 2, marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
-                      <div style={{ flex: 1, height: 1, background: `${NIVEL_COLORS[nivel]}30` }} />
-                      {nivel.toUpperCase()}
-                      <div style={{ flex: 1, height: 1, background: `${NIVEL_COLORS[nivel]}30` }} />
-                    </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                      {skillsNivel.map(skill => {
-                        const cur = skillsProgress[skill.id] ?? skill.current ?? 0;
-                        const pct = Math.min(100, Math.round((cur / skill.goal) * 100));
-                        const isSelected = selectedSkill?.id === skill.id;
-                        const isCustom = !!skill.isCustom;
-                        return (
-                          <div key={skill.id}
-                            onClick={() => setSelectedSkill({ ...skill, current: cur })}
-                            style={{ padding: "12px 14px", borderRadius: 12, background: isSelected ? `${skill.color}15` : skill.desbloqueado !== false ? "#0F0F18" : "#09090F", border: `2px solid ${isSelected ? skill.color : skill.desbloqueado !== false ? skill.color + "40" : "#1A1A28"}`, cursor: skill.desbloqueado !== false ? "pointer" : "default", opacity: skill.desbloqueado !== false ? 1 : 0.45, transition: "all 0.15s", minWidth: 130, flex: 1, maxWidth: 180 }}>
-                            <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
-                              <span style={{ fontSize: 22 }}>{skill.emoji}</span>
-                              <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: 12, fontWeight: 700, color: skill.desbloqueado !== false ? "#F1F5F9" : "#4A5568" }}>{skill.name}</div>
-                                <div style={{ fontSize: 9, color: NIVEL_COLORS[skill.nivel] }}>{skill.nivel}{isCustom ? " · custom" : ""}</div>
-                              </div>
-                              {skill.desbloqueado === false && <span style={{ fontSize: 14 }}>🔒</span>}
-                            </div>
-                            {skill.desbloqueado !== false && (
-                              <>
-                                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, marginBottom: 4 }}>
-                                  <span style={{ color: "#64748B" }}>{cur}/{skill.goal} {skill.unit}</span>
-                                  <span style={{ color: skill.color, fontWeight: 700 }}>{pct}%</span>
-                                </div>
-                                <ProgressBar value={cur} max={skill.goal} color={pct >= 100 ? "#10B981" : skill.color} height={4} />
-                              </>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Panel detalle */}
-            {selectedSkill ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <div className="card" style={{ padding: 18, borderTop: `3px solid ${selectedSkill.color}` }}>
-                  <div style={{ textAlign: "center", marginBottom: 16 }}>
-                    <span style={{ fontSize: 56 }}>{selectedSkill.emoji}</span>
-                    <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 15, fontWeight: 700, color: "#F1F5F9", marginTop: 8 }}>{selectedSkill.name}</div>
-                    {selectedSkill.desc && <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 4 }}>{selectedSkill.desc}</div>}
-                    <span className="tag" style={{ background: `${NIVEL_COLORS[selectedSkill.nivel]}15`, color: NIVEL_COLORS[selectedSkill.nivel], marginTop: 8, display: "inline-block" }}>{selectedSkill.nivel}</span>
-                  </div>
-                  {selectedSkill.desbloqueado !== false ? (
-                    <>
-                      <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 34, fontWeight: 900, color: selectedSkill.color, textAlign: "center", marginBottom: 4 }}>
-                        {skillsProgress[selectedSkill.id] ?? selectedSkill.current}
-                        <span style={{ fontSize: 16, color: "#4A5568" }}>/{selectedSkill.goal}</span>
-                      </div>
-                      <div style={{ fontSize: 11, color: "#64748B", textAlign: "center", marginBottom: 12 }}>{selectedSkill.unit}</div>
-                      <ProgressBar value={skillsProgress[selectedSkill.id] ?? selectedSkill.current} max={selectedSkill.goal} color={selectedSkill.color} height={10} />
-                      {/* Control actualizar progreso */}
-                      <div style={{ marginTop: 14, display: "flex", gap: 8, alignItems: "center" }}>
-                        <button className="btn-secondary" style={{ fontSize: 18, padding: "4px 14px" }}
-                          onClick={() => updateProgress(selectedSkill.id, (skillsProgress[selectedSkill.id] ?? selectedSkill.current) - 1)}>−</button>
-                        <input type="number"
-                          value={skillsProgress[selectedSkill.id] ?? selectedSkill.current}
-                          onChange={e => updateProgress(selectedSkill.id, parseInt(e.target.value) || 0)}
-                          style={{ flex: 1, textAlign: "center", fontSize: 16, fontFamily: "'Orbitron',monospace", fontWeight: 700 }} />
-                        <button className="btn-primary" style={{ fontSize: 18, padding: "4px 14px" }}
-                          onClick={() => updateProgress(selectedSkill.id, (skillsProgress[selectedSkill.id] ?? selectedSkill.current) + 1)}>+</button>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginTop: 10 }}>
-                        <span style={{ color: "#64748B" }}>Progreso: {Math.min(100, Math.round(((skillsProgress[selectedSkill.id] ?? selectedSkill.current)/selectedSkill.goal)*100))}%</span>
-                        {selectedSkill.xp && <span style={{ color: "#F59E0B", fontWeight: 700 }}>⚡ {selectedSkill.xp} XP al completar</span>}
-                      </div>
-                      {/* Botón eliminar si es custom */}
-                      {selectedSkill.isCustom && (
-                        <button style={{ marginTop: 14, width: "100%", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, color: "#EF4444", padding: "8px", cursor: "pointer", fontSize: 12 }}
-                          onClick={() => {
-                            const nuevas = skillsCustom.filter(s => s.id !== selectedSkill.id);
-                            setSkillsCustom(nuevas);
-                            localStorage.setItem('lifehud_skills_fitness', JSON.stringify(nuevas));
-                            setSelectedSkill(null);
-                          }}>🗑️ Eliminar skill</button>
-                      )}
-                    </>
-                  ) : (
-                    <div style={{ padding: "14px", borderRadius: 8, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", textAlign: "center", fontSize: 12, color: "#EF4444" }}>
-                      🔒 Completa los skills anteriores para desbloquear
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="card" style={{ padding: 24, textAlign: "center", color: "#4A5568" }}>
-                <div style={{ fontSize: 32, marginBottom: 8 }}>👆</div>
-                <div style={{ fontSize: 12 }}>Selecciona una skill para ver su detalle y actualizar tu progreso</div>
-              </div>
-            )}
-
-            {/* Modal nueva skill */}
-            {showFormSkillF && (
-              <div className="modal-bg" onClick={e => e.target === e.currentTarget && setShowFormSkillF(false)}>
-                <div className="modal" style={{ width: 420 }}>
-                  <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 14, fontWeight: 700, color: "#F1F5F9", marginBottom: 20 }}>⚡ Nueva Skill</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    <div style={{ display: "flex", gap: 10 }}>
-                      <input placeholder="Emoji" value={formSkillF.emoji}
-                        onChange={e => setFormSkillF(f => ({ ...f, emoji: e.target.value }))}
-                        style={{ width: 60, fontSize: 20, textAlign: "center" }} />
-                      <input placeholder="Nombre del skill" value={formSkillF.name}
-                        onChange={e => setFormSkillF(f => ({ ...f, name: e.target.value }))}
-                        style={{ flex: 1, fontSize: 13 }} />
-                    </div>
-                    <input placeholder="Descripción (opcional)" value={formSkillF.desc}
-                      onChange={e => setFormSkillF(f => ({ ...f, desc: e.target.value }))}
-                      style={{ fontSize: 12 }} />
-                    <div>
-                      <div style={{ fontSize: 11, color: "#64748B", marginBottom: 8 }}>NIVEL</div>
-                      <div style={{ display: "flex", gap: 6 }}>
-                        {["Base","Intermedio","Avanzado","Élite"].map(n => (
-                          <button key={n} onClick={() => setFormSkillF(f => ({ ...f, nivel: n }))}
-                            className={formSkillF.nivel === n ? "btn-primary" : "btn-secondary"}
-                            style={{ flex: 1, fontSize: 10, padding: "5px 4px" }}>{n}</button>
-                        ))}
-                      </div>
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                      <div>
-                        <div style={{ fontSize: 11, color: "#64748B", marginBottom: 6 }}>META</div>
-                        <input type="number" placeholder="Ej: 60" value={formSkillF.goal}
-                          onChange={e => setFormSkillF(f => ({ ...f, goal: parseInt(e.target.value) || 10 }))}
-                          style={{ width: "100%", fontSize: 13 }} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 11, color: "#64748B", marginBottom: 6 }}>UNIDAD</div>
-                        <input placeholder="reps / seg / min" value={formSkillF.unit}
-                          onChange={e => setFormSkillF(f => ({ ...f, unit: e.target.value }))}
-                          style={{ width: "100%", fontSize: 13 }} />
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 11, color: "#64748B", marginBottom: 8 }}>COLOR</div>
-                      <div style={{ display: "flex", gap: 8 }}>
-                        {["#7C3AED","#EF4444","#06B6D4","#10B981","#F59E0B","#EC4899","#A78BFA","#F97316"].map(c => (
-                          <div key={c} onClick={() => setFormSkillF(f => ({ ...f, color: c }))}
-                            style={{ width: 26, height: 26, borderRadius: "50%", background: c, cursor: "pointer", border: formSkillF.color === c ? "3px solid white" : "2px solid transparent" }} />
-                        ))}
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-                      <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowFormSkillF(false)}>Cancelar</button>
-                      <button className="btn-primary" style={{ flex: 2 }} disabled={!formSkillF.name.trim()}
-                        onClick={() => {
-                          const nueva = { ...formSkillF, id: `custom_${Date.now()}`, isCustom: true, current: 0, desbloqueado: true, unlocks: [], xp: 500 };
-                          const nuevas = [...skillsCustom, nueva];
-                          setSkillsCustom(nuevas);
-                          localStorage.setItem('lifehud_skills_fitness', JSON.stringify(nuevas));
-                          setShowFormSkillF(false);
-                          setFormSkillF({ name: '', emoji: '⚡', nivel: 'Base', unit: 'reps', goal: 10, color: '#7C3AED', desc: '' });
-                        }}>✅ Guardar skill</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })()}
-
       {/* ── TAB: MAPA CALOR ── */}
-      {tab === "heatmap" && (() => {
-        const hmData = calcularHeatmapSemana();
-        const todosMuscs = [
-          { k: "chest",      l: "Pecho",          v: hmData.front.chest },
-          { k: "lats",       l: "Dorsales",        v: hmData.back.lats },
-          { k: "quads",      l: "Cuádriceps",      v: hmData.front.quads },
-          { k: "frontDelts", l: "Deltoides Ant.",  v: hmData.front.frontDelts },
-          { k: "traps",      l: "Trapecio",        v: hmData.back.traps },
-          { k: "biceps",     l: "Bíceps",          v: hmData.front.biceps },
-          { k: "triceps",    l: "Tríceps",         v: hmData.back.triceps },
-          { k: "abs",        l: "Abdomen",         v: hmData.front.abs },
-          { k: "glutes",     l: "Glúteos",         v: hmData.back.glutes },
-          { k: "hamstrings", l: "Isquios",         v: hmData.back.hamstrings },
-          { k: "calves",     l: "Gemelos",         v: hmData.front.calves },
-          { k: "lowerBack",  l: "Lumbar",          v: hmData.back.lowerBack },
-        ].sort((a, b) => b.v - a.v);
-        const colorBar = (v) => v >= 82 ? "#EF4444" : v >= 65 ? "#F59E0B" : v >= 40 ? "#6D28D9" : v >= 20 ? "#312E81" : "#1C2A4A";
-        return (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div className="card" style={{ padding: 24, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-                <div className="section-title">💪 Activación Muscular — Esta semana</div>
-                <div style={{ fontSize: 11, color: "#4A5568" }}>Últimos 7 días</div>
+      {tab === "heatmap" && (
+        <div className="card" style={{ padding: 24, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+          <div className="section-title" style={{ alignSelf: "flex-start" }}>💪 Mapa de Activación Muscular</div>
+          <BodyHeatMap data={mockData.fitness.muscleHeatmap} />
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            {[{ c: "#1A1A28", l: "Sin trabajo" }, { c: "#312E81", l: "Bajo" }, { c: "#6D28D9", l: "Medio" }, { c: "#F59E0B", l: "Alto" }, { c: "#EF4444", l: "Máximo" }].map(x => (
+              <div key={x.l} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <div style={{ width: 14, height: 14, borderRadius: 3, background: x.c, border: "1px solid #2D2D45" }} />
+                <span style={{ fontSize: 11, color: "#64748B" }}>{x.l}</span>
               </div>
-              <BodyHeatMap data={hmData} />
-            </div>
-            {/* Resumen de músculos más trabajados */}
-            <div className="card" style={{ padding: 20 }}>
-              <div style={{ fontSize: 12, color: "#64748B", fontFamily: "'Orbitron',monospace", letterSpacing: 1, marginBottom: 14 }}>RANKING MUSCULAR — SEMANA</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {todosMuscs.map((m, i) => (
-                  <div key={m.k} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 20, fontSize: 11, color: i < 3 ? "#F59E0B" : "#4A5568", fontWeight: 700, fontFamily: "'Orbitron',monospace" }}>{i + 1}</div>
-                    <div style={{ width: 110, fontSize: 12, color: "#94A3B8" }}>{m.l}</div>
-                    <div style={{ flex: 1, height: 8, borderRadius: 4, background: "#0A0A12", overflow: "hidden" }}>
-                      <div style={{ width: `${m.v}%`, height: "100%", borderRadius: 4, background: colorBar(m.v), transition: "width 0.6s" }} />
-                    </div>
-                    <div style={{ width: 36, fontSize: 11, color: "#64748B", textAlign: "right", fontFamily: "'Orbitron',monospace" }}>{m.v}%</div>
-                    {hmData.exercises[m.k]?.length > 0 && (
-                      <div style={{ fontSize: 10, color: "#4A5568", width: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {hmData.exercises[m.k].join(", ")}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-              {todosMuscs.every(m => m.v === 0) && (
-                <div style={{ textAlign: "center", color: "#2D2D45", padding: "20px 0", fontSize: 13 }}>
-                  Completa un entrenamiento para ver tu activación muscular 💪
-                </div>
-              )}
-            </div>
+            ))}
           </div>
-        );
-      })()}
+        </div>
+      )}
 
       {/* ── TAB: HISTORIAL ── */}
       {tab === "historial" && (
@@ -9704,14 +6663,8 @@ const FitnessPage = ({ game, setGame }) => {
       {tab === "records" && (
         <div className="card" style={{ padding: 18 }}>
           <div className="section-title">🏆 Récords Personales</div>
-          {(records.length === 0 && recordsLocales.length === 0) && (
-            <div style={{ textAlign: "center", color: "#4A5568", fontSize: 13, padding: "30px 0" }}>
-              <div style={{ fontSize: 32, marginBottom: 8 }}>🏆</div>
-              Completa entrenamientos para ver tus récords
-            </div>
-          )}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
-            {[...recordsLocales, ...records.filter(r => !recordsLocales.find(l => l.exercise === r.exercise))].map((r, i) => (
+            {mockData.fitness.records.map((r, i) => (
               <div key={i} style={{ padding: 16, borderRadius: 10, background: "#0A0A12", border: "1px solid #1E1E30" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#F1F5F9" }}>{r.exercise}</div>
@@ -9733,438 +6686,14 @@ const FitnessPage = ({ game, setGame }) => {
 // ============================================================
 // SHOP
 // ============================================================
-// ============================================================
-// RUTINA DIARIA — Bloques de tiempo
-// ============================================================
-const BLOQUE_CATEGORIAS = [
-  { key: "trabajo",   label: "Trabajo",   emoji: "💼", color: "#7C3AED" },
-  { key: "estudio",   label: "Estudio",   emoji: "📚", color: "#06B6D4" },
-  { key: "ejercicio", label: "Ejercicio", emoji: "💪", color: "#EF4444" },
-  { key: "descanso",  label: "Descanso",  emoji: "😴", color: "#64748B" },
-  { key: "nutricion", label: "Nutrición", emoji: "🥗", color: "#10B981" },
-  { key: "personal",  label: "Personal",  emoji: "🧘", color: "#F59E0B" },
-  { key: "social",    label: "Social",    emoji: "👥", color: "#EC4899" },
-  { key: "ocio",      label: "Ocio",      emoji: "🎮", color: "#8B5CF6" },
-];
-
-const RutinaPage = ({ setGame }) => {
-  const hoyISO    = new Date().toISOString().split("T")[0];
-  const storageKey = `lifehud_rutina_${hoyISO}`;
-  const configKey  = "lifehud_rutina_config";
-
-  const [bloques, setBloques] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(storageKey) || "[]"); }
-    catch { return []; }
-  });
-  const [config, setConfig] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(configKey) || "null") || { horaInicio: 6, horaFin: 23 }; }
-    catch { return { horaInicio: 6, horaFin: 23 }; }
-  });
-  const [showForm,   setShowForm]   = useState(false);
-  const [editandoId, setEditandoId] = useState(null);
-  const [form, setForm] = useState({ nombre: "", categoria: "trabajo", duracionH: 1, duracionM: 0, notas: "" });
-  const [toast,      setToast]      = useState(null);
-  const [showConfig, setShowConfig] = useState(false);
-
-  const horasDisponibles  = Math.max(1, config.horaFin - config.horaInicio);
-  const minutosDisponibles = horasDisponibles * 60;
-  const minutosUsados      = bloques.reduce((s, b) => s + b.duracion, 0);
-  const minutosLibres      = Math.max(0, minutosDisponibles - minutosUsados);
-  const pctUsado           = Math.min(100, Math.round((minutosUsados / minutosDisponibles) * 100));
-  const completados        = bloques.filter(b => b.completado).length;
-  const durFormTotal       = form.duracionH * 60 + form.duracionM;
-
-  const guardarBloques = (nuevos) => {
-    setBloques(nuevos);
-    localStorage.setItem(storageKey, JSON.stringify(nuevos));
-  };
-  const guardarConfig = (nueva) => {
-    setConfig(nueva);
-    localStorage.setItem(configKey, JSON.stringify(nueva));
-  };
-
-  const resetForm = () => {
-    setForm({ nombre: "", categoria: "trabajo", duracionH: 1, duracionM: 0, notas: "" });
-    setEditandoId(null);
-    setShowForm(false);
-  };
-
-  const abrirEdicion = (b) => {
-    setForm({
-      nombre: b.nombre, categoria: b.categoria,
-      duracionH: Math.floor(b.duracion / 60), duracionM: b.duracion % 60,
-      notas: b.notas || "",
-    });
-    setEditandoId(b.id);
-    setShowForm(true);
-  };
-
-  const maxDisponible = editandoId
-    ? minutosLibres + (bloques.find(b => b.id === editandoId)?.duracion || 0)
-    : minutosLibres;
-
-  const confirmarBloque = () => {
-    if (!form.nombre.trim() || durFormTotal === 0) return;
-    if (durFormTotal > maxDisponible) {
-      setToast({ msg: `⚠️ Solo quedan ${fmtDur(maxDisponible)} libres`, color: "#F59E0B" });
-      return;
-    }
-    const cat = BLOQUE_CATEGORIAS.find(c => c.key === form.categoria) || BLOQUE_CATEGORIAS[0];
-    if (editandoId) {
-      guardarBloques(bloques.map(b => b.id !== editandoId ? b : {
-        ...b, nombre: form.nombre, categoria: form.categoria,
-        duracion: durFormTotal, notas: form.notas,
-        emoji: cat.emoji, color: cat.color,
-      }));
-    } else {
-      const nuevo = {
-        id: Date.now(), nombre: form.nombre, categoria: form.categoria,
-        duracion: durFormTotal, notas: form.notas,
-        emoji: cat.emoji, color: cat.color, completado: false,
-      };
-      guardarBloques([...bloques, nuevo]);
-    }
-    resetForm();
-  };
-
-  const toggleCompletado = (id) => {
-    const nuevos = bloques.map(b => {
-      if (b.id !== id) return b;
-      const ahora = !b.completado;
-      if (ahora && setGame) setGame(g => ({ ...g, xp: g.xp + 1, coins: g.coins + 1 }));
-      return { ...b, completado: ahora };
-    });
-    guardarBloques(nuevos);
-  };
-
-  const eliminarBloque = (id) => guardarBloques(bloques.filter(b => b.id !== id));
-
-  const mover = (idx, dir) => {
-    const arr = [...bloques];
-    const t = idx + dir;
-    if (t < 0 || t >= arr.length) return;
-    [arr[idx], arr[t]] = [arr[t], arr[idx]];
-    guardarBloques(arr);
-  };
-
-  const fmtDur = (min) => {
-    const h = Math.floor(min / 60), m = min % 60;
-    return h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
-  };
-
-  const calcHoras = (idx) => {
-    const minAcum = bloques.slice(0, idx).reduce((s, b) => s + b.duracion, 0);
-    const totalMin = config.horaInicio * 60 + minAcum;
-    const h = Math.floor(totalMin / 60), m = totalMin % 60;
-    return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
-  };
-
-  const calcHoraFin = (idx) => {
-    const minAcum = bloques.slice(0, idx + 1).reduce((s, b) => s + b.duracion, 0);
-    const totalMin = config.horaInicio * 60 + minAcum;
-    const h = Math.floor(totalMin / 60), m = totalMin % 60;
-    return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
-  };
-
-  return (
-    <div className="page" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {toast && <Toast msg={toast.msg} color={toast.color} onDone={() => setToast(null)} />}
-
-      {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 10 }}>
-        {[
-          { l: "Programado",  v: fmtDur(minutosUsados),            c: "#7C3AED", i: "⏱️" },
-          { l: "Libre",       v: fmtDur(minutosLibres),            c: "#10B981", i: "🕊️" },
-          { l: "Bloques",     v: bloques.length,                    c: "#06B6D4", i: "📦" },
-          { l: "Completados", v: `${completados}/${bloques.length}`,c: "#F59E0B", i: "✅" },
-        ].map((s,i) => (
-          <div key={i} className="card" style={{ padding: "14px 18px", borderLeft: `3px solid ${s.c}` }}>
-            <div style={{ fontSize: 20, marginBottom: 4 }}>{s.i}</div>
-            <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 20, fontWeight: 700, color: s.c }}>{s.v}</div>
-            <div style={{ fontSize: 10, color: "#64748B" }}>{s.l}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Barra visual del día */}
-      <div className="card" style={{ padding: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 10, color: "#64748B", letterSpacing: 1 }}>
-            {String(config.horaInicio).padStart(2,"0")}:00 → {String(config.horaFin).padStart(2,"0")}:00 · {horasDisponibles}h disponibles · {pctUsado}% ocupado
-          </div>
-          <button onClick={() => setShowConfig(p => !p)}
-            style={{ padding: "3px 10px", borderRadius: 6, border: "1px solid #2D2D45", background: "transparent", color: "#64748B", cursor: "pointer", fontSize: 11, fontFamily: "'Rajdhani',sans-serif" }}>
-            ⚙️ Ajustar horas
-          </button>
-        </div>
-
-        {/* Barra segmentada */}
-        <div style={{ height: 32, borderRadius: 8, background: "#0A0A12", display: "flex", overflow: "hidden", border: "1px solid #1A1A28" }}>
-          {bloques.map(b => (
-            <div key={b.id} title={`${b.emoji} ${b.nombre} — ${fmtDur(b.duracion)}`}
-              style={{ width: `${(b.duracion / minutosDisponibles) * 100}%`, background: b.completado ? `${b.color}55` : b.color, borderRight: "2px solid #080810", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, overflow: "hidden", transition: "all 0.3s", flexShrink: 0 }}>
-              {(b.duracion / minutosDisponibles) * 100 > 5 ? b.emoji : ""}
-            </div>
-          ))}
-          {minutosLibres > 0 && (
-            <div style={{ flex: 1, background: "repeating-linear-gradient(45deg,#0A0A12,#0A0A12 4px,#111120 4px,#111120 8px)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#2D2D45", minWidth: 0 }}>
-              {pctUsado < 88 ? `${fmtDur(minutosLibres)} libres` : ""}
-            </div>
-          )}
-        </div>
-
-        {/* Config horas */}
-        {showConfig && (
-          <div style={{ marginTop: 12, padding: "12px 14px", borderRadius: 10, background: "#0A0A12", border: "1px solid #1A1A28", display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
-            {[
-              { label: "Hora inicio", key: "horaInicio" },
-              { label: "Hora fin",    key: "horaFin" },
-            ].map(({ label, key }) => (
-              <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 11, color: "#64748B" }}>{label}:</span>
-                <select value={config[key]}
-                  onChange={e => guardarConfig({ ...config, [key]: parseInt(e.target.value) })}
-                  style={{ width: 80, padding: "4px 8px", fontSize: 12 }}>
-                  {Array.from({ length: 24 }, (_, i) => (
-                    <option key={i} value={i}>{String(i).padStart(2,"0")}:00</option>
-                  ))}
-                </select>
-              </div>
-            ))}
-            <span style={{ fontSize: 10, color: "#4A5568" }}>= {horasDisponibles}h totales disponibles</span>
-          </div>
-        )}
-      </div>
-
-      {/* Acciones */}
-      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-        <button className="btn-primary" style={{ fontSize: 13 }}
-          onClick={() => { if (showForm && !editandoId) { resetForm(); } else { resetForm(); setShowForm(true); } }}
-          disabled={minutosLibres === 0 && !showForm}>
-          {showForm && !editandoId ? "✕ Cancelar" : "+ Nuevo bloque"}
-        </button>
-        {minutosLibres === 0 && !showForm && (
-          <span style={{ fontSize: 11, color: "#F59E0B" }}>⚠️ Día completo — elimina un bloque para agregar más</span>
-        )}
-        {bloques.length > 0 && (
-          <button className="btn-danger" style={{ fontSize: 12, marginLeft: "auto" }}
-            onClick={() => { if (window.confirm("¿Limpiar todos los bloques de hoy?")) guardarBloques([]); }}>
-            🗑️ Limpiar día
-          </button>
-        )}
-      </div>
-
-      {/* Formulario */}
-      {showForm && (
-        <div className="card" style={{ padding: 20, border: "1px solid rgba(124,58,237,0.35)" }}>
-          <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 11, color: "#A78BFA", letterSpacing: 1, marginBottom: 16 }}>
-            {editandoId ? "✏️ EDITAR BLOQUE" : "+ NUEVO BLOQUE"}
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-            <div>
-              <div style={{ fontSize: 11, color: "#64748B", marginBottom: 5 }}>Nombre de la actividad</div>
-              <input placeholder="Ej: Trabajo profundo, Gym, Lectura..."
-                value={form.nombre} onChange={e => setForm(p => ({ ...p, nombre: e.target.value }))}
-                onKeyDown={e => e.key === "Enter" && confirmarBloque()} />
-            </div>
-            <div>
-              <div style={{ fontSize: 11, color: "#64748B", marginBottom: 5 }}>Categoría</div>
-              <select value={form.categoria} onChange={e => setForm(p => ({ ...p, categoria: e.target.value }))}>
-                {BLOQUE_CATEGORIAS.map(c => <option key={c.key} value={c.key}>{c.emoji} {c.label}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {/* Duración */}
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, color: "#64748B", marginBottom: 8 }}>
-              Duración — máximo disponible:
-              <span style={{ color: "#7C3AED", fontWeight: 700, marginLeft: 4 }}>{fmtDur(maxDisponible)}</span>
-            </div>
-            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                <select value={form.duracionH}
-                  onChange={e => setForm(p => ({ ...p, duracionH: parseInt(e.target.value) }))}
-                  style={{ width: 75 }}>
-                  {Array.from({ length: Math.floor(maxDisponible / 60) + 1 }, (_, i) => (
-                    <option key={i} value={i}>{i}h</option>
-                  ))}
-                </select>
-                <select value={form.duracionM}
-                  onChange={e => setForm(p => ({ ...p, duracionM: parseInt(e.target.value) }))}
-                  style={{ width: 75 }}>
-                  {[0, 15, 30, 45].map(m => <option key={m} value={m}>{m}m</option>)}
-                </select>
-              </div>
-              {durFormTotal > 0 && (
-                <div style={{ padding: "5px 14px", borderRadius: 20, background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.3)", fontSize: 12, color: "#A78BFA", fontWeight: 700 }}>
-                  = {fmtDur(durFormTotal)}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Notas */}
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 11, color: "#64748B", marginBottom: 5 }}>Notas (opcional)</div>
-            <textarea placeholder="Detalles, objetivo, recordatorio..." rows={2}
-              value={form.notas} onChange={e => setForm(p => ({ ...p, notas: e.target.value }))}
-              style={{ resize: "none" }} />
-          </div>
-
-          <div style={{ display: "flex", gap: 8 }}>
-            <button className="btn-secondary" style={{ flex: 1 }} onClick={resetForm}>Cancelar</button>
-            <button className="btn-primary" style={{ flex: 2 }} onClick={confirmarBloque}
-              disabled={!form.nombre.trim() || durFormTotal === 0}>
-              {editandoId ? "💾 Guardar cambios" : "➕ Agregar bloque"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Lista de bloques */}
-      {bloques.length === 0 ? (
-        <div className="card" style={{ padding: 48, textAlign: "center" }}>
-          <div style={{ fontSize: 52, marginBottom: 14 }}>⏰</div>
-          <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 14, color: "#4A5568", marginBottom: 8 }}>Rutina vacía</div>
-          <div style={{ fontSize: 12, color: "#2D2D45" }}>Crea tu primer bloque para estructurar el día</div>
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 10, color: "#4A5568", letterSpacing: 2, paddingLeft: 52 }}>
-            BLOQUES DEL DÍA — {new Date().toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" })}
-          </div>
-
-          {bloques.map((b, i) => (
-            <div key={b.id} style={{ display: "flex", gap: 0, alignItems: "stretch" }}>
-              {/* Línea de tiempo */}
-              <div style={{ width: 52, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", paddingRight: 10 }}>
-                <div style={{ fontSize: 10, color: "#4A5568", fontFamily: "'Orbitron',monospace", lineHeight: 1 }}>{calcHoras(i)}</div>
-                <div style={{ flex: 1, width: 2, background: `${b.color}40`, margin: "3px 6px", minHeight: 12 }} />
-                <div style={{ fontSize: 10, color: "#2D2D45", fontFamily: "'Orbitron',monospace", lineHeight: 1 }}>{calcHoraFin(i)}</div>
-              </div>
-
-              {/* Card del bloque */}
-              <div className="card" style={{ flex: 1, padding: "14px 16px", borderLeft: `4px solid ${b.color}`, opacity: b.completado ? 0.62 : 1, transition: "opacity 0.2s" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  {/* Contenido */}
-                  <div style={{ display: "flex", gap: 10, alignItems: "center", flex: 1, minWidth: 0 }}>
-                    {/* Checkbox */}
-                    <div onClick={() => toggleCompletado(b.id)}
-                      style={{ width: 28, height: 28, borderRadius: 8, border: `2px solid ${b.completado ? b.color : "#2D2D45"}`, background: b.completado ? `${b.color}25` : "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 14, flexShrink: 0, transition: "all 0.15s" }}>
-                      {b.completado ? <span style={{ color: b.color, fontWeight: 900 }}>✓</span> : ""}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: b.completado ? "#4A5568" : "#F1F5F9", textDecoration: b.completado ? "line-through" : "none", marginBottom: 4 }}>
-                        {b.emoji} {b.nombre}
-                      </div>
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                        <span className="tag" style={{ background: `${b.color}20`, color: b.color }}>
-                          {BLOQUE_CATEGORIAS.find(c => c.key === b.categoria)?.label || b.categoria}
-                        </span>
-                        <span className="tag" style={{ background: "rgba(124,58,237,0.1)", color: "#A78BFA" }}>
-                          ⏱ {fmtDur(b.duracion)}
-                        </span>
-                        {b.completado && (
-                          <span className="tag" style={{ background: "rgba(16,185,129,0.1)", color: "#10B981" }}>✅ Listo</span>
-                        )}
-                      </div>
-                      {b.notas && (
-                        <div style={{ fontSize: 11, color: "#4A5568", marginTop: 6, fontStyle: "italic" }}>📌 {b.notas}</div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Controles */}
-                  <div style={{ display: "flex", gap: 4, flexShrink: 0, marginLeft: 10 }}>
-                    <button onClick={() => mover(i, -1)} disabled={i === 0}
-                      style={{ width: 26, height: 26, borderRadius: 6, border: "1px solid #2D2D45", background: "#0A0A12", color: "#64748B", cursor: i === 0 ? "default" : "pointer", fontSize: 12, opacity: i === 0 ? 0.3 : 1 }}>↑</button>
-                    <button onClick={() => mover(i, 1)} disabled={i === bloques.length - 1}
-                      style={{ width: 26, height: 26, borderRadius: 6, border: "1px solid #2D2D45", background: "#0A0A12", color: "#64748B", cursor: i === bloques.length - 1 ? "default" : "pointer", fontSize: 12, opacity: i === bloques.length - 1 ? 0.3 : 1 }}>↓</button>
-                    <button onClick={() => abrirEdicion(b)}
-                      style={{ width: 26, height: 26, borderRadius: 6, border: "1px solid #2D2D45", background: "#0A0A12", color: "#64748B", cursor: "pointer", fontSize: 12 }}>✏️</button>
-                    <button onClick={() => eliminarBloque(b.id)}
-                      style={{ width: 26, height: 26, borderRadius: 6, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", color: "#EF4444", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>×</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {/* Bloque tiempo libre */}
-          {minutosLibres > 0 && (
-            <div style={{ display: "flex", gap: 0, alignItems: "center", opacity: 0.4 }}>
-              <div style={{ width: 52, flexShrink: 0, display: "flex", justifyContent: "flex-end", paddingRight: 10 }}>
-                <div style={{ fontSize: 10, color: "#2D2D45", fontFamily: "'Orbitron',monospace" }}>{calcHoras(bloques.length)}</div>
-              </div>
-              <div style={{ flex: 1, padding: "10px 16px", borderRadius: 12, border: "1px dashed #1A1A28", display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 18 }}>🕊️</span>
-                <div style={{ fontSize: 12, color: "#2D2D45", fontWeight: 600 }}>Tiempo libre — {fmtDur(minutosLibres)}</div>
-              </div>
-            </div>
-          )}
-
-          {/* Resumen final si hay bloques */}
-          {completados === bloques.length && bloques.length > 0 && (
-            <div style={{ padding: "16px 20px", borderRadius: 12, background: "linear-gradient(135deg,rgba(16,185,129,0.12),rgba(6,182,212,0.08))", border: "1px solid rgba(16,185,129,0.3)", textAlign: "center" }}>
-              <div style={{ fontSize: 28, marginBottom: 6 }}>🏆</div>
-              <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 14, fontWeight: 700, color: "#10B981" }}>¡RUTINA COMPLETADA!</div>
-              <div style={{ fontSize: 12, color: "#64748B", marginTop: 4 }}>Completaste los {bloques.length} bloques del día</div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
-
-
 const ShopPage = ({ game, setGame }) => {
-  const [activeTab, setActiveTab] = useState("guilty_pleasure");
-  const [toast, setToast] = useState(null);
-  const [allItems, setAllItems] = useState([]);
-  const [cargando, setCargando] = useState(true);
-
-  useEffect(() => {
-    api.shop.items()
-      .then(data => setAllItems(data || []))
-      .catch(() => {})
-      .finally(() => setCargando(false));
-  }, []);
-
-  const handleBuy = async (item) => {
+  const [activeTab, setActiveTab] = useState("guilty_pleasure"); const [toast, setToast] = useState(null);
+  const handleBuy = (item) => {
     if (item.cooldown) return;
-    try {
-      await api.shop.comprar(item.id, game.coins);
-      if (item.category === "guilty_pleasure") {
-        setGame(g => ({ ...g,
-          disciplina: Math.max(0, g.disciplina - (item.discCost || 0)),
-          xp:         Math.max(0, g.xp         - (item.xpCost  || 0)),
-          coins:      Math.max(0, g.coins       - (item.coins   || item.cost || 0)),
-        }));
-        setToast({ msg: item.danger ? `🚬 FUMASTE — -${item.discCost} Disciplina` : `😈 ${item.name} — -${item.discCost} Disciplina`, color: item.danger ? "#EF4444" : "#F59E0B" });
-      } else {
-        setGame(g => ({ ...g, coins: Math.max(0, g.coins - (item.coins || item.cost || 0)) }));
-        setToast({ msg: `${item.icon} ¡${item.name} activado!`, color: "#10B981" });
-      }
-    } catch (e) {
-      setToast({ msg: `❌ ${e.message}`, color: "#EF4444" });
-    }
+    if (item.category === "guilty_pleasure") { setGame(g => ({ ...g, disciplina: Math.max(0, g.disciplina - item.discCost), xp: Math.max(0, g.xp - item.xpCost), coins: Math.max(0, g.coins - item.coins) })); setToast({ msg: item.danger ? `🚬 FUMASTE — -${item.discCost} Disciplina` : `😈 ${item.name} — -${item.discCost} Disciplina`, color: item.danger ? "#EF4444" : "#F59E0B" }); }
+    else { setGame(g => ({ ...g, coins: Math.max(0, g.coins - item.coins) })); setToast({ msg: `${item.icon} ¡${item.name} activado!`, color: "#10B981" }); }
   };
-
-  const items = allItems
-    .filter(i => (i.category || i.item_type) === activeTab)
-    .map(i => ({
-      id:       i.id,
-      name:     i.name        || i.name,
-      icon:     i.icon        || "🎁",
-      category: i.category    || i.item_type,
-      coins:    i.cost_coins  || i.coins || 0,
-      discCost: i.discipline_cost || i.discCost || 0,
-      xpCost:   i.xp_cost     || i.xpCost || 0,
-      danger:   i.is_dangerous || i.danger || false,
-      cooldown: i.cooldown_hours ? `${i.cooldown_hours}h` : (i.cooldown || null),
-    }));
+  const items = mockData.shop.items.filter(i => i.category === activeTab);
   return <div className="page" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
     {toast && <Toast msg={toast.msg} color={toast.color} onDone={() => setToast(null)} />}
     <div className="card" style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: 16 }}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 22 }}>🛡️</span><div><div style={{ fontFamily: "'Orbitron',monospace", fontSize: 11, color: "#64748B", letterSpacing: 1 }}>DISCIPLINA</div><div style={{ fontFamily: "'Orbitron',monospace", fontSize: 20, fontWeight: 900, color: game.disciplina > 60 ? "#06B6D4" : game.disciplina > 30 ? "#F59E0B" : "#EF4444" }}>{game.disciplina}/100</div></div></div><div style={{ flex: 1 }}><ProgressBar value={game.disciplina} max={100} color={game.disciplina > 60 ? "#06B6D4" : game.disciplina > 30 ? "#F59E0B" : "#EF4444"} height={10} /></div><div style={{ fontSize: 12, color: "#64748B" }}>{game.disciplina > 75 ? "🟢 Bien" : game.disciplina > 40 ? "🟡 Cuidado" : "🔴 Peligro"}</div></div>
@@ -10280,7 +6809,7 @@ const LoginPage = ({ onLogin }) => {
 
   return (
     <div style={{ fontFamily: "'Rajdhani','Orbitron',monospace", background: "#080810", minHeight: "100vh", color: "#E2E8F0", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
-      <style>{getGlobalStyles()}</style>
+      <style>{GLOBAL_STYLES}</style>
       <div className="scanline" />
 
       {/* Fondo decorativo */}
@@ -10446,172 +6975,18 @@ export default function LifeHUD() {
 
   // ── App state ──────────────────────────────────────────────
   const [activeNav, setActiveNav] = useState(0);
-  const [tasks,  setTasks]  = useState([]);
-  const [habits, setHabits] = useState([]);
-  const [game, setGame] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('lifehud_game') || 'null') || INITIAL_GAME; }
-    catch { return INITIAL_GAME; }
-  });
+  const [tasks,  setTasks]  = useState(mockData.tasks);
+  const [habits, setHabits] = useState(mockData.habits);
+  const [game,   setGame]   = useState(INITIAL_GAME);
   const [time,   setTime]   = useState(new Date());
   const [showMealModal, setShowMealModal] = useState(false);
   const [toast, setToast] = useState(null);
 
-  // ── Tema claro/oscuro ──────────────────────────────────
-  const [temaClaro, setTemaClaro] = useState(() =>
-    localStorage.getItem('lifehud_tema') === 'claro'
-  );
-
-  // ── Responsive móvil ───────────────────────────────────────
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
   useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
-  }, []);
-  const toggleTema = () => setTemaClaro(prev => {
-    const nuevo = !prev;
-    localStorage.setItem('lifehud_tema', nuevo ? 'claro' : 'oscuro');
-    return nuevo;
-  });
-
-  // ── Notificaciones ─────────────────────────────────────────
-  const [notifConfig, setNotifConfig] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('lifehud_notif_config') || 'null') || DEFAULT_NOTIF_CONFIG; }
-    catch { return DEFAULT_NOTIF_CONFIG; }
-  });
-  const [showNotifPanel, setShowNotifPanel] = useState(false);
-  const [notifPermiso, setNotifPermiso] = useState(() =>
-    typeof Notification !== 'undefined' ? Notification.permission : 'default'
-  );
-
-  const pedirPermiso = async () => {
-    if (typeof Notification === 'undefined') return;
-    const result = await Notification.requestPermission();
-    setNotifPermiso(result);
-    if (result === 'granted') {
-      const cfg = { ...notifConfig, enabled: true };
-      setNotifConfig(cfg);
-      localStorage.setItem('lifehud_notif_config', JSON.stringify(cfg));
-      new Notification('🔔 Life HUD', { body: 'Notificaciones activadas. ¡Te mantendremos en el camino!', icon: '/favicon.ico' });
-    }
-  };
-
-  const guardarNotifConfig = (nueva) => {
-    setNotifConfig(nueva);
-    localStorage.setItem('lifehud_notif_config', JSON.stringify(nueva));
-  };
-
-  // Revisar cada minuto si corresponde disparar alguna notificación
-  useEffect(() => {
-    if (!authUser) return;
-    const check = () => {
-      if (!notifConfig.enabled || notifPermiso !== 'granted') return;
-      const ahora   = new Date();
-      const horaMin = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0');
-      const hoyKey  = 'lifehud_notif_fired_' + ahora.toISOString().split('T')[0];
-      let disparadas = [];
-      try { disparadas = JSON.parse(localStorage.getItem(hoyKey) || '[]'); } catch {}
-      Object.entries(notifConfig).forEach(([key, cfg]) => {
-        if (key === 'enabled' || !cfg?.enabled || !cfg?.hora) return;
-        if (cfg.hora !== horaMin) return;
-        if (disparadas.includes(key)) return;
-        if (key === 'habitos') {
-          const pendientes = habits.filter(h => !h.done).length;
-          if (pendientes === 0) return;
-        }
-        if (key === 'fitness') {
-          const hoyISO = ahora.toISOString().split('T')[0];
-          let diasEntrenados = [];
-          try { diasEntrenados = JSON.parse(localStorage.getItem('lifehud_dias_entrenados') || '[]'); } catch {}
-          if (diasEntrenados.includes(hoyISO)) return;
-        }
-        new Notification(cfg.emoji + ' Life HUD — ' + cfg.label, {
-          body: cfg.msg, icon: '/favicon.ico', tag: 'lifehud_' + key,
-        });
-        disparadas.push(key);
-        localStorage.setItem(hoyKey, JSON.stringify(disparadas));
-      });
-    };
-    check();
-    const intervalo = setInterval(check, 60000);
-    return () => clearInterval(intervalo);
-  }, [authUser, notifConfig, notifPermiso, habits]);
-
-  useEffect(() => {
-    if (!authUser) return;
-    // Cargar gamificación — fusionar con local (no perder XP ganado offline)
     api.game.perfil()
-      .then(data => {
-        const backendGame = mapGameProfile(data);
-        setGame(prev => ({
-          ...prev,
-          xp:         Math.max(prev.xp,        backendGame.xp),
-          coins:      Math.max(prev.coins,      backendGame.coins),
-          level:      Math.max(prev.level,      backendGame.level),
-          xpNext:     backendGame.xpNext     || prev.xpNext,
-          disciplina: Math.max(prev.disciplina, backendGame.disciplina),
-          streak:     Math.max(prev.streak,     backendGame.streak),
-        }));
-      })
+      .then(data => setGame(mapGameProfile(data)))
       .catch(() => {});
-    // Cargar tareas para el Dashboard
-    api.tareas.listar()
-      .then(data => {
-        const mapeadas = (data || []).map(t => ({
-          id:       t.id,
-          titulo:   t.title,
-          done:     t.status === "completed",
-          prioridad: ({ high: "alta", medium: "media", low: "baja" }[t.priority]) || "media",
-          categoria: t.category || "trabajo",
-          estado:   t.status === "completed" ? "completado" : t.status === "in_progress" ? "progreso" : "pendiente",
-          fecha:    t.due_date ? t.due_date.split("T")[0] : "",
-          subtareas: [],
-        }));
-        setTasks(mapeadas);
-      }).catch(() => {});
-    // Cargar hábitos para el Dashboard
-    const token8 = localStorage.getItem("life_hud_token");
-    api.habitos.listar()
-      .then(async data => {
-        const activos = (data || []).filter(h => h.is_active !== false && !h.name?.startsWith("[MALO]"));
-        const hoy = new Date().toISOString().split("T")[0];
-        const statsArr = await Promise.all(
-          activos.map(h =>
-            fetch(`http://127.0.0.1:8000/api/v1/habits/${h.id}/stats`, {
-              headers: { "Authorization": `Bearer ${token8}` }
-            }).then(r => r.ok ? r.json() : null).catch(() => null)
-          )
-        );
-        const mapeados = activos.map((h, i) => {
-          const calendar = statsArr[i]?.calendar || {};
-          return {
-            id:     h.id,
-            name:   h.name,
-            icon:   h.icon || "⭐",
-            color:  "#7C3AED",
-            streak: h.current_streak || 0,
-            done:   !!calendar[hoy],
-          };
-        });
-        setHabits(mapeados);
-      }).catch(() => {});
   }, [authUser]);
-
-  // Persistir game en localStorage cada vez que cambia
-  useEffect(() => {
-    localStorage.setItem('lifehud_game', JSON.stringify(game));
-  }, [game]);
-
-  // Subir de nivel automaticamente cuando se acumula suficiente XP
-  useEffect(() => {
-    if (game.xp >= game.xpNext) {
-      const newLevel  = game.level + 1;
-      const newXp     = game.xp - game.xpNext;
-      const newXpNext = Math.round(game.xpNext * 1.5);
-      setGame(g => ({ ...g, level: newLevel, xp: newXp, xpNext: newXpNext }));
-      setToast({ msg: "\u{1F389} NIVEL " + (newLevel) + " ALCANZADO!", color: "#F59E0B" });
-    }
-  }, [game.xp, game.xpNext]);
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
@@ -10620,35 +6995,21 @@ export default function LifeHUD() {
 
   const handleSaveMealGlobal = (mealData) => {
     const mt = MEAL_TYPES.find(m => m.key === mealData.type);
-    // Guardar en localStorage igual que NutricionPage
-    const todayKey = `lifehud_meals_${new Date().toISOString().split('T')[0]}`;
-    const nueva = {
-      id: Date.now(), name: mt.label, type: mealData.type,
-      time: mealData.time, calories: mealData.totalCal, icon: mt.icon,
-      foods: mealData.foods.map(f => ({ name: f.name, cal: f.cal, p: f.p || 0, c: f.c || 0, f: f.f || 0, gramos: f.gramos || 100 })),
-    };
-    try {
-      const prev = JSON.parse(localStorage.getItem(todayKey) || '[]');
-      localStorage.setItem(todayKey, JSON.stringify([...prev, nueva]));
-    } catch(_) {}
     setToast({ msg: `${mt.icon} ${mt.label} guardado — ${mealData.totalCal} kcal`, color: mt.color });
     setShowMealModal(false);
   };
 
   const renderPage = () => {
     switch (activeNav) {
-      case 0: return <DashboardPage tasks={tasks} setTasks={setTasks} habits={habits} setHabits={setHabits} game={game} onLogMeal={() => setShowMealModal(true)} onNavigate={setActiveNav} />;
-      case 1: return <TareasPage setGame={setGame} />;
-      case 2: return <HabitosPage setGame={setGame} onHabitUpdate={(id, updates) => {
-        setHabits(prev => prev.map(h => h.id === id ? { ...h, ...updates } : h));
-      }} />;
-      case 3: return <ObjetivosPage setGame={setGame} />;
+      case 0: return <DashboardPage tasks={tasks} setTasks={setTasks} habits={habits} setHabits={setHabits} game={game} onLogMeal={() => setShowMealModal(true)} />;
+      case 1: return <TareasPage />;
+      case 2: return <HabitosPage />;
+      case 3: return <ObjetivosPage />;
       case 4: return <FinanzasPage />;
       case 5: return <LearningPage />;
-      case 6: return <FitnessPage game={game} setGame={setGame} />;
+      case 6: return <FitnessPage />;
       case 7: return <NutricionPage />;
       case 8: return <ShopPage game={game} setGame={setGame} />;
-      case 9: return <RutinaPage setGame={setGame} />;
       default: return null;
     }
   };
@@ -10657,7 +7018,7 @@ export default function LifeHUD() {
   if (checkingAuth) {
     return (
       <div style={{ fontFamily: "'Orbitron',monospace", background: "#080810", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 16 }}>
-        <style>{getGlobalStyles()}</style>
+        <style>{GLOBAL_STYLES}</style>
         <div style={{ fontSize: 36, fontWeight: 900, color: "#7C3AED", textShadow: "0 0 30px rgba(124,58,237,0.6)" }}>LIFE HUD</div>
         <div style={{ width: 200 }}><div className="ai-thinking" style={{ height: 4, borderRadius: 999 }} /></div>
         <div style={{ fontSize: 11, color: "#4A5568", letterSpacing: 2 }}>INICIANDO...</div>
@@ -10671,201 +7032,80 @@ export default function LifeHUD() {
   }
 
   // ── App normal ─────────────────────────────────────────────
-  const displayName = authUser.name || authUser.username || "Usuario";
+  const displayName = authUser.name || authUser.username || mockData.user.name;
 
   return (
-    <div style={{ fontFamily: "'Rajdhani','Orbitron',monospace", background: temaClaro ? "#F0F4F8" : "#080810", minHeight: "100vh", color: temaClaro ? "#1E293B" : "#E2E8F0", display: "flex", flexDirection: isMobile ? "column" : "row", overflow: "hidden" }}>
-      <style>{getGlobalStyles(temaClaro)}</style>
+    <div style={{ fontFamily: "'Rajdhani','Orbitron',monospace", background: "#080810", minHeight: "100vh", color: "#E2E8F0", display: "flex", overflow: "hidden" }}>
+      <style>{GLOBAL_STYLES}</style>
       <div className="scanline" />
       {showMealModal && <MealLogModal onClose={() => setShowMealModal(false)} onSave={handleSaveMealGlobal} />}
       {toast && <Toast msg={toast.msg} color={toast.color} onDone={() => setToast(null)} />}
-      {/* ── Panel de Notificaciones ── */}
-      {showNotifPanel && (
-        <div style={{ position: "fixed", top: 60, right: isMobile ? 8 : 16, width: isMobile ? "calc(100vw - 16px)" : 340, background: "#0F0F18", border: "1px solid #2D2D45", borderRadius: 16, boxShadow: "0 8px 32px rgba(0,0,0,0.6)", zIndex: 9999, overflow: "hidden" }}>
-          {/* Header */}
-          <div style={{ padding: "14px 18px", background: "linear-gradient(135deg,rgba(245,158,11,0.1),rgba(124,58,237,0.08))", borderBottom: "1px solid #1A1A28", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 13, fontWeight: 700, color: "#F1F5F9" }}>🔔 Recordatorios</div>
-              <div style={{ fontSize: 10, color: "#4A5568", marginTop: 2 }}>
-                {notifPermiso === "granted" ? "✅ Permiso del navegador concedido" : notifPermiso === "denied" ? "❌ Permiso denegado — actívalo en el navegador" : "⚠️ Permiso pendiente"}
-              </div>
-            </div>
-            <button onClick={() => setShowNotifPanel(false)}
-              style={{ background: "none", border: "none", color: "#4A5568", cursor: "pointer", fontSize: 20, lineHeight: 1, padding: 0 }}>×</button>
-          </div>
 
-          <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
-            {/* Botón activar permiso */}
-            {notifPermiso !== "granted" ? (
-              <button onClick={pedirPermiso}
-                style={{ padding: "11px", borderRadius: 10, background: "linear-gradient(135deg,#F59E0B,#D97706)", border: "none", color: "#1A1A00", fontWeight: 700, cursor: "pointer", fontSize: 13, fontFamily: "'Rajdhani',sans-serif" }}>
-                🔔 Activar notificaciones del navegador
-              </button>
-            ) : (
-              /* Toggle global ON/OFF */
-              <div onClick={() => guardarNotifConfig({ ...notifConfig, enabled: !notifConfig.enabled })}
-                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", borderRadius: 10, background: notifConfig.enabled ? "rgba(16,185,129,0.1)" : "#0A0A12", border: `1px solid ${notifConfig.enabled ? "#10B981" : "#2D2D45"}`, cursor: "pointer" }}>
-                <span style={{ fontSize: 12, color: notifConfig.enabled ? "#10B981" : "#64748B", fontWeight: 700 }}>
-                  {notifConfig.enabled ? "✅ Notificaciones activas" : "⭕ Notificaciones desactivadas"}
-                </span>
-                <div style={{ width: 38, height: 21, borderRadius: 999, background: notifConfig.enabled ? "#10B981" : "#1A1A28", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
-                  <div style={{ position: "absolute", top: 2.5, left: notifConfig.enabled ? 19 : 2.5, width: 16, height: 16, borderRadius: "50%", background: "white", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.4)" }} />
-                </div>
-              </div>
-            )}
-
-            {/* Lista de recordatorios individuales */}
-            {Object.entries(DEFAULT_NOTIF_CONFIG)
-              .filter(([k]) => k !== "enabled")
-              .map(([key, def]) => {
-                const cfg    = notifConfig[key] || def;
-                const activo = notifConfig.enabled && notifPermiso === "granted";
-                return (
-                  <div key={key} style={{ padding: "11px 14px", borderRadius: 12, background: "#0A0A12", border: `1px solid ${cfg.enabled && activo ? "#2D3748" : "#1A1A28"}`, opacity: activo ? 1 : 0.45, transition: "opacity 0.2s" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: cfg.enabled && activo ? 8 : 0 }}>
-                      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                        <span style={{ fontSize: 17 }}>{cfg.emoji}</span>
-                        <div>
-                          <div style={{ fontSize: 12, color: cfg.enabled && activo ? "#F1F5F9" : "#4A5568", fontWeight: 600 }}>{cfg.label}</div>
-                          {!cfg.enabled && <div style={{ fontSize: 9, color: "#2D2D45" }}>Desactivado</div>}
-                        </div>
-                      </div>
-                      {/* Toggle individual */}
-                      <div onClick={() => activo && guardarNotifConfig({ ...notifConfig, [key]: { ...cfg, enabled: !cfg.enabled } })}
-                        style={{ width: 38, height: 21, borderRadius: 999, background: cfg.enabled && activo ? "#7C3AED" : "#1A1A28", cursor: activo ? "pointer" : "default", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
-                        <div style={{ position: "absolute", top: 2.5, left: cfg.enabled && activo ? 19 : 2.5, width: 16, height: 16, borderRadius: "50%", background: cfg.enabled && activo ? "white" : "#4A5568", transition: "left 0.2s" }} />
-                      </div>
-                    </div>
-                    {/* Selector de hora */}
-                    {cfg.enabled && activo && (
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontSize: 10, color: "#4A5568", flexShrink: 0 }}>⏰ Hora:</span>
-                        <input type="time" value={cfg.hora}
-                          onChange={e => guardarNotifConfig({ ...notifConfig, [key]: { ...cfg, hora: e.target.value } })}
-                          style={{ flex: 1, padding: "4px 8px", fontSize: 12, borderRadius: 6, background: "#080810", border: "1px solid #2D2D45", color: "#F1F5F9" }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
-            <div style={{ fontSize: 10, color: "#2D2D45", textAlign: "center", lineHeight: 1.6, paddingTop: 2 }}>
-              Hábitos y Fitness solo avisan si aún no los completaste ese día.
-            </div>
+      {/* Sidebar */}
+      <div style={{ width: 72, background: "linear-gradient(180deg,#0A0A14,#080810)", borderRight: "1px solid #1A1A28", display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 8px", gap: 4, flexShrink: 0 }}>
+        <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 13, fontWeight: 900, color: "#7C3AED", marginBottom: 16, textShadow: "0 0 12px rgba(124,58,237,0.6)" }}>HUD</div>
+        {NAV_ITEMS.map((item, i) => (
+          <div key={i} className={`nav-item ${activeNav === i ? "active" : ""}`} onClick={() => setActiveNav(i)}>
+            <span style={{ fontSize: 18 }}>{item.icon}</span>
+            <span>{item.label}</span>
           </div>
+        ))}
+        <div style={{ flex: 1 }} />
+        {/* Botón de cerrar sesión */}
+        <div className="nav-item" onClick={handleLogout} title="Cerrar sesión" style={{ cursor: "pointer" }}>
+          <span style={{ fontSize: 18 }}>🚪</span>
+          <span>Salir</span>
         </div>
-      )}
-      {/* Sidebar desktop / Bottom nav móvil */}
-      {isMobile ? (
-        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: 64, background: temaClaro ? "#FFFFFF" : "#0A0A14", borderTop: `1px solid ${temaClaro ? "#E2E8F0" : "#1A1A28"}`, display: "flex", alignItems: "center", justifyContent: "space-around", zIndex: 200, paddingBottom: "env(safe-area-inset-bottom)" }}>
-          {NAV_ITEMS.map((item, i) => (
-            <div key={i} onClick={() => setActiveNav(i)}
-              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "6px 4px", borderRadius: 8, cursor: "pointer", flex: 1, transition: "all 0.15s", color: activeNav === i ? "#7C3AED" : temaClaro ? "#94A3B8" : "#4A5568" }}>
-              <span style={{ fontSize: 20 }}>{item.icon}</span>
-              <span style={{ fontSize: 8, fontFamily: "'Rajdhani',sans-serif", fontWeight: activeNav === i ? 700 : 400, letterSpacing: 0.5 }}>{item.label}</span>
-              {activeNav === i && <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#7C3AED" }} />}
-            </div>
-          ))}
-          <div onClick={handleLogout}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "6px 4px", borderRadius: 8, cursor: "pointer", flex: 1, color: temaClaro ? "#94A3B8" : "#4A5568" }}>
-            <span style={{ fontSize: 20 }}>🚪</span>
-            <span style={{ fontSize: 8, fontFamily: "'Rajdhani',sans-serif" }}>Salir</span>
-          </div>
-        </div>
-      ) : (
-        <div style={{ width: 72, background: temaClaro ? "linear-gradient(180deg,#FFFFFF,#F8FAFC)" : "linear-gradient(180deg,#0A0A14,#080810)", borderRight: `1px solid ${temaClaro ? "#E2E8F0" : "#1A1A28"}`, display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 8px", gap: 4, flexShrink: 0 }}>
-          <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 13, fontWeight: 900, color: "#7C3AED", marginBottom: 16, textShadow: temaClaro ? "none" : "0 0 12px rgba(124,58,237,0.6)" }}>HUD</div>
-          {NAV_ITEMS.map((item, i) => (
-            <div key={i} className={`nav-item ${activeNav === i ? "active" : ""}`} onClick={() => setActiveNav(i)}>
-              <span style={{ fontSize: 18 }}>{item.icon}</span>
-              <span>{item.label}</span>
-            </div>
-          ))}
-          <div style={{ flex: 1 }} />
-          <div className="nav-item" onClick={handleLogout} title="Cerrar sesión" style={{ cursor: "pointer" }}>
-            <span style={{ fontSize: 18 }}>🚪</span>
-            <span>Salir</span>
-          </div>
-        </div>
-      )}
+      </div>
 
       {/* Main */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", marginTop: isMobile ? 0 : 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {/* Header */}
-        <div style={{ padding: isMobile ? "8px 14px" : "10px 24px", borderBottom: `1px solid ${temaClaro ? "#E2E8F0" : "#1A1A28"}`, background: temaClaro ? "linear-gradient(90deg,#FFFFFF,#F8FAFC)" : "linear-gradient(90deg,#0A0A14,#0D0D1A)", display: "flex", alignItems: "center", gap: isMobile ? 8 : 14 }}>
-          {/* Avatar + nombre */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
-            <div style={{ width: isMobile ? 32 : 40, height: isMobile ? 32 : 40, borderRadius: "50%", background: "linear-gradient(135deg,#7C3AED,#06B6D4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? 13 : 16, fontWeight: 700, boxShadow: "0 0 12px rgba(124,58,237,0.5)", flexShrink: 0, color: "white" }}>
+        <div style={{ padding: "10px 24px", borderBottom: "1px solid #1A1A28", background: "linear-gradient(90deg,#0A0A14,#0D0D1A)", display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#7C3AED,#06B6D4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700, boxShadow: "0 0 12px rgba(124,58,237,0.5)", flexShrink: 0, color: "white" }}>
               {displayName[0].toUpperCase()}
             </div>
-            <div style={{ minWidth: 0 }}>
-              {!isMobile && <div style={{ fontSize: 12, color: "#94A3B8" }}>{time.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "short" })}</div>}
-              <div style={{ fontFamily: "'Orbitron',monospace", fontSize: isMobile ? 11 : 14, fontWeight: 700, color: temaClaro ? "#1E293B" : "#F1F5F9", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{isMobile ? displayName : `Hola, ${displayName}`}</div>
+            <div>
+              <div style={{ fontSize: 12, color: "#94A3B8" }}>{time.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "short" })}</div>
+              <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 14, fontWeight: 700, color: "#F1F5F9" }}>Hola, {displayName}</div>
             </div>
           </div>
-          {/* Barra XP — solo desktop */}
-          {!isMobile && (
-            <div style={{ width: 220 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#64748B", marginBottom: 4 }}>
-                <span style={{ fontFamily: "'Orbitron',monospace" }}>NIVEL {game.level}</span>
-                <span>{game.xp.toLocaleString()} / {game.xpNext.toLocaleString()}</span>
-              </div>
-              <ProgressBar value={game.xp} max={game.xpNext} color="#7C3AED" height={5} />
+          <div style={{ width: 220 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#64748B", marginBottom: 4 }}>
+              <span style={{ fontFamily: "'Orbitron',monospace" }}>NIVEL {game.level}</span>
+              <span>{game.xp.toLocaleString()} / {game.xpNext.toLocaleString()}</span>
             </div>
-          )}
-          {/* Stats chips — desktop: 4, móvil: 2 compactos */}
-          {isMobile ? (
-            <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
-              <span style={{ background: "linear-gradient(135deg,#7C3AED,#5B21B6)", borderRadius: 999, padding: "3px 8px", fontSize: 11, fontWeight: 700, color: "white" }}>⚡{game.xp}</span>
-              <span style={{ background: "linear-gradient(135deg,#EF4444,#B91C1C)", borderRadius: 999, padding: "3px 8px", fontSize: 11, fontWeight: 700, color: "white" }}>🔥{game.streak}d</span>
-            </div>
-          ) : (
-            <div style={{ display: "flex", gap: 6 }}>
-              {[
-                { text: `⚡ ${game.xp.toLocaleString()}`,  bg: "linear-gradient(135deg,#7C3AED,#5B21B6)", color: "white" },
-                { text: `🪙 ${game.coins}`,                bg: "linear-gradient(135deg,#F59E0B,#D97706)", color: "#1A1A00" },
-                { text: `🔥 ${game.streak}d`,              bg: "linear-gradient(135deg,#EF4444,#B91C1C)", color: "white" },
-                { text: `🛡️ ${game.disciplina}`,           bg: game.disciplina > 60 ? "linear-gradient(135deg,#0891B2,#06B6D4)" : game.disciplina > 30 ? "linear-gradient(135deg,#D97706,#F59E0B)" : "linear-gradient(135deg,#B91C1C,#EF4444)", color: "white" },
-              ].map((b, i) => (
-                <span key={i} style={{ background: b.bg, borderRadius: 999, padding: "3px 10px", fontSize: 11, fontWeight: 700, color: b.color }}>{b.text}</span>
-              ))}
-            </div>
-          )}
-          {/* Mensaje IA — solo desktop */}
-          {!isMobile && (
-            <div style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.3)", borderRadius: 8, padding: "6px 12px", fontSize: 12, color: "#A78BFA", maxWidth: 200 }}>
-              🤖 <em>Llevas {game.streak} días — ¡no pares!</em>
-            </div>
-          )}
-          {/* Botón tema */}
-          <button onClick={toggleTema} title={temaClaro ? "Modo oscuro" : "Modo claro"}
-            style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${temaClaro ? "#CBD5E1" : "#2D2D45"}`, background: temaClaro ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.04)", cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            {temaClaro ? "🌙" : "☀️"}
-          </button>
-          <button onClick={() => setShowNotifPanel(p => !p)} title="Notificaciones"
-            style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${notifConfig.enabled && notifPermiso === "granted" ? "#F59E0B" : "#2D2D45"}`, background: notifConfig.enabled && notifPermiso === "granted" ? "rgba(245,158,11,0.15)" : "rgba(255,255,255,0.04)", cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative" }}>
-            🔔
-            {notifConfig.enabled && notifPermiso === "granted" && (
-              <div style={{ position: "absolute", top: 3, right: 3, width: 6, height: 6, borderRadius: "50%", background: "#F59E0B" }} />
-            )}
-          </button>
+            <ProgressBar value={game.xp} max={game.xpNext} color="#7C3AED" height={5} />
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            {[
+              { text: `⚡ ${game.xp.toLocaleString()}`,  bg: "linear-gradient(135deg,#7C3AED,#5B21B6)", color: "white" },
+              { text: `🪙 ${game.coins}`,                bg: "linear-gradient(135deg,#F59E0B,#D97706)", color: "#1A1A00" },
+              { text: `🔥 ${game.streak}d`,              bg: "linear-gradient(135deg,#EF4444,#B91C1C)", color: "white" },
+              { text: `🛡️ ${game.disciplina}`,           bg: game.disciplina > 60 ? "linear-gradient(135deg,#0891B2,#06B6D4)" : game.disciplina > 30 ? "linear-gradient(135deg,#D97706,#F59E0B)" : "linear-gradient(135deg,#B91C1C,#EF4444)", color: "white" },
+            ].map((b, i) => (
+              <span key={i} style={{ background: b.bg, borderRadius: 999, padding: "3px 10px", fontSize: 11, fontWeight: 700, color: b.color }}>{b.text}</span>
+            ))}
+          </div>
+          <div style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.3)", borderRadius: 8, padding: "6px 12px", fontSize: 12, color: "#A78BFA", maxWidth: 200 }}>
+            🤖 <em>Llevas {game.streak} días — ¡no pares!</em>
+          </div>
         </div>
 
         {/* Page title */}
-        <div style={{ padding: isMobile ? "8px 14px 0" : "10px 24px 0", display: "flex", alignItems: "center", gap: 8, borderBottom: `1px solid ${temaClaro ? "#F1F5F9" : "transparent"}` }}>
-          <span style={{ fontSize: 18 }}>{NAV_ITEMS[activeNav].icon}</span>
-          <span style={{ fontFamily: "'Orbitron',monospace", fontSize: isMobile ? 11 : 13, fontWeight: 700, color: "#A78BFA", letterSpacing: 2 }}>{NAV_ITEMS[activeNav].label.toUpperCase()}</span>
+        <div style={{ padding: "10px 24px 0", display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 20 }}>{NAV_ITEMS[activeNav].icon}</span>
+          <span style={{ fontFamily: "'Orbitron',monospace", fontSize: 13, fontWeight: 700, color: "#A78BFA", letterSpacing: 2 }}>{NAV_ITEMS[activeNav].label.toUpperCase()}</span>
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, overflow: "auto", padding: isMobile ? "10px 12px 80px" : "14px 24px 24px" }}>{renderPage()}</div>
+        <div style={{ flex: 1, overflow: "auto", padding: "14px 24px 24px" }}>{renderPage()}</div>
       </div>
 
       {/* FAB global */}
       {activeNav !== 7 && (
-        <button className="fab" onClick={() => setShowMealModal(true)} title="Registrar comida rápida"
-          style={{ bottom: isMobile ? 76 : 28, right: isMobile ? 16 : 28 }}>🍽️</button>
+        <button className="fab" onClick={() => setShowMealModal(true)} title="Registrar comida rápida">🍽️</button>
       )}
     </div>
   );
