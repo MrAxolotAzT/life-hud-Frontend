@@ -9,7 +9,7 @@ import React from 'react';
 //    import { api } from './api';
 // ============================================================
 
-const API_BASE = "http://127.0.0.1:8000/api/v1";
+const API_BASE = (process.env.REACT_APP_API_URL || "http://127.0.0.1:8000") + "/api/v1";
 
 // ── Token helper ─────────────────────────────────────────────
 const getToken = () => localStorage.getItem("life_hud_token");
