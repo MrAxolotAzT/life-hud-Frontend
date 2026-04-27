@@ -943,7 +943,7 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
         const exp  = parseFloat(d.total_expenses|| 0);
         setDashFinanzas({ balance: bal, monthIncome: inc, monthExpense: exp, savingsRate: d.savings_rate || 0 });
         // Alertas reales de presupuesto desde categorías
-        fetch("http://127.0.0.1:8000/api/v1/finance/categories", {
+        fetch("${API_URL}/api/v1/finance/categories", {
           headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
         }).then(r => r.json()).then(cats => {
           const alertas = (cats || [])
@@ -954,7 +954,7 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
           setAlertasReales(alertas);
         }).catch(() => {});
         // Barriles / metas de ahorro
-        fetch("http://127.0.0.1:8000/api/v1/finance/barrels", {
+        fetch("${API_URL}/api/v1/finance/barrels", {
           headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
         }).then(r => r.json()).then(data => {
           setBarrilesReales((data || []).slice(0, 2).map(b => ({
@@ -1273,7 +1273,7 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
                 const t = tasks.find(t => !t.done);
                 if (!t) return;
                 try {
-                  await fetch(`http://127.0.0.1:8000/api/v1/tasks/${t.id}/complete`, {
+                  await fetch(`${API_URL}/api/v1/tasks/${t.id}/complete`, {
                     method: "POST",
                     headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" }
                   });
@@ -1284,7 +1284,7 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
                 const h = habits.find(h => !h.done);
                 if (!h) return;
                 try {
-                  await fetch(`http://127.0.0.1:8000/api/v1/habits/${h.id}/complete`, {
+                  await fetch(`${API_URL}/api/v1/habits/${h.id}/complete`, {
                     method: "POST",
                     headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" },
                     body: JSON.stringify({})
@@ -1424,12 +1424,12 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
                   const nuevoDone = !task.done;
                   try {
                     if (nuevoDone) {
-                      await fetch(`http://127.0.0.1:8000/api/v1/tasks/${task.id}/complete`, {
+                      await fetch(`${API_URL}/api/v1/tasks/${task.id}/complete`, {
                         method: "POST",
                         headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" }
                       });
                     } else {
-                      await fetch(`http://127.0.0.1:8000/api/v1/tasks/${task.id}`, {
+                      await fetch(`${API_URL}/api/v1/tasks/${task.id}`, {
                         method: "PATCH",
                         headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" },
                         body: JSON.stringify({ status: "pending" })
@@ -1458,7 +1458,7 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
                 const habitDone = habit.done || habit.history?.[habit.history.length-1]?.done;
                 if (habitDone) return; // No se puede desmarcar
                 try {
-                  await fetch(`http://127.0.0.1:8000/api/v1/habits/${habit.id}/complete`, {
+                  await fetch(`${API_URL}/api/v1/habits/${habit.id}/complete`, {
                     method: "POST",
                     headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" },
                     body: JSON.stringify({})
@@ -1786,7 +1786,7 @@ ${form.text ? `- Detalle extra: ${form.text}` : ''}
       // Llamar al backend para generar roadmap con IA (falla silenciosamente)
       let aiRoadmap = null;
       try {
-        const backendRes = await fetch("http://127.0.0.1:8000/api/v1/ai/roadmap", {
+        const backendRes = await fetch("${API_URL}/api/v1/ai/roadmap", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -2039,7 +2039,7 @@ ${form.text ? `- Detalle extra: ${form.text}` : ''}
                     const nuevoStatus = activeGoal.status === "active" ? "planning" : "active";
                     try {
                       const endpoint = nuevoStatus === "active" ? "activate" : "cancel";
-await fetch(`http://127.0.0.1:8000/api/v1/goals/${activeGoal.id}/${endpoint}`, {
+await fetch(`${API_URL}/api/v1/goals/${activeGoal.id}/${endpoint}`, {
   method: "POST",
   headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" }
 });
@@ -2052,7 +2052,7 @@ await fetch(`http://127.0.0.1:8000/api/v1/goals/${activeGoal.id}/${endpoint}`, {
                   <button onClick={async () => {
                     if (!window.confirm(`¿Eliminar "${activeGoal.title}"?`)) return;
                     try {
-                      await fetch(`http://127.0.0.1:8000/api/v1/goals/${activeGoal.id}/cancel`, {
+                      await fetch(`${API_URL}/api/v1/goals/${activeGoal.id}/cancel`, {
   method: "POST",
   headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" }
 });
@@ -3129,7 +3129,7 @@ const FinanzasPage = () => {
     Promise.all([
       api.finanzas.resumen(),
       api.finanzas.transacciones({ limit: 200 }),
-      fetch("http://127.0.0.1:8000/api/v1/finance/categories", {
+      fetch("${API_URL}/api/v1/finance/categories", {
         headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
       }).then(r => r.ok ? r.json() : []).catch(() => []),
     ])
@@ -3200,7 +3200,7 @@ const FinanzasPage = () => {
       const [sum, txnData, cats] = await Promise.all([
         api.finanzas.resumen(),
         api.finanzas.transacciones({ limit: 200 }),
-        fetch("http://127.0.0.1:8000/api/v1/finance/categories", {
+        fetch("${API_URL}/api/v1/finance/categories", {
           headers: { "Authorization": `Bearer ${token}` }
         }).then(r => r.ok ? r.json() : []).catch(() => []),
       ]);
@@ -4908,7 +4908,7 @@ const HabitosPage = ({ onHabitUpdate, setGame }) => {
       const activos = (data || []).filter(h => h.is_active !== false && !h.name?.startsWith("[MALO]"));
       const statsArray = await Promise.all(
         activos.map(h =>
-          fetch(`http://127.0.0.1:8000/api/v1/habits/${h.id}/stats`, {
+          fetch(`${API_URL}/api/v1/habits/${h.id}/stats`, {
             headers: { "Authorization": `Bearer ${token}` }
           }).then(r => r.ok ? r.json() : null).catch(() => null)
         )
@@ -4982,7 +4982,7 @@ const HabitosPage = ({ onHabitUpdate, setGame }) => {
       setToast({ msg: `🔥 ${h.icon} ${h.name} — ¡completado! +${xpGanado} XP`, color: h.color });
       // Obtener streak real del backend
       const token = localStorage.getItem("life_hud_token");
-      const actualizado = await fetch(`http://127.0.0.1:8000/api/v1/habits/${id}`, {
+      const actualizado = await fetch(`${API_URL}/api/v1/habits/${id}`, {
         headers: { "Authorization": `Bearer ${token}` }
       }).then(r => r.json()).catch(() => null);
       const nuevoStreak = actualizado?.current_streak > 0 ? actualizado.current_streak : h.streak + 1;
@@ -7110,7 +7110,7 @@ const LearningPage = () => {
 
   const eliminarLibro = async (id) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/v1/learning/books/${id}`, {
+      const res = await fetch(`${API_URL}/api/v1/learning/books/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
       });
@@ -7125,7 +7125,7 @@ const LearningPage = () => {
   const eliminarCurso = async (id, nombre) => {
     if (!window.confirm(`¿Eliminar "${nombre}"?`)) return;
     try {
-      await fetch(`http://127.0.0.1:8000/api/v1/learning/courses/${id}`, {
+      await fetch(`${API_URL}/api/v1/learning/courses/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
       });
@@ -7884,7 +7884,7 @@ Puedes usar formato de texto libre:
                           const input = document.getElementById(`pages-${b.id}`);
                           const pages = parseInt(input?.value || 0);
                           try {
-                            await fetch(`http://127.0.0.1:8000/api/v1/learning/books/${b.id}/pages`, {
+                            await fetch(`${API_URL}/api/v1/learning/books/${b.id}/pages`, {
                               method: "PUT",
                               headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` },
                               body: JSON.stringify({ pages_read: pages })
@@ -8591,7 +8591,7 @@ const FitnessPage = ({ game, setGame }) => {
   const guardarPerfil = async () => {
     setGuardandoPerfil(true);
     try {
-      await fetch("http://127.0.0.1:8000/api/v1/fitness/profile/setup", {
+      await fetch("${API_URL}/api/v1/fitness/profile/setup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -8618,7 +8618,7 @@ const FitnessPage = ({ game, setGame }) => {
       .finally(() => setCargandoStats(false));
 
     // Cargar perfil de fitness y adaptar plan semanal
-    fetch("http://127.0.0.1:8000/api/v1/fitness/profile", {
+    fetch("${API_URL}/api/v1/fitness/profile", {
       headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
     })
     .then(async r => {
@@ -10193,7 +10193,7 @@ const PlaceholderPage = ({ name, icon }) => (
 // 2. El resto del archivo (mockData, componentes, etc.) NO cambia.
 // ============================================================
 
-const API_BASE = "http://127.0.0.1:8000/api/v1";
+const API_BASE = "${API_URL}/api/v1";
 
 // ── Helpers de autenticación ─────────────────────────────────
 const getToken  = () => localStorage.getItem("life_hud_token");
@@ -10577,7 +10577,7 @@ export default function LifeHUD() {
         const hoy = new Date().toISOString().split("T")[0];
         const statsArr = await Promise.all(
           activos.map(h =>
-            fetch(`http://127.0.0.1:8000/api/v1/habits/${h.id}/stats`, {
+            fetch(`${API_URL}/api/v1/habits/${h.id}/stats`, {
               headers: { "Authorization": `Bearer ${token8}` }
             }).then(r => r.ok ? r.json() : null).catch(() => null)
           )
