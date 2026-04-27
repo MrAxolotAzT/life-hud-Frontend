@@ -10408,7 +10408,7 @@ const LoginPage = ({ onLogin }) => {
 
         {/* Footer */}
         <div style={{ textAlign: "center", marginTop: 20, fontSize: 11, color: "#2D2D45" }}>
-          Life HUD v1.0 · Backend: {API_BASE}
+          Life HUD v1.0 · Backend: https://life-hud-backend-production.up.railway.app/api/v1
         </div>
       </div>
     </div>
