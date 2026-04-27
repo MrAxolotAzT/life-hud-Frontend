@@ -1,4 +1,4 @@
-const API_URL = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
+const API_URL = "https://life-hud-backend-production.up.railway.app";
 import { useState, useEffect, useRef } from "react";
 import { api, useApi, LoadingCard, ErrorCard } from './api';
 
