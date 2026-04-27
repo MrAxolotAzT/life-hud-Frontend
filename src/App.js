@@ -10193,6 +10193,7 @@ const PlaceholderPage = ({ name, icon }) => (
 // 2. El resto del archivo (mockData, componentes, etc.) NO cambia.
 // ============================================================
 
+const API_URL = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
 const API_BASE = `${API_URL}/api/v1`;
 
 // ── Helpers de autenticación ─────────────────────────────────
