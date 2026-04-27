@@ -1270,7 +1270,7 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
           {[
             { label: "💧 +Agua", action: agregarVaso, color: "#06B6D4" },
             { label: "🍽️ Comida", action: onLogMeal, color: "#10B981" },
-            { label: "✅ Tarea hecha`, action: async () => {
+            { label: "✅ Tarea hecha", action: async () => {
                 const t = tasks.find(t => !t.done);
                 if (!t) return;
                 try {
