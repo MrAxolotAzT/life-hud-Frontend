@@ -1275,7 +1275,7 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
                 if (!t) return;
                 try {
                   await fetch(`${API_URL}/api/v1/tasks/${t.id}/complete`, {
-                    method: `POST",
+                    method: "POST",
                     headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" }
                   });
                 } catch(_) {}
@@ -1286,7 +1286,7 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
                 if (!h) return;
                 try {
                   await fetch(`${API_URL}/api/v1/habits/${h.id}/complete`, {
-                    method: `POST",
+                    method: "POST",
                     headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" },
                     body: JSON.stringify({})
                   });
@@ -1426,12 +1426,12 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
                   try {
                     if (nuevoDone) {
                       await fetch(`${API_URL}/api/v1/tasks/${task.id}/complete`, {
-                        method: `POST",
+                        method: "POST",
                         headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json` }
                       });
                     } else {
                       await fetch(`${API_URL}/api/v1/tasks/${task.id}`, {
-                        method: `PATCH",
+                        method: "PATCH",
                         headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" },
                         body: JSON.stringify({ status: "pending" })
                       });
@@ -1460,7 +1460,7 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
                 if (habitDone) return; // No se puede desmarcar
                 try {
                   await fetch(`${API_URL}/api/v1/habits/${habit.id}/complete`, {
-                    method: `POST",
+                    method: "POST",
                     headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" },
                     body: JSON.stringify({})
                   });
@@ -2041,7 +2041,7 @@ ${form.text ? `- Detalle extra: ${form.text}` : ''}
                     try {
                       const endpoint = nuevoStatus === "active" ? "activate" : "cancel`;
 await fetch(`${API_URL}/api/v1/goals/${activeGoal.id}/${endpoint}`, {
-  method: `POST",
+  method: "POST",
   headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" }
 });
                       setGoals(prev => prev.map(g => g.id === activeGoal.id ? { ...g, status: nuevoStatus } : g));
@@ -2054,7 +2054,7 @@ await fetch(`${API_URL}/api/v1/goals/${activeGoal.id}/${endpoint}`, {
                     if (!window.confirm(`¿Eliminar "${activeGoal.title}`?`)) return;
                     try {
                       await fetch(`${API_URL}/api/v1/goals/${activeGoal.id}/cancel`, {
-  method: `POST",
+  method: "POST",
   headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" }
 });
                       setGoals(prev => {
@@ -7112,7 +7112,7 @@ const LearningPage = () => {
   const eliminarLibro = async (id) => {
     try {
       const res = await fetch(`${API_URL}/api/v1/learning/books/${id}`, {
-        method: `DELETE",
+        method: "DELETE",
         headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
       });
       if (!res.ok && res.status !== 204) throw new Error(`Error ${res.status}`);
@@ -7127,7 +7127,7 @@ const LearningPage = () => {
     if (!window.confirm(`¿Eliminar "${nombre}`?`)) return;
     try {
       await fetch(`${API_URL}/api/v1/learning/courses/${id}`, {
-        method: `DELETE",
+        method: "DELETE",
         headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
       });
       setCursos(prev => prev.filter(c => c.id !== id));
@@ -7886,7 +7886,7 @@ Puedes usar formato de texto libre:
                           const pages = parseInt(input?.value || 0);
                           try {
                             await fetch(`${API_URL}/api/v1/learning/books/${b.id}/pages`, {
-                              method: `PUT",
+                              method: "PUT",
                               headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` },
                               body: JSON.stringify({ pages_read: pages })
                             });
