@@ -1,4 +1,3 @@
-const API_URL = "https://life-hud-backend-production.up.railway.app";
 import { useState, useEffect, useRef } from "react";
 import { api, useApi, LoadingCard, ErrorCard } from './api';
 
@@ -944,7 +943,7 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
         const exp  = parseFloat(d.total_expenses|| 0);
         setDashFinanzas({ balance: bal, monthIncome: inc, monthExpense: exp, savingsRate: d.savings_rate || 0 });
         // Alertas reales de presupuesto desde categorías
-        fetch(`${API_URL}/api/v1/finance/categories`, {
+        fetch("https://life-hud-backend-production.up.railway.app/api/v1/finance/categories", {
           headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
         }).then(r => r.json()).then(cats => {
           const alertas = (cats || [])
@@ -955,7 +954,7 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
           setAlertasReales(alertas);
         }).catch(() => {});
         // Barriles / metas de ahorro
-        fetch(`${API_URL}/api/v1/finance/barrels`, {
+        fetch("https://life-hud-backend-production.up.railway.app/api/v1/finance/barrels", {
           headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
         }).then(r => r.json()).then(data => {
           setBarrilesReales((data || []).slice(0, 2).map(b => ({
@@ -1274,18 +1273,18 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
                 const t = tasks.find(t => !t.done);
                 if (!t) return;
                 try {
-                  await fetch(`${API_URL}/api/v1/tasks/${t.id}/complete`, {
+                  await fetch(`https://life-hud-backend-production.up.railway.app/api/v1/tasks/${t.id}/complete`, {
                     method: "POST",
                     headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" }
                   });
                 } catch(_) {}
                 setTasks(p => p.map(x => x.id === t.id ? { ...x, done: true, status: "completed" } : x));
               }, color: "#7C3AED" },
-            { label: "🔄 Hábito`, action: async () => {
+            { label: "🔄 Hábito", action: async () => {
                 const h = habits.find(h => !h.done);
                 if (!h) return;
                 try {
-                  await fetch(`${API_URL}/api/v1/habits/${h.id}/complete`, {
+                  await fetch(`https://life-hud-backend-production.up.railway.app/api/v1/habits/${h.id}/complete`, {
                     method: "POST",
                     headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" },
                     body: JSON.stringify({})
@@ -1418,19 +1417,19 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
             </div>
             {tasks.map(task => {
               const prioMap = { alta: "high", media: "medium", baja: "low", high: "high", medium: "medium", low: "low" };
-              const prioKey = prioMap[task.priority] || prioMap[task.prioridad] || "medium`;
+              const prioKey = prioMap[task.priority] || prioMap[task.prioridad] || "medium";
               const p = priorityConfig[prioKey] || priorityConfig.medium;
               return (
                 <div key={task.id} onClick={async () => {
                   const nuevoDone = !task.done;
                   try {
                     if (nuevoDone) {
-                      await fetch(`${API_URL}/api/v1/tasks/${task.id}/complete`, {
+                      await fetch(`https://life-hud-backend-production.up.railway.app/api/v1/tasks/${task.id}/complete`, {
                         method: "POST",
-                        headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json` }
+                        headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" }
                       });
                     } else {
-                      await fetch(`${API_URL}/api/v1/tasks/${task.id}`, {
+                      await fetch(`https://life-hud-backend-production.up.railway.app/api/v1/tasks/${task.id}`, {
                         method: "PATCH",
                         headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" },
                         body: JSON.stringify({ status: "pending" })
@@ -1452,14 +1451,14 @@ const DashboardPage = ({ tasks, setTasks, habits, setHabits, game, onLogMeal, on
           <div className="card" style={{ padding: 16, flex: 1 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <div className="section-title" style={{ marginBottom: 0 }}>🔄 Hábitos de Hoy</div>
-              <span style={{ fontFamily: "'Orbitron',monospace", fontSize: 12, color: "#10B981`, fontWeight: 700 }}>{doneHabits}/{habits.length}</span>
+              <span style={{ fontFamily: "'Orbitron',monospace", fontSize: 12, color: "#10B981", fontWeight: 700 }}>{doneHabits}/{habits.length}</span>
             </div>
             {habits.map(habit => (
               <div key={habit.id} onClick={async () => {
                 const habitDone = habit.done || habit.history?.[habit.history.length-1]?.done;
                 if (habitDone) return; // No se puede desmarcar
                 try {
-                  await fetch(`${API_URL}/api/v1/habits/${habit.id}/complete`, {
+                  await fetch(`https://life-hud-backend-production.up.railway.app/api/v1/habits/${habit.id}/complete`, {
                     method: "POST",
                     headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" },
                     body: JSON.stringify({})
@@ -1787,7 +1786,7 @@ ${form.text ? `- Detalle extra: ${form.text}` : ''}
       // Llamar al backend para generar roadmap con IA (falla silenciosamente)
       let aiRoadmap = null;
       try {
-        const backendRes = await fetch(`${API_URL}/api/v1/ai/roadmap`, {
+        const backendRes = await fetch("https://life-hud-backend-production.up.railway.app/api/v1/ai/roadmap", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -2039,8 +2038,8 @@ ${form.text ? `- Detalle extra: ${form.text}` : ''}
                   <button onClick={async () => {
                     const nuevoStatus = activeGoal.status === "active" ? "planning" : "active";
                     try {
-                      const endpoint = nuevoStatus === "active" ? "activate" : "cancel`;
-await fetch(`${API_URL}/api/v1/goals/${activeGoal.id}/${endpoint}`, {
+                      const endpoint = nuevoStatus === "active" ? "activate" : "cancel";
+await fetch(`https://life-hud-backend-production.up.railway.app/api/v1/goals/${activeGoal.id}/${endpoint}`, {
   method: "POST",
   headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" }
 });
@@ -2051,9 +2050,9 @@ await fetch(`${API_URL}/api/v1/goals/${activeGoal.id}/${endpoint}`, {
                     {activeGoal.status === "active" ? "⏸ Pausar" : "▶ Activar"}
                   </button>
                   <button onClick={async () => {
-                    if (!window.confirm(`¿Eliminar "${activeGoal.title}`?`)) return;
+                    if (!window.confirm(`¿Eliminar "${activeGoal.title}"?`)) return;
                     try {
-                      await fetch(`${API_URL}/api/v1/goals/${activeGoal.id}/cancel`, {
+                      await fetch(`https://life-hud-backend-production.up.railway.app/api/v1/goals/${activeGoal.id}/cancel`, {
   method: "POST",
   headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`, "Content-Type": "application/json" }
 });
@@ -3130,7 +3129,7 @@ const FinanzasPage = () => {
     Promise.all([
       api.finanzas.resumen(),
       api.finanzas.transacciones({ limit: 200 }),
-      fetch(`${API_URL}/api/v1/finance/categories`, {
+      fetch("https://life-hud-backend-production.up.railway.app/api/v1/finance/categories", {
         headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
       }).then(r => r.ok ? r.json() : []).catch(() => []),
     ])
@@ -3201,7 +3200,7 @@ const FinanzasPage = () => {
       const [sum, txnData, cats] = await Promise.all([
         api.finanzas.resumen(),
         api.finanzas.transacciones({ limit: 200 }),
-        fetch(`${API_URL}/api/v1/finance/categories`, {
+        fetch("https://life-hud-backend-production.up.railway.app/api/v1/finance/categories", {
           headers: { "Authorization": `Bearer ${token}` }
         }).then(r => r.ok ? r.json() : []).catch(() => []),
       ]);
@@ -4906,11 +4905,11 @@ const HabitosPage = ({ onHabitUpdate, setGame }) => {
     try {
       const data = await api.habitos.listar();
       // Solo hábitos activos sin prefijo [MALO]
-      const activos = (data || []).filter(h => h.is_active !== false && !h.name?.startsWith("[MALO]`));
+      const activos = (data || []).filter(h => h.is_active !== false && !h.name?.startsWith("[MALO]"));
       const statsArray = await Promise.all(
         activos.map(h =>
-          fetch(`${API_URL}/api/v1/habits/${h.id}/stats`, {
-            headers: { `Authorization": `Bearer ${token}` }
+          fetch(`https://life-hud-backend-production.up.railway.app/api/v1/habits/${h.id}/stats`, {
+            headers: { "Authorization": `Bearer ${token}` }
           }).then(r => r.ok ? r.json() : null).catch(() => null)
         )
       );
@@ -4982,9 +4981,9 @@ const HabitosPage = ({ onHabitUpdate, setGame }) => {
       if (setGame) setGame(g => ({ ...g, xp: g.xp + 1, coins: g.coins + 1 }));
       setToast({ msg: `🔥 ${h.icon} ${h.name} — ¡completado! +${xpGanado} XP`, color: h.color });
       // Obtener streak real del backend
-      const token = localStorage.getItem("life_hud_token`);
-      const actualizado = await fetch(`${API_URL}/api/v1/habits/${id}`, {
-        headers: { `Authorization": `Bearer ${token}` }
+      const token = localStorage.getItem("life_hud_token");
+      const actualizado = await fetch(`https://life-hud-backend-production.up.railway.app/api/v1/habits/${id}`, {
+        headers: { "Authorization": `Bearer ${token}` }
       }).then(r => r.json()).catch(() => null);
       const nuevoStreak = actualizado?.current_streak > 0 ? actualizado.current_streak : h.streak + 1;
       setHabitos(prev => prev.map(hh =>
@@ -7105,13 +7104,13 @@ const LearningPage = () => {
       setShowFormLibro(false);
       setToast({ msg: `📚 "${res.title}" agregado`, color: "#06B6D4" });
     } catch (e) {
-      setToast({ msg: `❌ Error: ${e.message}`, color: "#EF4444` });
+      setToast({ msg: `❌ Error: ${e.message}`, color: "#EF4444" });
     }
   };
 
   const eliminarLibro = async (id) => {
     try {
-      const res = await fetch(`${API_URL}/api/v1/learning/books/${id}`, {
+      const res = await fetch(`https://life-hud-backend-production.up.railway.app/api/v1/learning/books/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
       });
@@ -7124,9 +7123,9 @@ const LearningPage = () => {
   };
 
   const eliminarCurso = async (id, nombre) => {
-    if (!window.confirm(`¿Eliminar "${nombre}`?`)) return;
+    if (!window.confirm(`¿Eliminar "${nombre}"?`)) return;
     try {
-      await fetch(`${API_URL}/api/v1/learning/courses/${id}`, {
+      await fetch(`https://life-hud-backend-production.up.railway.app/api/v1/learning/courses/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
       });
@@ -7880,12 +7879,12 @@ Puedes usar formato de texto libre:
                           defaultValue={b.pages_read || 0}
                           min={0} max={b.total_pages}
                           id={`pages-${b.id}`}
-                          style={{ width: "80px", fontSize: 12, padding: "4px 8px` }} />
+                          style={{ width: "80px", fontSize: 12, padding: "4px 8px" }} />
                         <button onClick={async () => {
                           const input = document.getElementById(`pages-${b.id}`);
                           const pages = parseInt(input?.value || 0);
                           try {
-                            await fetch(`${API_URL}/api/v1/learning/books/${b.id}/pages`, {
+                            await fetch(`https://life-hud-backend-production.up.railway.app/api/v1/learning/books/${b.id}/pages`, {
                               method: "PUT",
                               headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` },
                               body: JSON.stringify({ pages_read: pages })
@@ -8592,7 +8591,7 @@ const FitnessPage = ({ game, setGame }) => {
   const guardarPerfil = async () => {
     setGuardandoPerfil(true);
     try {
-      await fetch(`${API_URL}/api/v1/fitness/profile/setup`, {
+      await fetch("https://life-hud-backend-production.up.railway.app/api/v1/fitness/profile/setup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -8619,7 +8618,7 @@ const FitnessPage = ({ game, setGame }) => {
       .finally(() => setCargandoStats(false));
 
     // Cargar perfil de fitness y adaptar plan semanal
-    fetch(`${API_URL}/api/v1/fitness/profile`, {
+    fetch("https://life-hud-backend-production.up.railway.app/api/v1/fitness/profile", {
       headers: { "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}` }
     })
     .then(async r => {
@@ -10194,7 +10193,7 @@ const PlaceholderPage = ({ name, icon }) => (
 // 2. El resto del archivo (mockData, componentes, etc.) NO cambia.
 // ============================================================
 
-const API_BASE = `${API_URL}/api/v1`;
+const API_BASE = "https://life-hud-backend-production.up.railway.app/api/v1";
 
 // ── Helpers de autenticación ─────────────────────────────────
 const getToken  = () => localStorage.getItem("life_hud_token");
@@ -10408,7 +10407,7 @@ const LoginPage = ({ onLogin }) => {
 
         {/* Footer */}
         <div style={{ textAlign: "center", marginTop: 20, fontSize: 11, color: "#2D2D45" }}>
-          Life HUD v1.0 · Backend: https://life-hud-backend-production.up.railway.app/api/v1
+          Life HUD v1.0 · Backend: {API_BASE}
         </div>
       </div>
     </div>
@@ -10575,11 +10574,11 @@ export default function LifeHUD() {
     api.habitos.listar()
       .then(async data => {
         const activos = (data || []).filter(h => h.is_active !== false && !h.name?.startsWith("[MALO]"));
-        const hoy = new Date().toISOString().split("T`)[0];
+        const hoy = new Date().toISOString().split("T")[0];
         const statsArr = await Promise.all(
           activos.map(h =>
-            fetch(`${API_URL}/api/v1/habits/${h.id}/stats`, {
-              headers: { `Authorization": `Bearer ${token8}` }
+            fetch(`https://life-hud-backend-production.up.railway.app/api/v1/habits/${h.id}/stats`, {
+              headers: { "Authorization": `Bearer ${token8}` }
             }).then(r => r.ok ? r.json() : null).catch(() => null)
           )
         );
