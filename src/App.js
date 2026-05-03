@@ -3059,6 +3059,7 @@ const FinanzasPage = () => {
   const [resumen, setResumen] = useState({ balance: 0, monthIncome: 0, monthExpense: 0, savingsRate: 0 });
   const [presupuesto, setPresupuesto] = useState([]);
   const [historialMensual, setHistorialMensual] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [activos, setActivos] = useState(() => {
     try { return JSON.parse(localStorage.getItem("lifehud_activos") || "[]"); } catch { return []; }
   });
@@ -3171,6 +3172,9 @@ const FinanzasPage = () => {
         }));
       setHistorialMensual(historial);
 
+      // Guardar categorías en estado para usarlas al crear transacciones
+      setCategorias(cats || []);
+
       // Construir presupuesto desde categorías reales
       const catExpense = (cats || []).filter(c => c.type === "expense");
       if (catExpense.length > 0) {
@@ -3279,15 +3283,40 @@ const FinanzasPage = () => {
   const addTxn = async () => {
     if (!form.desc || !form.amount) return;
     try {
-      const CATEGORY_IDS = {
-        income:  "8849a4a9-b885-4527-b4d7-9faa160d7256",
-        expense: "f899a8bf-226d-427c-b7f6-0fb0632953db",
-      };
+      // Buscar categoría real del tipo correcto (income/expense)
+      const catReal = categorias.find(c => c.type === form.type);
+      // Si no existe, crearla automáticamente
+      let categoryId = catReal?.id || null;
+      if (!categoryId) {
+        try {
+          const labels = { income: "Ingresos", expense: "Gastos" };
+          const colors = { income: "#10B981", expense: "#EF4444" };
+          const catNueva = await fetch(
+            "https://life-hud-backend-production.up.railway.app/api/v1/finance/categories",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`,
+              },
+              body: JSON.stringify({
+                name:  labels[form.type] || "General",
+                type:  form.type,
+                color: colors[form.type] || "#7C3AED",
+              }),
+            }
+          ).then(r => r.ok ? r.json() : null);
+          if (catNueva?.id) {
+            categoryId = catNueva.id;
+            setCategorias(prev => [...prev, catNueva]);
+          }
+        } catch (_) {}
+      }
       const nueva = await api.finanzas.crearTransaccion({
         amount:           parseFloat(form.amount),
         description:      form.desc,
         transaction_date: new Date().toISOString().split("T")[0],
-        category_id:      CATEGORY_IDS[form.type] || null,
+        category_id:      categoryId,
         tags:             [],
       });
       const mapeada = {
