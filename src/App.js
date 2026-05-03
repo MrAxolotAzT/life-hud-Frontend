@@ -447,8 +447,8 @@ const getGlobalStyles = (light = false) => `
   .ai-thinking { background:linear-gradient(90deg,#12121E,#1A1230,#12121E);background-size:200% 100%;animation:shimmer 1.8s infinite;border-radius:8px;padding:14px; }
   .toast { position:fixed;bottom:24px;right:24px;padding:12px 18px;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;z-index:1001;animation:toastIn 0.3s ease both; }
   .scanline { position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(124,58,237,0.3),transparent);animation:scanline 8s linear infinite;pointer-events:none;z-index:999; }
-  .modal-bg { position:fixed;inset:0;background:${light ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.75)"};backdrop-filter:blur(5px);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto; }
-  .modal { background:${light ? "linear-gradient(145deg,#FFFFFF,#F8FAFC)" : "linear-gradient(145deg,#13131F,#0F0F1A)"};border:1px solid ${light ? "#E2E8F0" : "#2A2A3A"};border-radius:16px;padding:24px;animation:modalIn 0.25s ease both;max-height:90vh;overflow-y:auto;width:90vw;max-width:520px;margin:auto; }
+  .modal-bg { position:fixed;inset:0;background:${light ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.8)"};backdrop-filter:blur(6px);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto; }
+  .modal { background:${light ? "linear-gradient(145deg,#FFFFFF,#F8FAFC)" : "linear-gradient(145deg,#13131F,#0F0F1A)"};border:1px solid ${light ? "#E2E8F0" : "#2A2A3A"};border-radius:16px;padding:24px;animation:modalIn 0.25s ease both;max-height:88vh;overflow-y:auto;width:90vw;max-width:520px;margin:auto;position:relative; }
   input, select, textarea { font-family:'Rajdhani',sans-serif;font-size:13px;background:${light ? "#FFFFFF" : "#0F0F18"};border:1px solid ${light ? "#CBD5E1" : "#2D2D45"};border-radius:8px;color:${light ? "#1E293B" : "#F1F5F9"};padding:8px 12px;outline:none;transition:border-color 0.15s;width:100%; }
   input:focus, select:focus, textarea:focus { border-color:#7C3AED; }
   input::placeholder, textarea::placeholder { color:#4A5568; }
@@ -456,13 +456,61 @@ const getGlobalStyles = (light = false) => `
   .fab:hover { transform:scale(1.1);box-shadow:0 6px 24px rgba(16,185,129,0.7); }
   /* ── RESPONSIVE MÓVIL ── */
   html { -webkit-text-size-adjust:100%; }
+
+  /* Móvil: layout general */
   @media (max-width:768px) {
-    .page { padding-bottom:80px !important; }
-    .modal { width:96vw !important;max-width:96vw !important;padding:16px !important;max-height:85vh !important;overflow-y:auto !important; }
+    /* Página */
+    .page { padding-bottom:88px !important; }
+
+    /* Modales: centrados, nunca cortados */
     .modal-bg { padding:12px !important;align-items:center !important; }
-    .fab { bottom:80px !important;right:16px !important;width:44px !important;height:44px !important;font-size:20px !important; }
-    .section-title { font-size:9px !important; }
-    .btn-primary, .btn-secondary, .btn-success, .btn-danger { padding:8px 12px !important;font-size:12px !important; }
+    .modal {
+      width:calc(100vw - 24px) !important;
+      max-width:calc(100vw - 24px) !important;
+      padding:18px 14px !important;
+      max-height:82vh !important;
+      overflow-y:auto !important;
+      margin:auto !important;
+      border-radius:14px !important;
+    }
+
+    /* Cards: menos padding */
+    .card { border-radius:10px !important; }
+
+    /* Botones: más fáciles de tocar */
+    .btn-primary, .btn-secondary, .btn-success, .btn-danger {
+      padding:10px 14px !important;
+      font-size:13px !important;
+      border-radius:8px !important;
+      min-height:40px !important;
+    }
+
+    /* FAB */
+    .fab { bottom:84px !important;right:14px !important;width:44px !important;height:44px !important;font-size:20px !important; }
+
+    /* Títulos de sección */
+    .section-title { font-size:9px !important;letter-spacing:1px !important; }
+
+    /* Inputs más grandes para touch */
+    input, select, textarea { font-size:14px !important;padding:10px 12px !important;min-height:42px !important; }
+
+    /* Transacciones */
+    .txn-row { padding:10px 12px !important;gap:10px !important; }
+
+    /* Ejercicios */
+    .exercise-row { padding:10px 12px !important; }
+
+    /* Rutinas fitness */
+    .routine-card { padding:12px !important; }
+
+    /* Nav items */
+    .nav-item { padding:6px 2px !important;font-size:8px !important;gap:2px !important; }
+  }
+
+  /* Pantallas muy pequeñas (< 380px) */
+  @media (max-width:380px) {
+    .modal { padding:14px 10px !important; }
+    .btn-primary, .btn-secondary, .btn-success, .btn-danger { padding:9px 10px !important;font-size:12px !important; }
   }
 `;
 
@@ -3059,6 +3107,7 @@ const FinanzasPage = () => {
   const [resumen, setResumen] = useState({ balance: 0, monthIncome: 0, monthExpense: 0, savingsRate: 0 });
   const [presupuesto, setPresupuesto] = useState([]);
   const [historialMensual, setHistorialMensual] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [activos, setActivos] = useState(() => {
     try { return JSON.parse(localStorage.getItem("lifehud_activos") || "[]"); } catch { return []; }
   });
@@ -3171,6 +3220,9 @@ const FinanzasPage = () => {
         }));
       setHistorialMensual(historial);
 
+      // Guardar categorías reales para usarlas al crear transacciones
+      setCategorias(cats || []);
+
       // Construir presupuesto desde categorías reales
       const catExpense = (cats || []).filter(c => c.type === "expense");
       if (catExpense.length > 0) {
@@ -3279,15 +3331,32 @@ const FinanzasPage = () => {
   const addTxn = async () => {
     if (!form.desc || !form.amount) return;
     try {
-      const CATEGORY_IDS = {
-        income:  "8849a4a9-b885-4527-b4d7-9faa160d7256",
-        expense: "f899a8bf-226d-427c-b7f6-0fb0632953db",
-      };
+      // Buscar categoría real o crearla si no existe
+      const catReal = categorias.find(c => c.type === form.type);
+      let categoryId = catReal?.id || null;
+      if (!categoryId) {
+        try {
+          const labels = { income: "Ingresos", expense: "Gastos" };
+          const colors = { income: "#10B981", expense: "#EF4444" };
+          const catNueva = await fetch(
+            "https://life-hud-backend-production.up.railway.app/api/v1/finance/categories",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`,
+              },
+              body: JSON.stringify({ name: labels[form.type] || "General", type: form.type, color: colors[form.type] || "#7C3AED" }),
+            }
+          ).then(r => r.ok ? r.json() : null);
+          if (catNueva?.id) { categoryId = catNueva.id; setCategorias(prev => [...prev, catNueva]); }
+        } catch (_) {}
+      }
       const nueva = await api.finanzas.crearTransaccion({
         amount:           parseFloat(form.amount),
         description:      form.desc,
         transaction_date: new Date().toISOString().split("T")[0],
-        category_id:      CATEGORY_IDS[form.type] || null,
+        category_id:      categoryId,
         tags:             [],
       });
       const mapeada = {
@@ -9071,7 +9140,7 @@ const FitnessPage = ({ game, setGame }) => {
                   </div>
 
                   {/* Calendario mensual */}
-                  <div className="card" style={{ padding: 14 }}>
+                  <div className="card" style={{ padding: 12 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                       <div className="section-title" style={{ margin: 0, textTransform: "capitalize" }}>
                         🗓️ {nombreMes}
@@ -9149,7 +9218,7 @@ const FitnessPage = ({ game, setGame }) => {
                         { l: "Este mes", v: `${Math.round((entrenadosMes / diasEnMes) * 100)}%`, c: "#7C3AED" },
                       ].map(s => (
                         <div key={s.l} style={{ textAlign: "center" }}>
-                          <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 16, fontWeight: 900, color: s.c }}>{s.v}</div>
+                          <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 15, fontWeight: 900, color: s.c }}>{s.v}</div>
                           <div style={{ fontSize: 9, color: "#4A5568" }}>{s.l}</div>
                         </div>
                       ))}
@@ -10501,23 +10570,24 @@ export default function LifeHUD() {
     localStorage.setItem('lifehud_notif_config', JSON.stringify(nueva));
   };
 
-  // ── Reset automático de hábitos/tareas a medianoche (hora local) ──
+  // ── Reset automático a medianoche (hora local del usuario) ──────────
   useEffect(() => {
     if (!authUser) return;
-    const STORAGE_KEY = "lifehud_last_reset_date";
+    const KEY = "lifehud_last_reset_date";
 
-    const checkMidnight = () => {
-      const hoy = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD en hora local
-      const ultimo = localStorage.getItem(STORAGE_KEY);
+    const checkReset = () => {
+      // toLocaleDateString con en-CA da YYYY-MM-DD en hora local
+      const hoy = new Date().toLocaleDateString("en-CA");
+      const ultimo = localStorage.getItem(KEY);
       if (ultimo && ultimo !== hoy) {
-        // Es un día nuevo — recargar hábitos desde el backend para ver estado fresco
+        // Día nuevo: recargar hábitos desde backend
         api.habitos.listar()
           .then(data => {
             if (Array.isArray(data)) {
               setHabits(data.map(h => ({
                 id:     h.id,
                 name:   h.name,
-                done:   false, // nuevo día = sin completar
+                done:   false,
                 streak: h.current_streak || 0,
                 color:  h.color || "#7C3AED",
                 icon:   h.icon || "⭐",
@@ -10527,27 +10597,27 @@ export default function LifeHUD() {
           })
           .catch(() => {});
       }
-      localStorage.setItem(STORAGE_KEY, hoy);
+      localStorage.setItem(KEY, hoy);
     };
 
-    // Revisar al cargar
-    checkMidnight();
+    checkReset();
 
-    // Calcular milisegundos hasta la próxima medianoche local
-    const ahora = new Date();
-    const manana = new Date(ahora);
-    manana.setDate(manana.getDate() + 1);
-    manana.setHours(0, 0, 1, 0); // 00:00:01 del día siguiente
-    const msHastaMedianoche = manana - ahora;
+    // Timer exacto hasta la próxima medianoche local
+    const calcMs = () => {
+      const ahora = new Date();
+      const manana = new Date(ahora);
+      manana.setDate(manana.getDate() + 1);
+      manana.setHours(0, 0, 5, 0);
+      return manana - ahora;
+    };
 
-    // Ejecutar exactamente a medianoche, luego cada 24h
+    let interval;
     const timeout = setTimeout(() => {
-      checkMidnight();
-      const intervalo = setInterval(checkMidnight, 24 * 60 * 60 * 1000);
-      return () => clearInterval(intervalo);
-    }, msHastaMedianoche);
+      checkReset();
+      interval = setInterval(checkReset, 24 * 60 * 60 * 1000);
+    }, calcMs());
 
-    return () => clearTimeout(timeout);
+    return () => { clearTimeout(timeout); clearInterval(interval); };
   }, [authUser]);
 
   // Revisar cada minuto si corresponde disparar alguna notificación
@@ -10908,7 +10978,7 @@ export default function LifeHUD() {
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, overflow: "auto", padding: isMobile ? "10px 12px 80px" : "14px 24px 24px" }}>{renderPage()}</div>
+        <div style={{ flex: 1, overflow: "auto", padding: isMobile ? "12px 14px 90px" : "14px 24px 24px" }}>{renderPage()}</div>
       </div>
 
       {/* FAB global */}
