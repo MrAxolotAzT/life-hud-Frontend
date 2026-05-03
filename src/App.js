@@ -447,8 +447,8 @@ const getGlobalStyles = (light = false) => `
   .ai-thinking { background:linear-gradient(90deg,#12121E,#1A1230,#12121E);background-size:200% 100%;animation:shimmer 1.8s infinite;border-radius:8px;padding:14px; }
   .toast { position:fixed;bottom:24px;right:24px;padding:12px 18px;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;z-index:1001;animation:toastIn 0.3s ease both; }
   .scanline { position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(124,58,237,0.3),transparent);animation:scanline 8s linear infinite;pointer-events:none;z-index:999; }
-  .modal-bg { position:fixed;inset:0;background:${light ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.75)"};backdrop-filter:blur(5px);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto; }
-  .modal { background:${light ? "linear-gradient(145deg,#FFFFFF,#F8FAFC)" : "linear-gradient(145deg,#13131F,#0F0F1A)"};border:1px solid ${light ? "#E2E8F0" : "#2A2A3A"};border-radius:16px;padding:24px;animation:modalIn 0.25s ease both;max-height:88vh;overflow-y:auto;width:90vw;max-width:520px; }
+  .modal-bg { position:fixed;inset:0;background:${light ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.75)"};backdrop-filter:blur(5px);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto; }
+  .modal { background:${light ? "linear-gradient(145deg,#FFFFFF,#F8FAFC)" : "linear-gradient(145deg,#13131F,#0F0F1A)"};border:1px solid ${light ? "#E2E8F0" : "#2A2A3A"};border-radius:16px;padding:24px;animation:modalIn 0.25s ease both;max-height:90vh;overflow-y:auto;width:90vw;max-width:520px;margin:auto; }
   input, select, textarea { font-family:'Rajdhani',sans-serif;font-size:13px;background:${light ? "#FFFFFF" : "#0F0F18"};border:1px solid ${light ? "#CBD5E1" : "#2D2D45"};border-radius:8px;color:${light ? "#1E293B" : "#F1F5F9"};padding:8px 12px;outline:none;transition:border-color 0.15s;width:100%; }
   input:focus, select:focus, textarea:focus { border-color:#7C3AED; }
   input::placeholder, textarea::placeholder { color:#4A5568; }
@@ -458,8 +458,8 @@ const getGlobalStyles = (light = false) => `
   html { -webkit-text-size-adjust:100%; }
   @media (max-width:768px) {
     .page { padding-bottom:80px !important; }
-    .modal { width:96vw !important;max-width:96vw !important;padding:16px !important; }
-    .modal-bg { padding:16px 8px !important;align-items:flex-end !important; }
+    .modal { width:96vw !important;max-width:96vw !important;padding:16px !important;max-height:85vh !important;overflow-y:auto !important; }
+    .modal-bg { padding:12px !important;align-items:center !important; }
     .fab { bottom:80px !important;right:16px !important;width:44px !important;height:44px !important;font-size:20px !important; }
     .section-title { font-size:9px !important; }
     .btn-primary, .btn-secondary, .btn-success, .btn-danger { padding:8px 12px !important;font-size:12px !important; }
@@ -3059,7 +3059,6 @@ const FinanzasPage = () => {
   const [resumen, setResumen] = useState({ balance: 0, monthIncome: 0, monthExpense: 0, savingsRate: 0 });
   const [presupuesto, setPresupuesto] = useState([]);
   const [historialMensual, setHistorialMensual] = useState([]);
-  const [categorias, setCategorias] = useState([]);
   const [activos, setActivos] = useState(() => {
     try { return JSON.parse(localStorage.getItem("lifehud_activos") || "[]"); } catch { return []; }
   });
@@ -3172,9 +3171,6 @@ const FinanzasPage = () => {
         }));
       setHistorialMensual(historial);
 
-      // Guardar categorías en estado para usarlas al crear transacciones
-      setCategorias(cats || []);
-
       // Construir presupuesto desde categorías reales
       const catExpense = (cats || []).filter(c => c.type === "expense");
       if (catExpense.length > 0) {
@@ -3283,40 +3279,15 @@ const FinanzasPage = () => {
   const addTxn = async () => {
     if (!form.desc || !form.amount) return;
     try {
-      // Buscar categoría real del tipo correcto (income/expense)
-      const catReal = categorias.find(c => c.type === form.type);
-      // Si no existe, crearla automáticamente
-      let categoryId = catReal?.id || null;
-      if (!categoryId) {
-        try {
-          const labels = { income: "Ingresos", expense: "Gastos" };
-          const colors = { income: "#10B981", expense: "#EF4444" };
-          const catNueva = await fetch(
-            "https://life-hud-backend-production.up.railway.app/api/v1/finance/categories",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("life_hud_token")}`,
-              },
-              body: JSON.stringify({
-                name:  labels[form.type] || "General",
-                type:  form.type,
-                color: colors[form.type] || "#7C3AED",
-              }),
-            }
-          ).then(r => r.ok ? r.json() : null);
-          if (catNueva?.id) {
-            categoryId = catNueva.id;
-            setCategorias(prev => [...prev, catNueva]);
-          }
-        } catch (_) {}
-      }
+      const CATEGORY_IDS = {
+        income:  "8849a4a9-b885-4527-b4d7-9faa160d7256",
+        expense: "f899a8bf-226d-427c-b7f6-0fb0632953db",
+      };
       const nueva = await api.finanzas.crearTransaccion({
         amount:           parseFloat(form.amount),
         description:      form.desc,
         transaction_date: new Date().toISOString().split("T")[0],
-        category_id:      categoryId,
+        category_id:      CATEGORY_IDS[form.type] || null,
         tags:             [],
       });
       const mapeada = {
@@ -9100,7 +9071,7 @@ const FitnessPage = ({ game, setGame }) => {
                   </div>
 
                   {/* Calendario mensual */}
-                  <div className="card" style={{ padding: 18 }}>
+                  <div className="card" style={{ padding: 14 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                       <div className="section-title" style={{ margin: 0, textTransform: "capitalize" }}>
                         🗓️ {nombreMes}
@@ -9126,7 +9097,7 @@ const FitnessPage = ({ game, setGame }) => {
                     </div>
 
                     {/* Días del mes */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 3 }}>
                       {/* Espacios en blanco para el offset */}
                       {Array(offsetLun).fill(null).map((_, i) => (
                         <div key={`off-${i}`} />
@@ -9162,7 +9133,7 @@ const FitnessPage = ({ game, setGame }) => {
                         }
                         return (
                           <div key={numDia}
-                            style={{ aspectRatio: "1", borderRadius: 6, background: bg, border: `1px solid ${borderC}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: esHoy ? 900 : fueEntren ? 700 : 400, color: textC, fontFamily: esHoy || fueEntren ? "'Orbitron',monospace" : "'Rajdhani',sans-serif", transition: "all 0.2s", position: "relative" }}>
+                            style={{ aspectRatio: "1", borderRadius: 4, background: bg, border: `1px solid ${borderC}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: esHoy ? 900 : fueEntren ? 700 : 400, color: textC, fontFamily: esHoy || fueEntren ? "'Orbitron',monospace" : "'Rajdhani',sans-serif", transition: "all 0.2s", position: "relative" }}>
                             {numDia}
                             {fueEntren && <div style={{ position: "absolute", top: 1, right: 2, fontSize: 7 }}>✓</div>}
                           </div>
@@ -9178,8 +9149,8 @@ const FitnessPage = ({ game, setGame }) => {
                         { l: "Este mes", v: `${Math.round((entrenadosMes / diasEnMes) * 100)}%`, c: "#7C3AED" },
                       ].map(s => (
                         <div key={s.l} style={{ textAlign: "center" }}>
-                          <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 20, fontWeight: 900, color: s.c }}>{s.v}</div>
-                          <div style={{ fontSize: 10, color: "#4A5568" }}>{s.l}</div>
+                          <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 16, fontWeight: 900, color: s.c }}>{s.v}</div>
+                          <div style={{ fontSize: 9, color: "#4A5568" }}>{s.l}</div>
                         </div>
                       ))}
                     </div>
@@ -10529,6 +10500,55 @@ export default function LifeHUD() {
     setNotifConfig(nueva);
     localStorage.setItem('lifehud_notif_config', JSON.stringify(nueva));
   };
+
+  // ── Reset automático de hábitos/tareas a medianoche (hora local) ──
+  useEffect(() => {
+    if (!authUser) return;
+    const STORAGE_KEY = "lifehud_last_reset_date";
+
+    const checkMidnight = () => {
+      const hoy = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD en hora local
+      const ultimo = localStorage.getItem(STORAGE_KEY);
+      if (ultimo && ultimo !== hoy) {
+        // Es un día nuevo — recargar hábitos desde el backend para ver estado fresco
+        api.habitos.listar()
+          .then(data => {
+            if (Array.isArray(data)) {
+              setHabits(data.map(h => ({
+                id:     h.id,
+                name:   h.name,
+                done:   false, // nuevo día = sin completar
+                streak: h.current_streak || 0,
+                color:  h.color || "#7C3AED",
+                icon:   h.icon || "⭐",
+                frequency: h.frequency,
+              })));
+            }
+          })
+          .catch(() => {});
+      }
+      localStorage.setItem(STORAGE_KEY, hoy);
+    };
+
+    // Revisar al cargar
+    checkMidnight();
+
+    // Calcular milisegundos hasta la próxima medianoche local
+    const ahora = new Date();
+    const manana = new Date(ahora);
+    manana.setDate(manana.getDate() + 1);
+    manana.setHours(0, 0, 1, 0); // 00:00:01 del día siguiente
+    const msHastaMedianoche = manana - ahora;
+
+    // Ejecutar exactamente a medianoche, luego cada 24h
+    const timeout = setTimeout(() => {
+      checkMidnight();
+      const intervalo = setInterval(checkMidnight, 24 * 60 * 60 * 1000);
+      return () => clearInterval(intervalo);
+    }, msHastaMedianoche);
+
+    return () => clearTimeout(timeout);
+  }, [authUser]);
 
   // Revisar cada minuto si corresponde disparar alguna notificación
   useEffect(() => {
